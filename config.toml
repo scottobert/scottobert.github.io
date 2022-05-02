@@ -1,0 +1,4 @@
+baseURL = 'https://scottobert.github.io/'
+languageCode = 'en-us'
+title = 'Scott Obert'
+theme = 'ananke'
