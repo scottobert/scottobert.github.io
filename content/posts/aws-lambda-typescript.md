@@ -31,7 +31,7 @@ Now, let's get started:
 
 Create a new directory for your project and navigate to that directory in your terminal. Run the following command to create a new TypeScript project:
 
-`$ npx typescript --init`
+`$ tsc --init`
 
 This will create a `tsconfig.json` file that TypeScript will use to compile your code.
 
