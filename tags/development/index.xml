@@ -1,4 +1,71 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Development on Scott Obert</title><link>https://scottobert.github.io/tags/development/</link><description>Recent content in Development on Scott Obert</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>&amp;copy;2022 Scott Obert</copyright><lastBuildDate>Thu, 21 Apr 2022 09:50:32 -0700</lastBuildDate><atom:link href="https://scottobert.github.io/tags/development/index.xml" rel="self" type="application/rss+xml"/><item><title>git reset to a given commit</title><link>https://scottobert.github.io/posts/git-reset-to-commit/</link><pubDate>Thu, 21 Apr 2022 09:50:32 -0700</pubDate><guid>https://scottobert.github.io/posts/git-reset-to-commit/</guid><description>When you want to reset to a given commit in git history, but don&amp;rsquo;t want to lose the commits that came later.
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Development on Scott Obert</title><link>https://scottobert.github.io/tags/development/</link><description>Recent content in Development on Scott Obert</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>&amp;copy;2022 Scott Obert</copyright><lastBuildDate>Fri, 17 Feb 2023 13:30:32 -0700</lastBuildDate><atom:link href="https://scottobert.github.io/tags/development/index.xml" rel="self" type="application/rss+xml"/><item><title>How to deploy an AWS Lambda function written in TypeScript using SAM CLI</title><link>https://scottobert.github.io/posts/aws-lambda-typescript/</link><pubDate>Fri, 17 Feb 2023 13:30:32 -0700</pubDate><guid>https://scottobert.github.io/posts/aws-lambda-typescript/</guid><description>Welcome to the world of AWS Serverless! In this blog post, we will be discussing how to deploy an AWS Lambda function written in TypeScript using the AWS SAM CLI.
+AWS Lambda is a compute service that allows you to run your code in response to events or triggers, such as changes to data in an S3 bucket, or updates to a DynamoDB table. AWS Serverless Application Model (SAM) is an open-source framework for building serverless applications.</description><content>&lt;p>Welcome to the world of AWS Serverless! In this blog post, we will be discussing how to deploy an AWS Lambda function written in TypeScript using the AWS SAM CLI.&lt;/p>
+&lt;p>AWS Lambda is a compute service that allows you to run your code in response to events or triggers, such as changes to data in an S3 bucket, or updates to a DynamoDB table. AWS Serverless Application Model (SAM) is an open-source framework for building serverless applications. The SAM CLI provides a local development and testing environment for AWS Serverless applications.&lt;/p>
+&lt;h2 id="prerequisites">Prerequisites&lt;/h2>
+&lt;p>Before we dive into the instructions, let&amp;rsquo;s make sure we have the prerequisites installed:&lt;/p>
+&lt;ul>
+&lt;li>Node.js (v10.x or later)&lt;/li>
+&lt;li>AWS CLI (v2.x or later)&lt;/li>
+&lt;li>SAM CLI (v1.x or later)&lt;/li>
+&lt;li>TypeScript (v3.x or later)&lt;/li>
+&lt;li>An AWS account with appropriate permissions&lt;/li>
+&lt;/ul>
+&lt;h2 id="instructions">Instructions&lt;/h2>
+&lt;p>Now, let&amp;rsquo;s get started:&lt;/p>
+&lt;ol>
+&lt;li>Create a new TypeScript project&lt;/li>
+&lt;/ol>
+&lt;p>Create a new directory for your project and navigate to that directory in your terminal. Run the following command to create a new TypeScript project:&lt;/p>
+&lt;p>&lt;code>$ tsc --init&lt;/code>&lt;/p>
+&lt;p>This will create a &lt;code>tsconfig.json&lt;/code> file that TypeScript will use to compile your code.&lt;/p>
+&lt;ol start="2">
+&lt;li>Install necessary dependencies&lt;/li>
+&lt;/ol>
+&lt;p>We will be using the &lt;code>aws-sdk&lt;/code> and &lt;code>aws-lambda&lt;/code> modules in our Lambda function. Run the following command to install the necessary dependencies:&lt;/p>
+&lt;p>&lt;code>$ npm install --save aws-sdk aws-lambda&lt;/code>&lt;/p>
+&lt;ol start="3">
+&lt;li>Write your Lambda function code&lt;/li>
+&lt;/ol>
+&lt;p>Create a new file in your project directory called &lt;code>handler.ts&lt;/code> and write your Lambda function code. For example, let&amp;rsquo;s create a simple function that returns the current date and time:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-typescript" data-lang="typescript">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">import&lt;/span> { &lt;span style="color:#a6e22e">APIGatewayProxyEvent&lt;/span>, &lt;span style="color:#a6e22e">APIGatewayProxyResult&lt;/span> } &lt;span style="color:#66d9ef">from&lt;/span> &lt;span style="color:#e6db74">&amp;#39;aws-lambda&amp;#39;&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">export&lt;/span> &lt;span style="color:#66d9ef">const&lt;/span> &lt;span style="color:#a6e22e">handler&lt;/span> &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#66d9ef">async&lt;/span> (&lt;span style="color:#a6e22e">event&lt;/span>: &lt;span style="color:#66d9ef">APIGatewayProxyEvent&lt;/span>)&lt;span style="color:#f92672">:&lt;/span> &lt;span style="color:#a6e22e">Promise&lt;/span>&amp;lt;&lt;span style="color:#f92672">APIGatewayProxyResult&lt;/span>&amp;gt; &lt;span style="color:#f92672">=&amp;gt;&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">statusCode&lt;/span>: &lt;span style="color:#66d9ef">200&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">body&lt;/span>: &lt;span style="color:#66d9ef">JSON.stringify&lt;/span>({
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#a6e22e">message&lt;/span>&lt;span style="color:#f92672">:&lt;/span> &lt;span style="color:#e6db74">`Hello from AWS Lambda! The current time is &lt;/span>&lt;span style="color:#e6db74">${&lt;/span>&lt;span style="color:#66d9ef">new&lt;/span> Date().&lt;span style="color:#a6e22e">toTimeString&lt;/span>()&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">.`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> };
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>};
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ol start="4">
+&lt;li>Define your SAM template&lt;/li>
+&lt;/ol>
+&lt;p>Create a new file in your project directory called template.yaml and define your SAM template. Here is an example:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">AWSTemplateFormatVersion&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;2010-09-09&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">Transform&lt;/span>: &lt;span style="color:#ae81ff">AWS::Serverless-2016-10-31&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">Resources&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">MyFunction&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">Type&lt;/span>: &lt;span style="color:#ae81ff">AWS::Serverless::Function&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">Properties&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">Handler&lt;/span>: &lt;span style="color:#ae81ff">dist/handler.handler&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">Runtime&lt;/span>: &lt;span style="color:#ae81ff">nodejs14.x&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">CodeUri&lt;/span>: &lt;span style="color:#ae81ff">./&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">MemorySize&lt;/span>: &lt;span style="color:#ae81ff">128&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">Timeout&lt;/span>: &lt;span style="color:#ae81ff">10&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">Events&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">GetEvent&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">Type&lt;/span>: &lt;span style="color:#ae81ff">Api&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">Properties&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">Path&lt;/span>: &lt;span style="color:#ae81ff">/my-function&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">Method&lt;/span>: &lt;span style="color:#ae81ff">get&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>This template defines a new AWS Lambda function with a memory size of 128MB and a timeout of 10 seconds. The function is triggered by an HTTP GET request to the /my-function endpoint.&lt;/p>
+&lt;ol start="5">
+&lt;li>Build and package your TypeScript code&lt;/li>
+&lt;/ol>
+&lt;p>Run the following command to build your TypeScript code: &lt;code>$ npm run build&lt;/code>&lt;/p>
+&lt;p>This will compile your TypeScript code into JavaScript and output it to a new dist directory.&lt;/p>
+&lt;p>Run the following command to package your code into a ZIP file: &lt;code>$ sam package --template-file template.yaml --output-template-file packaged.yaml --s3-bucket your-s3-bucket&lt;/code>&lt;/p>
+&lt;p>This will create a new packaged.yaml file that contains your AWS SAM template and a ZIP file with your compiled code.&lt;/p></content></item><item><title>git reset to a given commit</title><link>https://scottobert.github.io/posts/git-reset-to-commit/</link><pubDate>Thu, 21 Apr 2022 09:50:32 -0700</pubDate><guid>https://scottobert.github.io/posts/git-reset-to-commit/</guid><description>When you want to reset to a given commit in git history, but don&amp;rsquo;t want to lose the commits that came later.
 # Reset the index and working tree to the desired tree # Ensure you have no uncommitted changes that you want to keep git reset --hard 56e05fced # Move the branch pointer back to the previous HEAD git reset --soft &amp;#34;HEAD@{1}&amp;#34; git commit -m &amp;#34;Revert to 56e05fced&amp;#34;</description><content>&lt;p>When you want to reset to a given commit in git history, but don&amp;rsquo;t want to lose the commits that came later.&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-shell" data-lang="shell">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># Reset the index and working tree to the desired tree&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># Ensure you have no uncommitted changes that you want to keep&lt;/span>
