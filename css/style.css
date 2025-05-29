@@ -170,6 +170,79 @@ nav a:hover {
   line-height: 1.5;
 }
 
+.npm-packages {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 2px solid #f0f0f0;
+}
+
+.npm-packages h2 {
+  color: #0d2440;
+  font-size: 1.3rem;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.npm-package {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.npm-package:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.npm-package h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+}
+
+.npm-package h3 a {
+  color: #005f87;
+  text-decoration: none;
+  font-family: 'Fira Mono', 'Consolas', 'Liberation Mono', monospace;
+}
+
+.npm-package h3 a:hover {
+  color: #0d2440;
+}
+
+.package-description {
+  font-size: 0.95rem;
+  color: #555;
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+}
+
+.package-meta {
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.package-meta .version {
+  margin-right: 1rem;
+}
+
+.package-meta .repo-link {
+  color: #005f87;
+  text-decoration: none;
+}
+
+.package-meta .repo-link:hover {
+  text-decoration: underline;
+}
+
+.no-packages, .error {
+  color: #666;
+  font-style: italic;
+  font-size: 0.95rem;
+}
+
 @media (max-width: 900px) {
   .home-layout {
     grid-template-columns: 1fr;
