@@ -1,0 +1,12 @@
+{{ define "main" }}
+<article class="post">
+  <h1>{{ .Title }}</h1>
+  <div class="post-meta">
+    <span>{{ .Date.Format "Jan 2, 2006" }}</span>
+    {{ with .Params.tags }}<span> | Tags: {{ delimit . ", " }}</span>{{ end }}
+  </div>
+  <div class="post-content">
+    {{ .Content }}
+  </div>
+</article>
+{{ end }}

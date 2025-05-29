@@ -1,0 +1,181 @@
+body {
+  font-family: 'Segoe UI', 'Liberation Sans', Arial, sans-serif;
+  background: #f7f9fa;
+  color: #222;
+  margin: 0;
+  padding: 0;
+}
+.container {
+  margin: 0 auto;
+  padding: 2rem;
+}
+header, footer {
+  background: #0d2440;
+  color: #fff;
+  padding: 1rem 0;
+}
+header h1, footer p {
+  margin: 0;
+}
+header h1 a {
+  color: #fff;
+  text-decoration: none;
+}
+header h1 a:hover {
+  color: #f0f0f0;
+}
+nav a {
+  color: #fff;
+  margin-right: 1rem;
+  text-decoration: none;
+  font-weight: 500;
+}
+nav a:hover {
+  color: #f0f0f0;
+}
+nav a:hover {
+  text-decoration: underline;
+}
+.post {
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+.post-content {
+  font-family: 'Fira Mono', 'Consolas', 'Liberation Mono', monospace;
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: #222;
+}
+.post-meta {
+  color: #888;
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+}
+.post-list ul {
+  list-style: none;
+  padding: 0;
+}
+.post-list li {
+  margin-bottom: 1.2rem;
+}
+.post-list a {
+  font-family: 'Fira Mono', 'Consolas', 'Liberation Mono', monospace;
+  color: #005f87;
+  font-size: 1.1rem;
+}
+.post-list .date {
+  color: #888;
+  margin-left: 0.5rem;
+  font-size: 0.95rem;
+}
+.about-page {
+  margin: 0 auto;
+  padding: 2rem;
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.about-content {
+  font-family: 'Segoe UI', 'Liberation Sans', Arial, sans-serif;
+  line-height: 1.7;
+}
+.about-content h2 {
+  color: #005f87;
+  margin-top: 2rem;
+  font-size: 1.5rem;
+}
+.about-content ul {
+  padding-left: 1.5rem;
+}
+.about-content li {
+  margin-bottom: 0.5rem;
+}
+.about-header h1 {
+  margin-bottom: 0.5rem;
+  color: #222;
+}
+.about-body {
+  margin-top: 2rem;
+}
+.about-body h2:first-child {
+  margin-top: 0;
+}
+.home-layout {
+  display: grid;
+  grid-template-columns: 75fr 25fr;
+  gap: 2rem;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.main-content {
+  margin: 0;
+}
+
+.sidebar {
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  padding: 1.5rem;
+  height: fit-content;
+}
+
+.recent-posts h2 {
+  color: #0d2440;
+  font-size: 1.3rem;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.sidebar-post {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.sidebar-post:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.sidebar-post h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+}
+
+.sidebar-post h3 a {
+  color: #005f87;
+  text-decoration: none;
+  font-family: 'Fira Mono', 'Consolas', 'Liberation Mono', monospace;
+}
+
+.sidebar-post h3 a:hover {
+  color: #0d2440;
+}
+
+.sidebar-post .post-meta {
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+.sidebar-post .post-summary {
+  font-size: 0.95rem;
+  color: #555;
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  .home-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .sidebar {
+    margin-top: 2rem;
+  }
+}

@@ -1,0 +1,27 @@
+{{ define "main" }}
+  <div class="home-layout">
+    <article class="about-page main-content">
+      <div class="about-content">
+        <div class="about-body">
+          {{ with .Site.GetPage "/about" }}
+            {{ .Content }}
+          {{ end }}
+        </div>
+      </div>
+    </article>
+    
+    <aside class="sidebar">
+      <div class="recent-posts">
+        <h2>Recent Posts</h2>
+        {{ $posts := where .Site.RegularPages "Section" "posts" }}
+        {{ range first 3 $posts }}
+          <div class="sidebar-post">
+            <h3><a href="{{ .RelPermalink }}">{{ .Title }}</a></h3>
+            <div class="post-meta">{{ .Date.Format "Jan 2, 2006" }}</div>
+            <div class="post-summary">{{ .Summary | truncate 120 }}</div>
+          </div>
+        {{ end }}
+      </div>
+    </aside>
+  </div>
+{{ end }}
