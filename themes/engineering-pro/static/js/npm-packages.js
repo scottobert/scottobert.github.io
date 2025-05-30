@@ -24,7 +24,7 @@ async function fetchNpmPackages() {
             <div class="package-description">${p.description || ''}</div>
             <div class="package-meta">
               <span class="version">v${p.version}</span>
-              ${p.links.repository ? `<a href="${p.links.repository}" class="repo-link" target="_blank" rel="noopener noreferrer">GitHub</a>` : ''}
+              ${p.links.repository ? `<a href="${p.links.repository.replace(/^git\+/, '')}" class="repo-link" target="_blank" rel="noopener noreferrer">GitHub</a>` : ''}
             </div>
           </div>
         `;
