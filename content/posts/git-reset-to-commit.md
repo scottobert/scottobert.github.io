@@ -2,6 +2,7 @@
 title: "git reset to a given commit"
 date: 2022-04-21T09:50:32-07:00
 draft: false
+categories: ["Version Control", "Development Tools"]
 tags:
 - Development
 - Debugging

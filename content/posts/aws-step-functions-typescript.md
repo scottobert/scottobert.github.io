@@ -2,6 +2,7 @@
 title: "Step Functions: Orchestrating AWS Lambda Workflows in TypeScript"
 date: 2023-03-05T10:00:00-07:00
 draft: false
+categories: ["Cloud Computing", "Architecture and Design"]
 tags:
 - AWS
 - TypeScript

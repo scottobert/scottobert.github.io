@@ -2,6 +2,7 @@
 title: "Building Event-Driven Architectures with AWS SNS/SQS and TypeScript"
 date: 2023-05-21T11:00:00-07:00
 draft: false
+categories: ["Cloud Computing", "Architecture and Design"]
 tags:
 - AWS
 - TypeScript

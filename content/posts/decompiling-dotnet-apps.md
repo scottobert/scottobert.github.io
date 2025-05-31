@@ -2,6 +2,7 @@
 title: "Decompiling dotnet apps"
 date: 2022-04-12T15:09:00-07:00
 draft: false
+categories: ["Development Tools", "Debugging and Troubleshooting"]
 tags:
 - Development
 - Debugging

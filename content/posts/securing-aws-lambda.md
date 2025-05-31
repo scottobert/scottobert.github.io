@@ -2,6 +2,7 @@
 title: "Securing AWS Lambda Functions: Best Practices and Implementation Guide"
 date: 2023-04-07T13:00:00-07:00
 draft: false
+categories: ["Cloud Computing", "Security"]
 tags:
 - AWS
 - Security

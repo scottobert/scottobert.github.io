@@ -2,6 +2,7 @@
 title: "How to deploy an AWS Lambda function written in TypeScript using SAM CLI"
 date: 2023-02-17T13:30:32-07:00
 draft: false
+categories: ["Cloud Computing", "Development Tutorials"]
 tags:
 - Development
 - AWS

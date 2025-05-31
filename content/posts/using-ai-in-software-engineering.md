@@ -2,6 +2,7 @@
 title: "Harnessing AI in Software Engineering: Opportunities and Challenges"
 date: 2025-05-29
 description: "A practical look at how artificial intelligence is transforming software engineering workflows, tools, and the developer experience."
+categories: ["Software Development", "Artificial Intelligence"]
 tags: ["AI", "Software Engineering", "Productivity", "Automation"]
 ---
 
