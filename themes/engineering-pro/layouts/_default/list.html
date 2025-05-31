@@ -1,13 +1,36 @@
 {{ define "main" }}
 <section class="post-list">
   <h1>{{ .Title }}</h1>
-  <ul>
-    {{ range .Pages }}
-      <li>
-        <a href="{{ .RelPermalink }}">{{ .Title }}</a>
-        <span class="date">{{ .Date.Format "Jan 2, 2006" }}</span>
-      </li>
+  <div class="posts">
+    {{ range .Pages.ByDate.Reverse }}
+      <article class="post-summary">
+        <header>
+          <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
+          <div class="post-meta">
+            <time datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">
+              {{ .Date.Format "January 2, 2006" }}
+            </time>
+            {{ with .Params.tags }}
+            <div class="tags">
+              {{ range . }}
+                <a href="/tags/{{ . | urlize }}" class="tag">{{ . }}</a>
+              {{ end }}
+            </div>
+            {{ end }}
+          </div>
+        </header>
+        <div class="summary">
+          {{ if .Description }}
+            {{ .Description }}
+          {{ else }}
+            {{ .Summary }}
+          {{ end }}
+        </div>
+        <footer>
+          <a href="{{ .RelPermalink }}" class="read-more">Read More →</a>
+        </footer>
+      </article>
     {{ end }}
-  </ul>
+  </div>
 </section>
 {{ end }}

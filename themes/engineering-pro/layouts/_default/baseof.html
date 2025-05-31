@@ -8,7 +8,7 @@
   <script src="/js/npm-packages.js" defer></script>
 </head>
 <body>
-  <header>
+  <header class="site-header">
     <div class="container">
       <div class="header-content">
         <div class="header-left">
@@ -30,10 +30,15 @@
       </div>
     </div>
   </header>
-  <main class="container">
-    {{ block "main" . }}{{ end }}
-  </main>
-  <footer>
+  <div class="container">
+    <div class="content-layout">
+      <main class="main-content">
+        {{ block "main" . }}{{ end }}
+      </main>
+      {{ partial "sidebar.html" . }}
+    </div>
+  </div>
+  <footer class="site-footer">
     <div class="container">
       <p>&copy; {{ now.Year }} {{ .Site.Title }}. Powered by Hugo.</p>
     </div>

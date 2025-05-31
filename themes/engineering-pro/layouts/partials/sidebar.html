@@ -1,0 +1,75 @@
+{{ $recentPosts := first 5 (where .Site.RegularPages "Type" "posts") }}
+
+<aside class="blog-sidebar">
+  <div class="sidebar-widget">
+    <h3>Recent Posts</h3>
+    <ul class="recent-posts">
+      {{ range $recentPosts }}
+      <li>
+        <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+        <span class="post-date">{{ .Date.Format "Jan 2, 2006" }}</span>
+      </li>
+      {{ end }}
+    </ul>
+  </div>
+
+  <div class="sidebar-widget">
+    <h3>Categories</h3>
+    <ul class="categories">
+      {{ range $name, $taxonomy := .Site.Taxonomies.categories }}
+      <li>
+        <a href="{{ "/categories/" | relLangURL }}{{ $name | urlize }}">
+          {{ $name }} ({{ .Count }})
+        </a>
+      </li>
+      {{ end }}
+    </ul>
+  </div>
+
+  <div class="sidebar-widget">
+    <h3>Tags</h3>
+    <div class="tag-cloud">
+      {{ range $name, $taxonomy := .Site.Taxonomies.tags }}
+      <a href="{{ "/tags/" | relLangURL }}{{ $name | urlize }}" 
+         class="tag-cloud-item" 
+         style="font-size: {{ math.Round (add 0.8 (mul (div .Count 3.0) 0.3)) }}rem">
+        {{ $name }}
+      </a>
+      {{ end }}
+    </div>
+  </div>
+
+  <div class="sidebar-widget">
+    <h3>Subscribe</h3>
+    <div class="subscribe-links">
+      <a href="/index.xml" class="rss-link">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 11a9 9 0 0 1 9 9"/>
+          <path d="M4 4a16 16 0 0 1 16 16"/>
+          <circle cx="5" cy="19" r="1"/>
+        </svg>
+        RSS Feed
+      </a>
+    </div>
+  </div>
+
+  <div class="sidebar-widget">
+    <h3>Archives</h3>
+    <ul class="archive-list">
+      {{ range $name, $items := .Site.Taxonomies.archives }}
+      <li>
+        <a href="{{ "/archives/" | relLangURL }}{{ $name | urlize }}">
+          {{ $name }} ({{ .Count }})
+        </a>
+      </li>
+      {{ end }}
+    </ul>
+  </div>
+
+  <div class="sidebar-widget npm-packages">
+    <h3>My NPM Packages</h3>
+    <div id="npm-list">
+      <!-- Packages will be loaded here via JavaScript -->
+    </div>
+  </div>
+</aside>
