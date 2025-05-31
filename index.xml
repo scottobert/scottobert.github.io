@@ -22,16 +22,16 @@
 &lt;li>Investigating potential security issues or malware&lt;/li>
 &lt;/ul>
 &lt;h2 id="using-dotpeek">Using dotPeek&lt;/h2>
-&lt;p>&lt;a href="https://www.jetbrains.com/decompiler/">dotPeek&lt;/a> by JetBrains is a powerful free .NET decompiler that can help solve these problems. I recently had an occasion to use it, and even without the .pdb file, it was able to decompile the code to be very close to the source code we had in source control that we knew wasn&amp;rsquo;t what was running in production.&lt;/p></description></item><item><title>About Me</title><link>https://scottobert.github.io/about/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scottobert.github.io/about/</guid><description>&lt;h2 id="principal-software-engineer">Principal Software Engineer&lt;/h2>
-&lt;p>I&amp;rsquo;m a Principal Software Engineer with over 20 years of experience in software development, specializing in cloud computing, enterprise systems modernization, and web development. Currently driving technological innovation and system modernization at Mutual of Enumclaw.&lt;/p>
-&lt;h2 id="professional-experience">Professional Experience&lt;/h2>
-&lt;h3 id="principal-software-engineer-1">Principal Software Engineer&lt;/h3>
-&lt;p>&lt;strong>Mutual of Enumclaw&lt;/strong> (Jul 2022 - Present)&lt;/p>
+&lt;p>&lt;a href="https://www.jetbrains.com/decompiler/">dotPeek&lt;/a> by JetBrains is a powerful free .NET decompiler that can help solve these problems. I recently had an occasion to use it, and even without the .pdb file, it was able to decompile the code to be very close to the source code we had in source control that we knew wasn&amp;rsquo;t what was running in production.&lt;/p></description></item><item><title>About Me</title><link>https://scottobert.github.io/about/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://scottobert.github.io/about/</guid><description>&lt;h2 id="professional-summary">Professional Summary&lt;/h2>
+&lt;p>Principal Software Engineer with over 20 years of experience driving enterprise-scale digital transformation. Specializing in cloud architecture, serverless computing, and large-scale system modernization. Proven track record of reducing operational costs, improving system performance, and leading technical teams to deliver innovative solutions. Expert in AWS cloud services, modern web development, and enterprise architecture.&lt;/p>
+&lt;h2 id="key-achievements">Key Achievements&lt;/h2>
 &lt;ul>
-&lt;li>Leading modernization efforts for legacy systems&lt;/li>
-&lt;li>Driving improvements within application development group&lt;/li>
-&lt;li>Expertise in Serverless Framework and AWS technologies&lt;/li>
-&lt;li>Implementing cloud-native solutions and architectural improvements&lt;/li>
+&lt;li>Led successful modernization of legacy insurance systems, resulting in 40% reduction in operational costs&lt;/li>
+&lt;li>Architected and implemented serverless solutions processing millions of transactions monthly&lt;/li>
+&lt;li>Scaled Microsoft&amp;rsquo;s global recruiting platform to handle 5M+ monthly pageviews across 117 international sites&lt;/li>
+&lt;li>Reduced deployment time by 70% through implementation of automated CI/CD pipelines&lt;/li>
+&lt;li>Mentored and led development teams of 5-10 engineers, improving team velocity by 35%&lt;/li>
 &lt;/ul>
-&lt;h3 id="senior-developer--tech-lead">Senior Developer / Tech Lead&lt;/h3>
-&lt;p>&lt;strong>Mutual of Enumclaw&lt;/strong> (Aug 2017 - Jul 2022)&lt;/p></description></item></channel></rss>
+&lt;h2 id="professional-experience">Professional Experience&lt;/h2>
+&lt;h3 id="principal-software-engineer">Principal Software Engineer&lt;/h3>
+&lt;p>&lt;strong>Mutual of Enumclaw&lt;/strong> (Jul 2022 - Present)&lt;/p></description></item></channel></rss>
