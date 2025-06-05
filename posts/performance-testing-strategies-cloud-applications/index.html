@@ -1,0 +1,1161 @@
+<!doctype html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Scott Obert</title><link rel=stylesheet href=/css/style.css><script src=/js/npm-packages.js defer></script><script defer src=https://cloud.umami.is/script.js data-website-id=e2461896-021d-422a-b83f-624a8819309b></script></head><body><header class=site-header><div class=container><div class=header-content><div class=header-left><h1><a href=/>Scott Obert</a></h1><nav><a href=/posts/>Blog</a></nav></div><div class=social-links><a href=https://www.linkedin.com/in/scott-obert-3a7338b/ target=_blank rel="noopener noreferrer" title="LinkedIn Profile"><svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853.0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601.0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144.0-2.063-.926-2.063-2.065.0-1.138.92-2.063 2.063-2.063 1.14.0 2.064.925 2.064 2.063.0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225.0H1.771C.792.0.0.774.0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2.0 22.222.0h.003z"/></svg>
+<span>LinkedIn</span>
+</a><a href=https://github.com/scottobert target=_blank rel="noopener noreferrer" title="GitHub Profile"><svg viewBox="0 0 24 24"><path d="M12 0C5.37.0.0 5.37.0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577.0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93.0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176.0.0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22.0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22.0 1.605-.015 2.896-.015 3.286.0.315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12"/></svg>
+<span>GitHub</span></a></div></div></div></header><div class=container><div class=content-layout><main class=main-content><article class=post><h1>Performance Testing Strategies for Cloud Applications: Load Testing at Scale</h1><div class=post-meta><span>Nov 28, 2021</span>
+<span>| Tags: Performance Testing, Load Testing, AWS, Monitoring, Chaos Engineering, TypeScript</span></div><div class=post-content><h2 id=introduction>Introduction</h2><p>In our Modern Development Practices series, we&rsquo;ve explored test-driven development, code quality gates, API design patterns, microservices communication, and database design. Today, we&rsquo;re focusing on performance testing strategies for cloud applications – a critical practice for ensuring your systems can handle real-world load and scale gracefully.</p><p>Cloud applications present unique challenges for performance testing: auto-scaling behaviors, distributed architectures, and pay-per-use pricing models all require specialized testing approaches. We&rsquo;ll explore comprehensive strategies from unit-level performance tests to large-scale load testing and chaos engineering.</p><h2 id=performance-testing-pyramid>Performance Testing Pyramid</h2><h3 id=unit-performance-tests>Unit Performance Tests</h3><p>Start with fast, focused performance tests at the unit level:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>performance</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;perf_hooks&#39;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>PerformanceAssertion</span> {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>maxExecutionTime</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>maxMemoryUsage?</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>iterations?</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>performanceTest</span>(
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>testName</span>: <span style=color:#66d9ef>string</span>,
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>testFunction</span><span style=color:#f92672>:</span> () <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; <span style=color:#f92672>|</span> <span style=color:#66d9ef>void</span>,
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>assertion</span>: <span style=color:#66d9ef>PerformanceAssertion</span>
+</span></span><span style=display:flex><span>) {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>async</span> () <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>iterations</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>assertion</span>.<span style=color:#a6e22e>iterations</span> <span style=color:#f92672>||</span> <span style=color:#ae81ff>1000</span>;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>executionTimes</span>: <span style=color:#66d9ef>number</span>[] <span style=color:#f92672>=</span> [];
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>maxMemoryUsed</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>let</span> <span style=color:#a6e22e>i</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>; <span style=color:#a6e22e>i</span> <span style=color:#f92672>&lt;</span> <span style=color:#a6e22e>iterations</span>; <span style=color:#a6e22e>i</span><span style=color:#f92672>++</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>memBefore</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>process</span>.<span style=color:#a6e22e>memoryUsage</span>().<span style=color:#a6e22e>heapUsed</span>;
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>startTime</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>performance</span>.<span style=color:#a6e22e>now</span>();
+</span></span><span style=display:flex><span>      
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>testFunction</span>();
+</span></span><span style=display:flex><span>      
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>endTime</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>performance</span>.<span style=color:#a6e22e>now</span>();
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>memAfter</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>process</span>.<span style=color:#a6e22e>memoryUsage</span>().<span style=color:#a6e22e>heapUsed</span>;
+</span></span><span style=display:flex><span>      
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>executionTimes</span>.<span style=color:#a6e22e>push</span>(<span style=color:#a6e22e>endTime</span> <span style=color:#f92672>-</span> <span style=color:#a6e22e>startTime</span>);
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>maxMemoryUsed</span> <span style=color:#f92672>=</span> Math.<span style=color:#a6e22e>max</span>(<span style=color:#a6e22e>maxMemoryUsed</span>, <span style=color:#a6e22e>memAfter</span> <span style=color:#f92672>-</span> <span style=color:#a6e22e>memBefore</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Statistical analysis
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>avgTime</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>executionTimes</span>.<span style=color:#a6e22e>reduce</span>((<span style=color:#a6e22e>sum</span>, <span style=color:#a6e22e>time</span>) <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>sum</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>time</span>, <span style=color:#ae81ff>0</span>) <span style=color:#f92672>/</span> <span style=color:#a6e22e>iterations</span>;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>p95Time</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>executionTimes</span>.<span style=color:#a6e22e>sort</span>()[Math.<span style=color:#a6e22e>floor</span>(<span style=color:#a6e22e>iterations</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>0.95</span>)];
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>maxTime</span> <span style=color:#f92672>=</span> Math.<span style=color:#a6e22e>max</span>(...<span style=color:#a6e22e>executionTimes</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>`</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>testName</span><span style=color:#e6db74>}</span><span style=color:#e6db74> Performance Metrics:`</span>);
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>`  Average: </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>avgTime</span>.<span style=color:#a6e22e>toFixed</span>(<span style=color:#ae81ff>2</span>)<span style=color:#e6db74>}</span><span style=color:#e6db74>ms`</span>);
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>`  P95: </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>p95Time</span>.<span style=color:#a6e22e>toFixed</span>(<span style=color:#ae81ff>2</span>)<span style=color:#e6db74>}</span><span style=color:#e6db74>ms`</span>);
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>`  Max: </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>maxTime</span>.<span style=color:#a6e22e>toFixed</span>(<span style=color:#ae81ff>2</span>)<span style=color:#e6db74>}</span><span style=color:#e6db74>ms`</span>);
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>`  Max Memory: </span><span style=color:#e6db74>${</span>(<span style=color:#a6e22e>maxMemoryUsed</span> <span style=color:#f92672>/</span> <span style=color:#ae81ff>1024</span> <span style=color:#f92672>/</span> <span style=color:#ae81ff>1024</span>).<span style=color:#a6e22e>toFixed</span>(<span style=color:#ae81ff>2</span>)<span style=color:#e6db74>}</span><span style=color:#e6db74>MB`</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>avgTime</span> <span style=color:#f92672>&gt;</span> <span style=color:#a6e22e>assertion</span>.<span style=color:#a6e22e>maxExecutionTime</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>`Performance test failed: Average execution time </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>avgTime</span>.<span style=color:#a6e22e>toFixed</span>(<span style=color:#ae81ff>2</span>)<span style=color:#e6db74>}</span><span style=color:#e6db74>ms exceeds limit </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>assertion</span>.<span style=color:#a6e22e>maxExecutionTime</span><span style=color:#e6db74>}</span><span style=color:#e6db74>ms`</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>assertion</span>.<span style=color:#a6e22e>maxMemoryUsage</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#a6e22e>maxMemoryUsed</span> <span style=color:#f92672>&gt;</span> <span style=color:#a6e22e>assertion</span>.<span style=color:#a6e22e>maxMemoryUsage</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>`Performance test failed: Memory usage </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>maxMemoryUsed</span><span style=color:#e6db74>}</span><span style=color:#e6db74> exceeds limit </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>assertion</span>.<span style=color:#a6e22e>maxMemoryUsage</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  };
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Example usage
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#a6e22e>describe</span>(<span style=color:#e6db74>&#39;UserService Performance&#39;</span>, () <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>userService</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>UserService</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>it</span>(<span style=color:#e6db74>&#39;should validate user input efficiently&#39;</span>, <span style=color:#a6e22e>performanceTest</span>(
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#39;User validation&#39;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>async</span> () <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>userService</span>.<span style=color:#a6e22e>validateUser</span>({
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>email</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;test@example.com&#39;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>name</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Test User&#39;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>age</span>: <span style=color:#66d9ef>25</span>
+</span></span><span style=display:flex><span>      });
+</span></span><span style=display:flex><span>    },
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>maxExecutionTime</span>: <span style=color:#66d9ef>1</span>, <span style=color:#75715e>// 1ms max average
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>maxMemoryUsage</span>: <span style=color:#66d9ef>1024</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>1024</span>, <span style=color:#75715e>// 1MB
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>iterations</span>: <span style=color:#66d9ef>10000</span>
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  ));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>it</span>(<span style=color:#e6db74>&#39;should process user queries efficiently&#39;</span>, <span style=color:#a6e22e>performanceTest</span>(
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#39;User query processing&#39;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>async</span> () <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>userService</span>.<span style=color:#a6e22e>findUsers</span>({ <span style=color:#a6e22e>status</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;active&#39;</span>, <span style=color:#a6e22e>limit</span>: <span style=color:#66d9ef>100</span> });
+</span></span><span style=display:flex><span>    },
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>maxExecutionTime</span>: <span style=color:#66d9ef>5</span>, <span style=color:#75715e>// 5ms max average
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>iterations</span>: <span style=color:#66d9ef>1000</span>
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  ));
+</span></span><span style=display:flex><span>});
+</span></span></code></pre></div><h3 id=api-performance-tests>API Performance Tests</h3><p>Test API endpoints with realistic payloads and concurrency:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#a6e22e>axios</span>, { <span style=color:#a6e22e>AxiosResponse</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;axios&#39;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>LoadTestConfig</span> {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>concurrency</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>totalRequests</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>rampUpTime</span>: <span style=color:#66d9ef>number</span>; <span style=color:#75715e>// seconds
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>endpoint</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>method</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;GET&#39;</span> <span style=color:#f92672>|</span> <span style=color:#e6db74>&#39;POST&#39;</span> <span style=color:#f92672>|</span> <span style=color:#e6db74>&#39;PUT&#39;</span> <span style=color:#f92672>|</span> <span style=color:#e6db74>&#39;DELETE&#39;</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>payload?</span>: <span style=color:#66d9ef>any</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>headers?</span>: <span style=color:#66d9ef>Record</span>&lt;<span style=color:#f92672>string</span>, <span style=color:#a6e22e>string</span>&gt;;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>LoadTestResult</span> {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>totalRequests</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>successfulRequests</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>failedRequests</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>averageResponseTime</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>p95ResponseTime</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>p99ResponseTime</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>maxResponseTime</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>requestsPerSecond</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>errors</span>: <span style=color:#66d9ef>string</span>[];
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>ApiLoadTester</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>runLoadTest</span>(<span style=color:#a6e22e>config</span>: <span style=color:#66d9ef>LoadTestConfig</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>LoadTestResult</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>responseTimes</span>: <span style=color:#66d9ef>number</span>[] <span style=color:#f92672>=</span> [];
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>errors</span>: <span style=color:#66d9ef>string</span>[] <span style=color:#f92672>=</span> [];
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>successfulRequests</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>failedRequests</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>requestsPerWorker</span> <span style=color:#f92672>=</span> Math.<span style=color:#a6e22e>ceil</span>(<span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>totalRequests</span> <span style=color:#f92672>/</span> <span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>concurrency</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>rampUpDelay</span> <span style=color:#f92672>=</span> (<span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>rampUpTime</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>1000</span>) <span style=color:#f92672>/</span> <span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>concurrency</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>startTime</span> <span style=color:#f92672>=</span> Date.<span style=color:#a6e22e>now</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Create worker promises
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>workers</span> <span style=color:#f92672>=</span> Array.<span style=color:#66d9ef>from</span>({ <span style=color:#a6e22e>length</span>: <span style=color:#66d9ef>config.concurrency</span> }, <span style=color:#66d9ef>async</span> (<span style=color:#a6e22e>_</span>, <span style=color:#a6e22e>workerIndex</span>) <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>      <span style=color:#75715e>// Ramp up delay
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>sleep</span>(<span style=color:#a6e22e>workerIndex</span> <span style=color:#f92672>*</span> <span style=color:#a6e22e>rampUpDelay</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>let</span> <span style=color:#a6e22e>i</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>; <span style=color:#a6e22e>i</span> <span style=color:#f92672>&lt;</span> <span style=color:#a6e22e>requestsPerWorker</span> <span style=color:#f92672>&amp;&amp;</span> (<span style=color:#a6e22e>successfulRequests</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>failedRequests</span>) <span style=color:#f92672>&lt;</span> <span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>totalRequests</span>; <span style=color:#a6e22e>i</span><span style=color:#f92672>++</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>requestStart</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>performance</span>.<span style=color:#a6e22e>now</span>();
+</span></span><span style=display:flex><span>          
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>response</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>makeRequest</span>(<span style=color:#a6e22e>config</span>);
+</span></span><span style=display:flex><span>          
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>requestEnd</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>performance</span>.<span style=color:#a6e22e>now</span>();
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>responseTime</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>requestEnd</span> <span style=color:#f92672>-</span> <span style=color:#a6e22e>requestStart</span>;
+</span></span><span style=display:flex><span>          
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>responseTimes</span>.<span style=color:#a6e22e>push</span>(<span style=color:#a6e22e>responseTime</span>);
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>successfulRequests</span><span style=color:#f92672>++</span>;
+</span></span><span style=display:flex><span>          
+</span></span><span style=display:flex><span>          <span style=color:#75715e>// Validate response
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>          <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>response</span>.<span style=color:#a6e22e>status</span> <span style=color:#f92672>&gt;=</span> <span style=color:#ae81ff>400</span>) {
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>errors</span>.<span style=color:#a6e22e>push</span>(<span style=color:#e6db74>`HTTP </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>response</span>.<span style=color:#a6e22e>status</span><span style=color:#e6db74>}</span><span style=color:#e6db74>: </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>response</span>.<span style=color:#a6e22e>statusText</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>failedRequests</span><span style=color:#f92672>++</span>;
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>successfulRequests</span><span style=color:#f92672>--</span>;
+</span></span><span style=display:flex><span>          }
+</span></span><span style=display:flex><span>        } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>failedRequests</span><span style=color:#f92672>++</span>;
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>errors</span>.<span style=color:#a6e22e>push</span>(<span style=color:#a6e22e>error</span> <span style=color:#66d9ef>instanceof</span> Error <span style=color:#f92672>?</span> <span style=color:#a6e22e>error</span>.<span style=color:#a6e22e>message</span> <span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Unknown error&#39;</span>);
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>Promise</span>.<span style=color:#a6e22e>all</span>(<span style=color:#a6e22e>workers</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>totalTime</span> <span style=color:#f92672>=</span> (Date.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>-</span> <span style=color:#a6e22e>startTime</span>) <span style=color:#f92672>/</span> <span style=color:#ae81ff>1000</span>; <span style=color:#75715e>// seconds
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>responseTimes</span>.<span style=color:#a6e22e>sort</span>((<span style=color:#a6e22e>a</span>, <span style=color:#a6e22e>b</span>) <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>a</span> <span style=color:#f92672>-</span> <span style=color:#a6e22e>b</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>totalRequests</span>: <span style=color:#66d9ef>successfulRequests</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>failedRequests</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>successfulRequests</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>failedRequests</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>averageResponseTime</span>: <span style=color:#66d9ef>responseTimes.reduce</span>((<span style=color:#a6e22e>sum</span>, <span style=color:#a6e22e>time</span>) <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>sum</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>time</span>, <span style=color:#ae81ff>0</span>) <span style=color:#f92672>/</span> <span style=color:#a6e22e>responseTimes</span>.<span style=color:#a6e22e>length</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>p95ResponseTime</span>: <span style=color:#66d9ef>responseTimes</span>[Math.<span style=color:#a6e22e>floor</span>(<span style=color:#a6e22e>responseTimes</span>.<span style=color:#a6e22e>length</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>0.95</span>)] <span style=color:#f92672>||</span> <span style=color:#ae81ff>0</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>p99ResponseTime</span>: <span style=color:#66d9ef>responseTimes</span>[Math.<span style=color:#a6e22e>floor</span>(<span style=color:#a6e22e>responseTimes</span>.<span style=color:#a6e22e>length</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>0.99</span>)] <span style=color:#f92672>||</span> <span style=color:#ae81ff>0</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>maxResponseTime</span>: <span style=color:#66d9ef>Math.max</span>(...<span style=color:#a6e22e>responseTimes</span>),
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>requestsPerSecond</span><span style=color:#f92672>:</span> (<span style=color:#a6e22e>successfulRequests</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>failedRequests</span>) <span style=color:#f92672>/</span> <span style=color:#a6e22e>totalTime</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>errors</span><span style=color:#f92672>:</span> [...<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Set</span>(<span style=color:#a6e22e>errors</span>)] <span style=color:#75715e>// Unique errors
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    };
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>makeRequest</span>(<span style=color:#a6e22e>config</span>: <span style=color:#66d9ef>LoadTestConfig</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>AxiosResponse</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>requestConfig</span> <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>method</span>: <span style=color:#66d9ef>config.method</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>url</span>: <span style=color:#66d9ef>config.endpoint</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>data</span>: <span style=color:#66d9ef>config.payload</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>headers</span>: <span style=color:#66d9ef>config.headers</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>timeout</span>: <span style=color:#66d9ef>30000</span>, <span style=color:#75715e>// 30 second timeout
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>validateStatus</span><span style=color:#f92672>:</span> () <span style=color:#f92672>=&gt;</span> <span style=color:#66d9ef>true</span> <span style=color:#75715e>// Don&#39;t throw on HTTP errors
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    };
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>axios</span>(<span style=color:#a6e22e>requestConfig</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>sleep</span>(<span style=color:#a6e22e>ms</span>: <span style=color:#66d9ef>number</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Promise</span>(<span style=color:#a6e22e>resolve</span> <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>setTimeout</span>(<span style=color:#a6e22e>resolve</span>, <span style=color:#a6e22e>ms</span>));
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Usage example
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#a6e22e>describe</span>(<span style=color:#e6db74>&#39;API Load Tests&#39;</span>, () <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>loadTester</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>ApiLoadTester</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>it</span>(<span style=color:#e6db74>&#39;should handle user creation load&#39;</span>, <span style=color:#66d9ef>async</span> () <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>result</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>loadTester</span>.<span style=color:#a6e22e>runLoadTest</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>concurrency</span>: <span style=color:#66d9ef>10</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>totalRequests</span>: <span style=color:#66d9ef>1000</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>rampUpTime</span>: <span style=color:#66d9ef>30</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>endpoint</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;https://api.example.com/users&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>method</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;POST&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>payload</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>name</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Load Test User&#39;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>email</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;loadtest@example.com&#39;</span>
+</span></span><span style=display:flex><span>      },
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>headers</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;Content-Type&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;application/json&#39;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;Authorization&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Bearer test-token&#39;</span>
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#39;Load Test Results:&#39;</span>, <span style=color:#a6e22e>result</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Assertions
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>expect</span>(<span style=color:#a6e22e>result</span>.<span style=color:#a6e22e>successfulRequests</span>).<span style=color:#a6e22e>toBeGreaterThan</span>(<span style=color:#ae81ff>950</span>); <span style=color:#75715e>// 95% success rate
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>expect</span>(<span style=color:#a6e22e>result</span>.<span style=color:#a6e22e>averageResponseTime</span>).<span style=color:#a6e22e>toBeLessThan</span>(<span style=color:#ae81ff>100</span>); <span style=color:#75715e>// 100ms average
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>expect</span>(<span style=color:#a6e22e>result</span>.<span style=color:#a6e22e>p95ResponseTime</span>).<span style=color:#a6e22e>toBeLessThan</span>(<span style=color:#ae81ff>200</span>); <span style=color:#75715e>// 200ms P95
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>expect</span>(<span style=color:#a6e22e>result</span>.<span style=color:#a6e22e>requestsPerSecond</span>).<span style=color:#a6e22e>toBeGreaterThan</span>(<span style=color:#ae81ff>30</span>); <span style=color:#75715e>// 30 RPS minimum
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  }, <span style=color:#ae81ff>120000</span>); <span style=color:#75715e>// 2 minute timeout
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>});
+</span></span></code></pre></div><h2 id=aws-load-testing-with-artillery>AWS Load Testing with Artillery</h2><h3 id=artillery-configuration>Artillery Configuration</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// artillery-config.yml generator
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>ArtilleryConfig</span> {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>target</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>phases</span>: <span style=color:#66d9ef>Array</span><span style=color:#f92672>&lt;</span>{
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>duration</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>arrivalRate</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>rampTo?</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  }<span style=color:#f92672>&gt;</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>scenarios</span>: <span style=color:#66d9ef>Array</span><span style=color:#f92672>&lt;</span>{
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>name</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>weight</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>flow</span>: <span style=color:#66d9ef>Array</span>&lt;<span style=color:#f92672>any</span>&gt;;
+</span></span><span style=display:flex><span>  }<span style=color:#f92672>&gt;</span>;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>ArtilleryConfigGenerator</span> {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>generateConfig</span>(
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>baseUrl</span>: <span style=color:#66d9ef>string</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>testScenarios</span>: <span style=color:#66d9ef>any</span>[],
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>loadPattern</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;spike&#39;</span> <span style=color:#f92672>|</span> <span style=color:#e6db74>&#39;gradual&#39;</span> <span style=color:#f92672>|</span> <span style=color:#e6db74>&#39;sustained&#39;</span>
+</span></span><span style=display:flex><span>  )<span style=color:#f92672>:</span> <span style=color:#a6e22e>ArtilleryConfig</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>phases</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>getLoadPhases</span>(<span style=color:#a6e22e>loadPattern</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>target</span>: <span style=color:#66d9ef>baseUrl</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>phases</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>scenarios</span>: <span style=color:#66d9ef>testScenarios</span>
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>getLoadPhases</span>(<span style=color:#a6e22e>pattern</span>: <span style=color:#66d9ef>string</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>switch</span> (<span style=color:#a6e22e>pattern</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>case</span> <span style=color:#e6db74>&#39;spike&#39;</span><span style=color:#f92672>:</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> [
+</span></span><span style=display:flex><span>          { <span style=color:#a6e22e>duration</span>: <span style=color:#66d9ef>60</span>, <span style=color:#a6e22e>arrivalRate</span>: <span style=color:#66d9ef>1</span> },      <span style=color:#75715e>// Warm up
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>          { <span style=color:#a6e22e>duration</span>: <span style=color:#66d9ef>30</span>, <span style=color:#a6e22e>arrivalRate</span>: <span style=color:#66d9ef>1</span>, <span style=color:#a6e22e>rampTo</span>: <span style=color:#66d9ef>100</span> }, <span style=color:#75715e>// Spike
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>          { <span style=color:#a6e22e>duration</span>: <span style=color:#66d9ef>60</span>, <span style=color:#a6e22e>arrivalRate</span>: <span style=color:#66d9ef>100</span> },    <span style=color:#75715e>// Sustain
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>          { <span style=color:#a6e22e>duration</span>: <span style=color:#66d9ef>30</span>, <span style=color:#a6e22e>arrivalRate</span>: <span style=color:#66d9ef>100</span>, <span style=color:#a6e22e>rampTo</span>: <span style=color:#66d9ef>1</span> }  <span style=color:#75715e>// Cool down
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        ];
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>case</span> <span style=color:#e6db74>&#39;gradual&#39;</span><span style=color:#f92672>:</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> [
+</span></span><span style=display:flex><span>          { <span style=color:#a6e22e>duration</span>: <span style=color:#66d9ef>120</span>, <span style=color:#a6e22e>arrivalRate</span>: <span style=color:#66d9ef>1</span>, <span style=color:#a6e22e>rampTo</span>: <span style=color:#66d9ef>50</span> },  <span style=color:#75715e>// Gradual ramp
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>          { <span style=color:#a6e22e>duration</span>: <span style=color:#66d9ef>300</span>, <span style=color:#a6e22e>arrivalRate</span>: <span style=color:#66d9ef>50</span> },             <span style=color:#75715e>// Sustain
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>          { <span style=color:#a6e22e>duration</span>: <span style=color:#66d9ef>60</span>, <span style=color:#a6e22e>arrivalRate</span>: <span style=color:#66d9ef>50</span>, <span style=color:#a6e22e>rampTo</span>: <span style=color:#66d9ef>1</span> }    <span style=color:#75715e>// Cool down
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        ];
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>case</span> <span style=color:#e6db74>&#39;sustained&#39;</span><span style=color:#f92672>:</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> [
+</span></span><span style=display:flex><span>          { <span style=color:#a6e22e>duration</span>: <span style=color:#66d9ef>60</span>, <span style=color:#a6e22e>arrivalRate</span>: <span style=color:#66d9ef>1</span>, <span style=color:#a6e22e>rampTo</span>: <span style=color:#66d9ef>25</span> },   <span style=color:#75715e>// Ramp up
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>          { <span style=color:#a6e22e>duration</span>: <span style=color:#66d9ef>600</span>, <span style=color:#a6e22e>arrivalRate</span>: <span style=color:#66d9ef>25</span> },             <span style=color:#75715e>// 10 min sustain
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>          { <span style=color:#a6e22e>duration</span>: <span style=color:#66d9ef>60</span>, <span style=color:#a6e22e>arrivalRate</span>: <span style=color:#66d9ef>25</span>, <span style=color:#a6e22e>rampTo</span>: <span style=color:#66d9ef>1</span> }    <span style=color:#75715e>// Cool down
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        ];
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>default</span><span style=color:#f92672>:</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>&#39;Unknown load pattern&#39;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Artillery test scenarios
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>userJourneyScenarios</span> <span style=color:#f92672>=</span> [
+</span></span><span style=display:flex><span>  {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>name</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;User Registration Journey&#39;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>weight</span>: <span style=color:#66d9ef>30</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>flow</span><span style=color:#f92672>:</span> [
+</span></span><span style=display:flex><span>      {
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>post</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>url</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;/api/users/register&#39;</span>,
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>json</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>email</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;{{ $randomEmail() }}&#39;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>password</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;TestPassword123&#39;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>name</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;{{ $randomFirstName() }} {{ $randomLastName() }}&#39;</span>
+</span></span><span style=display:flex><span>          },
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>capture</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>header</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;location&#39;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>as</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;userLocation&#39;</span>
+</span></span><span style=display:flex><span>          }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>      },
+</span></span><span style=display:flex><span>      {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>get</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>url</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;{{ userLocation }}&#39;</span>,
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>headers</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#39;Authorization&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Bearer {{ authToken }}&#39;</span>
+</span></span><span style=display:flex><span>          }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    ]
+</span></span><span style=display:flex><span>  },
+</span></span><span style=display:flex><span>  {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>name</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;User Login and Browse&#39;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>weight</span>: <span style=color:#66d9ef>70</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>flow</span><span style=color:#f92672>:</span> [
+</span></span><span style=display:flex><span>      {
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>post</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>url</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;/api/auth/login&#39;</span>,
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>json</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>email</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;test@example.com&#39;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>password</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;TestPassword123&#39;</span>
+</span></span><span style=display:flex><span>          },
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>capture</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>json</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;$.token&#39;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>as</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;authToken&#39;</span>
+</span></span><span style=display:flex><span>          }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>      },
+</span></span><span style=display:flex><span>      {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>get</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>url</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;/api/users/profile&#39;</span>,
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>headers</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#39;Authorization&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Bearer {{ authToken }}&#39;</span>
+</span></span><span style=display:flex><span>          }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>      },
+</span></span><span style=display:flex><span>      {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>get</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>url</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;/api/products?page=1&amp;limit=20&#39;</span>,
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>headers</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#39;Authorization&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Bearer {{ authToken }}&#39;</span>
+</span></span><span style=display:flex><span>          }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    ]
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>];
+</span></span></code></pre></div><h3 id=aws-lambda-performance-testing>AWS Lambda Performance Testing</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// Lambda performance test wrapper
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>LambdaClient</span>, <span style=color:#a6e22e>InvokeCommand</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/client-lambda&#39;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>LambdaPerformanceTest</span> {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>functionName</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>payload</span>: <span style=color:#66d9ef>any</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>concurrency</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>iterations</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>coldStartAnalysis?</span>: <span style=color:#66d9ef>boolean</span>;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>LambdaLoadTester</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>lambdaClient</span>: <span style=color:#66d9ef>LambdaClient</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>constructor</span>() {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>lambdaClient</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>LambdaClient</span>({ <span style=color:#a6e22e>region</span>: <span style=color:#66d9ef>process.env.AWS_REGION</span> });
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>testLambdaPerformance</span>(<span style=color:#a6e22e>config</span>: <span style=color:#66d9ef>LambdaPerformanceTest</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span><span style=color:#f92672>&lt;</span>{
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>coldStarts</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>warmStarts</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>averageDuration</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>averageBilledDuration</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>maxMemoryUsed</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>errorRate</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>timeouts</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  }<span style=color:#f92672>&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>results</span>: <span style=color:#66d9ef>any</span>[] <span style=color:#f92672>=</span> [];
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>errors</span>: <span style=color:#66d9ef>string</span>[] <span style=color:#f92672>=</span> [];
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>timeouts</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// First, trigger cold starts if needed
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>coldStartAnalysis</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>triggerColdStarts</span>(<span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>functionName</span>, <span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>concurrency</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>sleep</span>(<span style=color:#ae81ff>30000</span>); <span style=color:#75715e>// Wait for functions to cool down
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Run the actual test
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>workers</span> <span style=color:#f92672>=</span> Array.<span style=color:#66d9ef>from</span>({ <span style=color:#a6e22e>length</span>: <span style=color:#66d9ef>config.concurrency</span> }, <span style=color:#66d9ef>async</span> () <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>let</span> <span style=color:#a6e22e>i</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>; <span style=color:#a6e22e>i</span> <span style=color:#f92672>&lt;</span> Math.<span style=color:#a6e22e>ceil</span>(<span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>iterations</span> <span style=color:#f92672>/</span> <span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>concurrency</span>); <span style=color:#a6e22e>i</span><span style=color:#f92672>++</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>startTime</span> <span style=color:#f92672>=</span> Date.<span style=color:#a6e22e>now</span>();
+</span></span><span style=display:flex><span>          
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>command</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>InvokeCommand</span>({
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>FunctionName</span>: <span style=color:#66d9ef>config.functionName</span>,
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>Payload</span>: <span style=color:#66d9ef>JSON.stringify</span>(<span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>payload</span>),
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>LogType</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Tail&#39;</span>
+</span></span><span style=display:flex><span>          });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>response</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>lambdaClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>command</span>);
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>endTime</span> <span style=color:#f92672>=</span> Date.<span style=color:#a6e22e>now</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>response</span>.<span style=color:#a6e22e>FunctionError</span>) {
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>errors</span>.<span style=color:#a6e22e>push</span>(<span style=color:#a6e22e>response</span>.<span style=color:#a6e22e>FunctionError</span>);
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>continue</span>;
+</span></span><span style=display:flex><span>          }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>          <span style=color:#75715e>// Parse CloudWatch logs for metrics
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>          <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>logResult</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>response</span>.<span style=color:#a6e22e>LogResult</span> 
+</span></span><span style=display:flex><span>            <span style=color:#f92672>?</span> <span style=color:#a6e22e>Buffer</span>.<span style=color:#66d9ef>from</span>(<span style=color:#a6e22e>response</span>.<span style=color:#a6e22e>LogResult</span>, <span style=color:#e6db74>&#39;base64&#39;</span>).<span style=color:#a6e22e>toString</span>(<span style=color:#e6db74>&#39;utf-8&#39;</span>)
+</span></span><span style=display:flex><span>            <span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;&#39;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>metrics</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>parseCloudWatchLogs</span>(<span style=color:#a6e22e>logResult</span>);
+</span></span><span style=display:flex><span>          
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>results</span>.<span style=color:#a6e22e>push</span>({
+</span></span><span style=display:flex><span>            ...<span style=color:#a6e22e>metrics</span>,
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>totalTime</span>: <span style=color:#66d9ef>endTime</span> <span style=color:#f92672>-</span> <span style=color:#a6e22e>startTime</span>,
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>isColdStart</span>: <span style=color:#66d9ef>metrics.initDuration</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>          });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>errors</span>.<span style=color:#a6e22e>push</span>(<span style=color:#a6e22e>error</span> <span style=color:#66d9ef>instanceof</span> Error <span style=color:#f92672>?</span> <span style=color:#a6e22e>error</span>.<span style=color:#a6e22e>message</span> <span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Unknown error&#39;</span>);
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>Promise</span>.<span style=color:#a6e22e>all</span>(<span style=color:#a6e22e>workers</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Analyze results
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>coldStarts</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>results</span>.<span style=color:#a6e22e>filter</span>(<span style=color:#a6e22e>r</span> <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>r</span>.<span style=color:#a6e22e>isColdStart</span>).<span style=color:#a6e22e>length</span>;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>warmStarts</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>results</span>.<span style=color:#a6e22e>filter</span>(<span style=color:#a6e22e>r</span> <span style=color:#f92672>=&gt;</span> <span style=color:#f92672>!</span><span style=color:#a6e22e>r</span>.<span style=color:#a6e22e>isColdStart</span>).<span style=color:#a6e22e>length</span>;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>durations</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>results</span>.<span style=color:#a6e22e>map</span>(<span style=color:#a6e22e>r</span> <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>r</span>.<span style=color:#a6e22e>duration</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>billedDurations</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>results</span>.<span style=color:#a6e22e>map</span>(<span style=color:#a6e22e>r</span> <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>r</span>.<span style=color:#a6e22e>billedDuration</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>memoryUsages</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>results</span>.<span style=color:#a6e22e>map</span>(<span style=color:#a6e22e>r</span> <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>r</span>.<span style=color:#a6e22e>maxMemoryUsed</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>coldStarts</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>warmStarts</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>averageDuration</span>: <span style=color:#66d9ef>durations.reduce</span>((<span style=color:#a6e22e>sum</span>, <span style=color:#a6e22e>d</span>) <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>sum</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>d</span>, <span style=color:#ae81ff>0</span>) <span style=color:#f92672>/</span> <span style=color:#a6e22e>durations</span>.<span style=color:#a6e22e>length</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>averageBilledDuration</span>: <span style=color:#66d9ef>billedDurations.reduce</span>((<span style=color:#a6e22e>sum</span>, <span style=color:#a6e22e>d</span>) <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>sum</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>d</span>, <span style=color:#ae81ff>0</span>) <span style=color:#f92672>/</span> <span style=color:#a6e22e>billedDurations</span>.<span style=color:#a6e22e>length</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>maxMemoryUsed</span>: <span style=color:#66d9ef>Math.max</span>(...<span style=color:#a6e22e>memoryUsages</span>),
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>errorRate</span>: <span style=color:#66d9ef>errors.length</span> <span style=color:#f92672>/</span> (<span style=color:#a6e22e>results</span>.<span style=color:#a6e22e>length</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>errors</span>.<span style=color:#a6e22e>length</span>),
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>timeouts</span>
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>triggerColdStarts</span>(<span style=color:#a6e22e>functionName</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>count</span>: <span style=color:#66d9ef>number</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Invoke multiple instances to force cold starts
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>invocations</span> <span style=color:#f92672>=</span> Array.<span style=color:#66d9ef>from</span>({ <span style=color:#a6e22e>length</span>: <span style=color:#66d9ef>count</span> }, () <span style=color:#f92672>=&gt;</span> 
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>lambdaClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>InvokeCommand</span>({
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>FunctionName</span>: <span style=color:#66d9ef>functionName</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>Payload</span>: <span style=color:#66d9ef>JSON.stringify</span>({ <span style=color:#a6e22e>warmup</span>: <span style=color:#66d9ef>true</span> })
+</span></span><span style=display:flex><span>      }))
+</span></span><span style=display:flex><span>    );
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>Promise</span>.<span style=color:#a6e22e>all</span>(<span style=color:#a6e22e>invocations</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>parseCloudWatchLogs</span>(<span style=color:#a6e22e>logs</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>any</span> {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Parse CloudWatch logs for Lambda metrics
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>reportMatch</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>logs</span>.<span style=color:#a6e22e>match</span>(<span style=color:#e6db74>/REPORT RequestId: .* Duration: ([\d.]+) ms\s+Billed Duration: (\d+) ms\s+Memory Size: (\d+) MB\s+Max Memory Used: (\d+) MB/</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>initMatch</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>logs</span>.<span style=color:#a6e22e>match</span>(<span style=color:#e6db74>/Init Duration: ([\d.]+) ms/</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>duration</span>: <span style=color:#66d9ef>reportMatch</span> <span style=color:#f92672>?</span> parseFloat(<span style=color:#a6e22e>reportMatch</span>[<span style=color:#ae81ff>1</span>]) <span style=color:#f92672>:</span> <span style=color:#ae81ff>0</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>billedDuration</span>: <span style=color:#66d9ef>reportMatch</span> <span style=color:#f92672>?</span> parseInt(<span style=color:#a6e22e>reportMatch</span>[<span style=color:#ae81ff>2</span>]) <span style=color:#f92672>:</span> <span style=color:#ae81ff>0</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>memorySize</span>: <span style=color:#66d9ef>reportMatch</span> <span style=color:#f92672>?</span> parseInt(<span style=color:#a6e22e>reportMatch</span>[<span style=color:#ae81ff>3</span>]) <span style=color:#f92672>:</span> <span style=color:#ae81ff>0</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>maxMemoryUsed</span>: <span style=color:#66d9ef>reportMatch</span> <span style=color:#f92672>?</span> parseInt(<span style=color:#a6e22e>reportMatch</span>[<span style=color:#ae81ff>4</span>]) <span style=color:#f92672>:</span> <span style=color:#ae81ff>0</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>initDuration</span>: <span style=color:#66d9ef>initMatch</span> <span style=color:#f92672>?</span> parseFloat(<span style=color:#a6e22e>initMatch</span>[<span style=color:#ae81ff>1</span>]) <span style=color:#f92672>:</span> <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>sleep</span>(<span style=color:#a6e22e>ms</span>: <span style=color:#66d9ef>number</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Promise</span>(<span style=color:#a6e22e>resolve</span> <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>setTimeout</span>(<span style=color:#a6e22e>resolve</span>, <span style=color:#a6e22e>ms</span>));
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=database-performance-testing>Database Performance Testing</h2><h3 id=dynamodb-load-testing>DynamoDB Load Testing</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>DynamoDBClient</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/client-dynamodb&#39;</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>DynamoDBDocumentClient</span>, <span style=color:#a6e22e>PutCommand</span>, <span style=color:#a6e22e>GetCommand</span>, <span style=color:#a6e22e>QueryCommand</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/lib-dynamodb&#39;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>DynamoDBLoadTestConfig</span> {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>tableName</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>readConcurrency</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>writeConcurrency</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>testDuration</span>: <span style=color:#66d9ef>number</span>; <span style=color:#75715e>// seconds
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>itemSize</span>: <span style=color:#66d9ef>number</span>; <span style=color:#75715e>// bytes
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>DynamoDBLoadTester</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>docClient</span>: <span style=color:#66d9ef>DynamoDBDocumentClient</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>constructor</span>() {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>client</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>DynamoDBClient</span>({ <span style=color:#a6e22e>region</span>: <span style=color:#66d9ef>process.env.AWS_REGION</span> });
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>docClient</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>DynamoDBDocumentClient</span>.<span style=color:#66d9ef>from</span>(<span style=color:#a6e22e>client</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>runLoadTest</span>(<span style=color:#a6e22e>config</span>: <span style=color:#66d9ef>DynamoDBLoadTestConfig</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span><span style=color:#f92672>&lt;</span>{
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>readMetrics</span>: <span style=color:#66d9ef>PerformanceMetrics</span>;
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>writeMetrics</span>: <span style=color:#66d9ef>PerformanceMetrics</span>;
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>throttledRequests</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  }<span style=color:#f92672>&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>readMetrics</span>: <span style=color:#66d9ef>number</span>[] <span style=color:#f92672>=</span> [];
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>writeMetrics</span>: <span style=color:#66d9ef>number</span>[] <span style=color:#f92672>=</span> [];
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>throttledRequests</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>endTime</span> <span style=color:#f92672>=</span> Date.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>+</span> (<span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>testDuration</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>1000</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Write load test
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>writeWorkers</span> <span style=color:#f92672>=</span> Array.<span style=color:#66d9ef>from</span>({ <span style=color:#a6e22e>length</span>: <span style=color:#66d9ef>config.writeConcurrency</span> }, <span style=color:#66d9ef>async</span> () <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>while</span> (Date.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>&lt;</span> <span style=color:#a6e22e>endTime</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>startTime</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>performance</span>.<span style=color:#a6e22e>now</span>();
+</span></span><span style=display:flex><span>          
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>docClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>PutCommand</span>({
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>TableName</span>: <span style=color:#66d9ef>config.tableName</span>,
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>Item</span>: <span style=color:#66d9ef>this.generateTestItem</span>(<span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>itemSize</span>)
+</span></span><span style=display:flex><span>          }));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>duration</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>performance</span>.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>-</span> <span style=color:#a6e22e>startTime</span>;
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>writeMetrics</span>.<span style=color:#a6e22e>push</span>(<span style=color:#a6e22e>duration</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>: <span style=color:#66d9ef>any</span>) {
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>error</span>.<span style=color:#a6e22e>name</span> <span style=color:#f92672>===</span> <span style=color:#e6db74>&#39;ProvisionedThroughputExceededException&#39;</span>) {
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>throttledRequests</span><span style=color:#f92672>++</span>;
+</span></span><span style=display:flex><span>          }
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>sleep</span>(<span style=color:#ae81ff>100</span>); <span style=color:#75715e>// Back off on errors
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        }
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Read load test
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>readWorkers</span> <span style=color:#f92672>=</span> Array.<span style=color:#66d9ef>from</span>({ <span style=color:#a6e22e>length</span>: <span style=color:#66d9ef>config.readConcurrency</span> }, <span style=color:#66d9ef>async</span> () <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>while</span> (Date.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>&lt;</span> <span style=color:#a6e22e>endTime</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>startTime</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>performance</span>.<span style=color:#a6e22e>now</span>();
+</span></span><span style=display:flex><span>          
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>docClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>GetCommand</span>({
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>TableName</span>: <span style=color:#66d9ef>config.tableName</span>,
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>Key</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>              <span style=color:#a6e22e>PK</span>: <span style=color:#66d9ef>this.generateRandomKey</span>(),
+</span></span><span style=display:flex><span>              <span style=color:#a6e22e>SK</span>: <span style=color:#66d9ef>this.generateRandomKey</span>()
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>          }));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>duration</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>performance</span>.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>-</span> <span style=color:#a6e22e>startTime</span>;
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>readMetrics</span>.<span style=color:#a6e22e>push</span>(<span style=color:#a6e22e>duration</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>: <span style=color:#66d9ef>any</span>) {
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>error</span>.<span style=color:#a6e22e>name</span> <span style=color:#f92672>===</span> <span style=color:#e6db74>&#39;ProvisionedThroughputExceededException&#39;</span>) {
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>throttledRequests</span><span style=color:#f92672>++</span>;
+</span></span><span style=display:flex><span>          }
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>sleep</span>(<span style=color:#ae81ff>50</span>); <span style=color:#75715e>// Back off on errors
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        }
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>Promise</span>.<span style=color:#a6e22e>all</span>([...<span style=color:#a6e22e>writeWorkers</span>, ...<span style=color:#a6e22e>readWorkers</span>]);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>readMetrics</span>: <span style=color:#66d9ef>this.calculateMetrics</span>(<span style=color:#a6e22e>readMetrics</span>),
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>writeMetrics</span>: <span style=color:#66d9ef>this.calculateMetrics</span>(<span style=color:#a6e22e>writeMetrics</span>),
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>throttledRequests</span>
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>generateTestItem</span>(<span style=color:#a6e22e>sizeInBytes</span>: <span style=color:#66d9ef>number</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>any</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>baseItem</span> <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>PK</span>: <span style=color:#66d9ef>this.generateRandomKey</span>(),
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>SK</span>: <span style=color:#66d9ef>this.generateRandomKey</span>(),
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>timestamp</span>: <span style=color:#66d9ef>new</span> Date().<span style=color:#a6e22e>toISOString</span>(),
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>entityType</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;TEST_ITEM&#39;</span>
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Add padding to reach desired size
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>currentSize</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>JSON</span>.<span style=color:#a6e22e>stringify</span>(<span style=color:#a6e22e>baseItem</span>).<span style=color:#a6e22e>length</span>;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>paddingSize</span> <span style=color:#f92672>=</span> Math.<span style=color:#a6e22e>max</span>(<span style=color:#ae81ff>0</span>, <span style=color:#a6e22e>sizeInBytes</span> <span style=color:#f92672>-</span> <span style=color:#a6e22e>currentSize</span>);
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
+</span></span><span style=display:flex><span>      ...<span style=color:#a6e22e>baseItem</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>padding</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;x&#39;</span>.<span style=color:#a6e22e>repeat</span>(<span style=color:#a6e22e>paddingSize</span>)
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>generateRandomKey</span>()<span style=color:#f92672>:</span> <span style=color:#66d9ef>string</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> Math.<span style=color:#a6e22e>random</span>().<span style=color:#a6e22e>toString</span>(<span style=color:#ae81ff>36</span>).<span style=color:#a6e22e>substring</span>(<span style=color:#ae81ff>2</span>, <span style=color:#ae81ff>15</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>calculateMetrics</span>(<span style=color:#a6e22e>data</span>: <span style=color:#66d9ef>number</span>[])<span style=color:#f92672>:</span> <span style=color:#a6e22e>PerformanceMetrics</span> {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>data</span>.<span style=color:#a6e22e>sort</span>((<span style=color:#a6e22e>a</span>, <span style=color:#a6e22e>b</span>) <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>a</span> <span style=color:#f92672>-</span> <span style=color:#a6e22e>b</span>);
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>count</span>: <span style=color:#66d9ef>data.length</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>average</span>: <span style=color:#66d9ef>data.reduce</span>((<span style=color:#a6e22e>sum</span>, <span style=color:#a6e22e>val</span>) <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>sum</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>val</span>, <span style=color:#ae81ff>0</span>) <span style=color:#f92672>/</span> <span style=color:#a6e22e>data</span>.<span style=color:#a6e22e>length</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>median</span>: <span style=color:#66d9ef>data</span>[Math.<span style=color:#a6e22e>floor</span>(<span style=color:#a6e22e>data</span>.<span style=color:#a6e22e>length</span> <span style=color:#f92672>/</span> <span style=color:#ae81ff>2</span>)],
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>p95</span>: <span style=color:#66d9ef>data</span>[Math.<span style=color:#a6e22e>floor</span>(<span style=color:#a6e22e>data</span>.<span style=color:#a6e22e>length</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>0.95</span>)],
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>p99</span>: <span style=color:#66d9ef>data</span>[Math.<span style=color:#a6e22e>floor</span>(<span style=color:#a6e22e>data</span>.<span style=color:#a6e22e>length</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>0.99</span>)],
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>min</span>: <span style=color:#66d9ef>Math.min</span>(...<span style=color:#a6e22e>data</span>),
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>max</span>: <span style=color:#66d9ef>Math.max</span>(...<span style=color:#a6e22e>data</span>)
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>sleep</span>(<span style=color:#a6e22e>ms</span>: <span style=color:#66d9ef>number</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Promise</span>(<span style=color:#a6e22e>resolve</span> <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>setTimeout</span>(<span style=color:#a6e22e>resolve</span>, <span style=color:#a6e22e>ms</span>));
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>PerformanceMetrics</span> {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>count</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>average</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>median</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>p95</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>p99</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>min</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>max</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=chaos-engineering>Chaos Engineering</h2><h3 id=aws-fault-injection-simulator-integration>AWS Fault Injection Simulator Integration</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>FISClient</span>, <span style=color:#a6e22e>StartExperimentCommand</span>, <span style=color:#a6e22e>StopExperimentCommand</span>, <span style=color:#a6e22e>GetExperimentCommand</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/client-fis&#39;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>ChaosExperiment</span> {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>name</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>templateId</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>duration</span>: <span style=color:#66d9ef>number</span>; <span style=color:#75715e>// minutes
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>targets</span>: <span style=color:#66d9ef>Record</span>&lt;<span style=color:#f92672>string</span>, <span style=color:#a6e22e>string</span>&gt;;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>actions</span>: <span style=color:#66d9ef>string</span>[];
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>ChaosEngineer</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>fisClient</span>: <span style=color:#66d9ef>FISClient</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>constructor</span>() {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>fisClient</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>FISClient</span>({ <span style=color:#a6e22e>region</span>: <span style=color:#66d9ef>process.env.AWS_REGION</span> });
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>runChaosExperiment</span>(<span style=color:#a6e22e>experiment</span>: <span style=color:#66d9ef>ChaosExperiment</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span><span style=color:#f92672>&lt;</span>{
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>experimentId</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>beforeMetrics</span>: <span style=color:#66d9ef>SystemMetrics</span>;
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>afterMetrics</span>: <span style=color:#66d9ef>SystemMetrics</span>;
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>recoveryTime</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  }<span style=color:#f92672>&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>`Starting chaos experiment: </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>experiment</span>.<span style=color:#a6e22e>name</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Collect baseline metrics
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>beforeMetrics</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>collectSystemMetrics</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Start FIS experiment
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>startCommand</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>StartExperimentCommand</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>experimentTemplateId</span>: <span style=color:#66d9ef>experiment.templateId</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>tags</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;ChaosTest&#39;</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>experiment</span>.<span style=color:#a6e22e>name</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;Environment&#39;</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>process</span>.<span style=color:#a6e22e>env</span>.<span style=color:#a6e22e>ENVIRONMENT</span> <span style=color:#f92672>||</span> <span style=color:#e6db74>&#39;test&#39;</span>
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>startResponse</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>fisClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>startCommand</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>experimentId</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>startResponse</span>.<span style=color:#a6e22e>experiment</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>id</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>experimentId</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>&#39;Failed to start chaos experiment&#39;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Monitor experiment
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>monitorExperiment</span>(<span style=color:#a6e22e>experimentId</span>, <span style=color:#a6e22e>experiment</span>.<span style=color:#a6e22e>duration</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Measure recovery time
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>recoveryStartTime</span> <span style=color:#f92672>=</span> Date.<span style=color:#a6e22e>now</span>();
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>waitForSystemRecovery</span>();
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>recoveryTime</span> <span style=color:#f92672>=</span> Date.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>-</span> <span style=color:#a6e22e>recoveryStartTime</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Collect post-experiment metrics
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>afterMetrics</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>collectSystemMetrics</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>`Chaos experiment </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>experiment</span>.<span style=color:#a6e22e>name</span><span style=color:#e6db74>}</span><span style=color:#e6db74> completed. Recovery time: </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>recoveryTime</span><span style=color:#e6db74>}</span><span style=color:#e6db74>ms`</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>experimentId</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>beforeMetrics</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>afterMetrics</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>recoveryTime</span>
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>monitorExperiment</span>(<span style=color:#a6e22e>experimentId</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>durationMinutes</span>: <span style=color:#66d9ef>number</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>endTime</span> <span style=color:#f92672>=</span> Date.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>+</span> (<span style=color:#a6e22e>durationMinutes</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>60</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>1000</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>while</span> (Date.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>&lt;</span> <span style=color:#a6e22e>endTime</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>getCommand</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>GetExperimentCommand</span>({ <span style=color:#a6e22e>id</span>: <span style=color:#66d9ef>experimentId</span> });
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>response</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>fisClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>getCommand</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>state</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>response</span>.<span style=color:#a6e22e>experiment</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>state</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>status</span>;
+</span></span><span style=display:flex><span>      
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>state</span> <span style=color:#f92672>===</span> <span style=color:#e6db74>&#39;completed&#39;</span> <span style=color:#f92672>||</span> <span style=color:#a6e22e>state</span> <span style=color:#f92672>===</span> <span style=color:#e6db74>&#39;stopped&#39;</span> <span style=color:#f92672>||</span> <span style=color:#a6e22e>state</span> <span style=color:#f92672>===</span> <span style=color:#e6db74>&#39;failed&#39;</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>`Experiment </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>experimentId</span><span style=color:#e6db74>}</span><span style=color:#e6db74> finished with state: </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>state</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>break</span>;
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>`Experiment </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>experimentId</span><span style=color:#e6db74>}</span><span style=color:#e6db74> status: </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>state</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>sleep</span>(<span style=color:#ae81ff>30000</span>); <span style=color:#75715e>// Check every 30 seconds
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>waitForSystemRecovery</span>()<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>maxWaitTime</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>60</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>1000</span>; <span style=color:#75715e>// 5 minutes
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>startTime</span> <span style=color:#f92672>=</span> Date.<span style=color:#a6e22e>now</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>while</span> (Date.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>-</span> <span style=color:#a6e22e>startTime</span> <span style=color:#f92672>&lt;</span> <span style=color:#a6e22e>maxWaitTime</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>metrics</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>collectSystemMetrics</span>();
+</span></span><span style=display:flex><span>      
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>isSystemHealthy</span>(<span style=color:#a6e22e>metrics</span>)) {
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#39;System has recovered&#39;</span>);
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span>;
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#39;Waiting for system recovery...&#39;</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>sleep</span>(<span style=color:#ae81ff>10000</span>); <span style=color:#75715e>// Check every 10 seconds
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>&#39;System did not recover within expected time&#39;</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>collectSystemMetrics</span>()<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>SystemMetrics</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Implement metrics collection from CloudWatch, application metrics, etc.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>return</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>errorRate</span>: <span style=color:#66d9ef>0.01</span>, <span style=color:#75715e>// 1%
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>responseTime</span>: <span style=color:#66d9ef>150</span>, <span style=color:#75715e>// ms
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>throughput</span>: <span style=color:#66d9ef>1000</span>, <span style=color:#75715e>// requests/minute
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>availability</span>: <span style=color:#66d9ef>99.9</span> <span style=color:#75715e>// percentage
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    };
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>isSystemHealthy</span>(<span style=color:#a6e22e>metrics</span>: <span style=color:#66d9ef>SystemMetrics</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>boolean</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> (
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>metrics</span>.<span style=color:#a6e22e>errorRate</span> <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>0.05</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#75715e>// Less than 5% error rate
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>metrics</span>.<span style=color:#a6e22e>responseTime</span> <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>500</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#75715e>// Less than 500ms response time
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>metrics</span>.<span style=color:#a6e22e>availability</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>99.0</span> <span style=color:#75715e>// Greater than 99% availability
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    );
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>sleep</span>(<span style=color:#a6e22e>ms</span>: <span style=color:#66d9ef>number</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Promise</span>(<span style=color:#a6e22e>resolve</span> <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>setTimeout</span>(<span style=color:#a6e22e>resolve</span>, <span style=color:#a6e22e>ms</span>));
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>SystemMetrics</span> {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>errorRate</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>responseTime</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>throughput</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>availability</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Usage example
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#a6e22e>describe</span>(<span style=color:#e6db74>&#39;Chaos Engineering Tests&#39;</span>, () <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>chaosEngineer</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>ChaosEngineer</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>it</span>(<span style=color:#e6db74>&#39;should handle Lambda function failures gracefully&#39;</span>, <span style=color:#66d9ef>async</span> () <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>experiment</span>: <span style=color:#66d9ef>ChaosExperiment</span> <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>name</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Lambda Function Failure&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>templateId</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;EXT123456789&#39;</span>, <span style=color:#75715e>// FIS experiment template ID
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>duration</span>: <span style=color:#66d9ef>5</span>, <span style=color:#75715e>// 5 minutes
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>targets</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;lambda-functions&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;user-service-function&#39;</span>
+</span></span><span style=display:flex><span>      },
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>actions</span><span style=color:#f92672>:</span> [<span style=color:#e6db74>&#39;stop-lambda-function&#39;</span>]
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>result</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>chaosEngineer</span>.<span style=color:#a6e22e>runChaosExperiment</span>(<span style=color:#a6e22e>experiment</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Assertions
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>expect</span>(<span style=color:#a6e22e>result</span>.<span style=color:#a6e22e>recoveryTime</span>).<span style=color:#a6e22e>toBeLessThan</span>(<span style=color:#ae81ff>60000</span>); <span style=color:#75715e>// Should recover within 1 minute
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>expect</span>(<span style=color:#a6e22e>result</span>.<span style=color:#a6e22e>afterMetrics</span>.<span style=color:#a6e22e>availability</span>).<span style=color:#a6e22e>toBeGreaterThan</span>(<span style=color:#ae81ff>99.0</span>); <span style=color:#75715e>// 99%+ availability
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>expect</span>(<span style=color:#a6e22e>result</span>.<span style=color:#a6e22e>afterMetrics</span>.<span style=color:#a6e22e>errorRate</span>).<span style=color:#a6e22e>toBeLessThan</span>(<span style=color:#ae81ff>0.05</span>); <span style=color:#75715e>// Less than 5% errors
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  }, <span style=color:#ae81ff>600000</span>); <span style=color:#75715e>// 10 minute timeout
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>});
+</span></span></code></pre></div><h2 id=monitoring-and-observability>Monitoring and Observability</h2><h3 id=custom-metrics-collection>Custom Metrics Collection</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>CloudWatchClient</span>, <span style=color:#a6e22e>PutMetricDataCommand</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/client-cloudwatch&#39;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>PerformanceMonitor</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>cloudWatchClient</span>: <span style=color:#66d9ef>CloudWatchClient</span>;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>metrics</span>: <span style=color:#66d9ef>Map</span>&lt;<span style=color:#f92672>string</span>, <span style=color:#a6e22e>number</span><span style=color:#960050;background-color:#1e0010>[]</span>&gt; <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Map</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>constructor</span>() {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>cloudWatchClient</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>CloudWatchClient</span>({ <span style=color:#a6e22e>region</span>: <span style=color:#66d9ef>process.env.AWS_REGION</span> });
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>recordMetric</span>(<span style=color:#a6e22e>metricName</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>value</span>: <span style=color:#66d9ef>number</span>, <span style=color:#a6e22e>unit</span>: <span style=color:#66d9ef>string</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;Count&#39;</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>void</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>metrics</span>.<span style=color:#a6e22e>has</span>(<span style=color:#a6e22e>metricName</span>)) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>metrics</span>.<span style=color:#66d9ef>set</span>(<span style=color:#a6e22e>metricName</span>, []);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>metrics</span>.<span style=color:#66d9ef>get</span>(<span style=color:#a6e22e>metricName</span>)<span style=color:#f92672>!</span>.<span style=color:#a6e22e>push</span>(<span style=color:#a6e22e>value</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Send to CloudWatch
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>sendToCloudWatch</span>(<span style=color:#a6e22e>metricName</span>, <span style=color:#a6e22e>value</span>, <span style=color:#a6e22e>unit</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>startTimer</span>(<span style=color:#a6e22e>operationName</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> () <span style=color:#f92672>=&gt;</span> <span style=color:#66d9ef>void</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>startTime</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>performance</span>.<span style=color:#a6e22e>now</span>();
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> () <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>duration</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>performance</span>.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>-</span> <span style=color:#a6e22e>startTime</span>;
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>recordMetric</span>(<span style=color:#e6db74>`</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>operationName</span><span style=color:#e6db74>}</span><span style=color:#e6db74>.Duration`</span>, <span style=color:#a6e22e>duration</span>, <span style=color:#e6db74>&#39;Milliseconds&#39;</span>);
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>measureAsyncOperation</span>&lt;<span style=color:#f92672>T</span>&gt;(
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>operationName</span>: <span style=color:#66d9ef>string</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>operation</span><span style=color:#f92672>:</span> () <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>T</span>&gt;
+</span></span><span style=display:flex><span>  )<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>T</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>stopTimer</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>startTimer</span>(<span style=color:#a6e22e>operationName</span>);
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>result</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>operation</span>();
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>recordMetric</span>(<span style=color:#e6db74>`</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>operationName</span><span style=color:#e6db74>}</span><span style=color:#e6db74>.Success`</span>, <span style=color:#ae81ff>1</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>result</span>;
+</span></span><span style=display:flex><span>    } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>recordMetric</span>(<span style=color:#e6db74>`</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>operationName</span><span style=color:#e6db74>}</span><span style=color:#e6db74>.Error`</span>, <span style=color:#ae81ff>1</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#a6e22e>error</span>;
+</span></span><span style=display:flex><span>    } <span style=color:#66d9ef>finally</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>stopTimer</span>();
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>getMetricStatistics</span>(<span style=color:#a6e22e>metricName</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>count</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>average</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>min</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>max</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>p95</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>p99</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  } {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>values</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>metrics</span>.<span style=color:#66d9ef>get</span>(<span style=color:#a6e22e>metricName</span>) <span style=color:#f92672>||</span> [];
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>values</span>.<span style=color:#a6e22e>length</span> <span style=color:#f92672>===</span> <span style=color:#ae81ff>0</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> { <span style=color:#a6e22e>count</span>: <span style=color:#66d9ef>0</span>, <span style=color:#a6e22e>average</span>: <span style=color:#66d9ef>0</span>, <span style=color:#a6e22e>min</span>: <span style=color:#66d9ef>0</span>, <span style=color:#a6e22e>max</span>: <span style=color:#66d9ef>0</span>, <span style=color:#a6e22e>p95</span>: <span style=color:#66d9ef>0</span>, <span style=color:#a6e22e>p99</span>: <span style=color:#66d9ef>0</span> };
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>values</span>.<span style=color:#a6e22e>sort</span>((<span style=color:#a6e22e>a</span>, <span style=color:#a6e22e>b</span>) <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>a</span> <span style=color:#f92672>-</span> <span style=color:#a6e22e>b</span>);
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>count</span>: <span style=color:#66d9ef>values.length</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>average</span>: <span style=color:#66d9ef>values.reduce</span>((<span style=color:#a6e22e>sum</span>, <span style=color:#a6e22e>val</span>) <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>sum</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>val</span>, <span style=color:#ae81ff>0</span>) <span style=color:#f92672>/</span> <span style=color:#a6e22e>values</span>.<span style=color:#a6e22e>length</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>min</span>: <span style=color:#66d9ef>values</span>[<span style=color:#ae81ff>0</span>],
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>max</span>: <span style=color:#66d9ef>values</span>[<span style=color:#a6e22e>values</span>.<span style=color:#a6e22e>length</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>],
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>p95</span>: <span style=color:#66d9ef>values</span>[Math.<span style=color:#a6e22e>floor</span>(<span style=color:#a6e22e>values</span>.<span style=color:#a6e22e>length</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>0.95</span>)],
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>p99</span>: <span style=color:#66d9ef>values</span>[Math.<span style=color:#a6e22e>floor</span>(<span style=color:#a6e22e>values</span>.<span style=color:#a6e22e>length</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>0.99</span>)]
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>sendToCloudWatch</span>(<span style=color:#a6e22e>metricName</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>value</span>: <span style=color:#66d9ef>number</span>, <span style=color:#a6e22e>unit</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>command</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>PutMetricDataCommand</span>({
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>Namespace</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Application/Performance&#39;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>MetricData</span><span style=color:#f92672>:</span> [{
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>MetricName</span>: <span style=color:#66d9ef>metricName</span>,
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>Value</span>: <span style=color:#66d9ef>value</span>,
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>Unit</span>: <span style=color:#66d9ef>unit</span>,
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>Timestamp</span>: <span style=color:#66d9ef>new</span> Date(),
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>Dimensions</span><span style=color:#f92672>:</span> [{
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>Name</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Environment&#39;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>Value</span>: <span style=color:#66d9ef>process.env.ENVIRONMENT</span> <span style=color:#f92672>||</span> <span style=color:#e6db74>&#39;development&#39;</span>
+</span></span><span style=display:flex><span>          }]
+</span></span><span style=display:flex><span>        }]
+</span></span><span style=display:flex><span>      });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>cloudWatchClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>command</span>);
+</span></span><span style=display:flex><span>    } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>error</span>(<span style=color:#e6db74>&#39;Failed to send metric to CloudWatch:&#39;</span>, <span style=color:#a6e22e>error</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Usage in application code
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>monitor</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>PerformanceMonitor</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>UserService</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>createUser</span>(<span style=color:#a6e22e>userData</span>: <span style=color:#66d9ef>CreateUserRequest</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>User</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>monitor</span>.<span style=color:#a6e22e>measureAsyncOperation</span>(<span style=color:#e6db74>&#39;UserService.CreateUser&#39;</span>, <span style=color:#66d9ef>async</span> () <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>stopValidationTimer</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>monitor</span>.<span style=color:#a6e22e>startTimer</span>(<span style=color:#e6db74>&#39;UserService.ValidateInput&#39;</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>validateUserInput</span>(<span style=color:#a6e22e>userData</span>);
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>stopValidationTimer</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>stopDbTimer</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>monitor</span>.<span style=color:#a6e22e>startTimer</span>(<span style=color:#e6db74>&#39;UserService.DatabaseWrite&#39;</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>user</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>userRepository</span>.<span style=color:#a6e22e>create</span>(<span style=color:#a6e22e>userData</span>);
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>stopDbTimer</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>monitor</span>.<span style=color:#a6e22e>recordMetric</span>(<span style=color:#e6db74>&#39;UserService.UserCreated&#39;</span>, <span style=color:#ae81ff>1</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>user</span>;
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=distributed-tracing-for-performance>Distributed Tracing for Performance</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>trace</span>, <span style=color:#a6e22e>SpanStatusCode</span>, <span style=color:#a6e22e>SpanKind</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@opentelemetry/api&#39;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>TracedPerformanceService</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>tracer</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>trace</span>.<span style=color:#a6e22e>getTracer</span>(<span style=color:#e6db74>&#39;performance-service&#39;</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>processOrder</span>(<span style=color:#a6e22e>orderId</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>span</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>tracer</span>.<span style=color:#a6e22e>startSpan</span>(<span style=color:#e6db74>&#39;processOrder&#39;</span>, {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>kind</span>: <span style=color:#66d9ef>SpanKind.SERVER</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>attributes</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;order.id&#39;</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>orderId</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;service.name&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;order-processor&#39;</span>
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>      <span style=color:#75715e>// Step 1: Validate order
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>validationSpan</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>tracer</span>.<span style=color:#a6e22e>startSpan</span>(<span style=color:#e6db74>&#39;validateOrder&#39;</span>, {
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>parent</span>: <span style=color:#66d9ef>span</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>attributes</span><span style=color:#f92672>:</span> { <span style=color:#e6db74>&#39;order.id&#39;</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>orderId</span> }
+</span></span><span style=display:flex><span>      });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>startTime</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>performance</span>.<span style=color:#a6e22e>now</span>();
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>validateOrder</span>(<span style=color:#a6e22e>orderId</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>validationTime</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>performance</span>.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>-</span> <span style=color:#a6e22e>startTime</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>validationSpan</span>.<span style=color:#a6e22e>setAttributes</span>({
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;validation.duration_ms&#39;</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>validationTime</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;validation.status&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;success&#39;</span>
+</span></span><span style=display:flex><span>      });
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>validationSpan</span>.<span style=color:#a6e22e>setStatus</span>({ <span style=color:#a6e22e>code</span>: <span style=color:#66d9ef>SpanStatusCode.OK</span> });
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>validationSpan</span>.<span style=color:#a6e22e>end</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#75715e>// Step 2: Process payment
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>tracePaymentProcessing</span>(<span style=color:#a6e22e>orderId</span>, <span style=color:#a6e22e>span</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#75715e>// Step 3: Update inventory
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>traceInventoryUpdate</span>(<span style=color:#a6e22e>orderId</span>, <span style=color:#a6e22e>span</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>span</span>.<span style=color:#a6e22e>setStatus</span>({ <span style=color:#a6e22e>code</span>: <span style=color:#66d9ef>SpanStatusCode.OK</span> });
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>span</span>.<span style=color:#a6e22e>setAttributes</span>({
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;order.status&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;processed&#39;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;processing.completed_at&#39;</span><span style=color:#f92672>:</span> <span style=color:#66d9ef>new</span> Date().<span style=color:#a6e22e>toISOString</span>()
+</span></span><span style=display:flex><span>      });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>span</span>.<span style=color:#a6e22e>setStatus</span>({
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>code</span>: <span style=color:#66d9ef>SpanStatusCode.ERROR</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>message</span>: <span style=color:#66d9ef>error</span> <span style=color:#66d9ef>instanceof</span> Error <span style=color:#f92672>?</span> <span style=color:#a6e22e>error</span>.<span style=color:#a6e22e>message</span> <span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Unknown error&#39;</span>
+</span></span><span style=display:flex><span>      });
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#a6e22e>error</span>;
+</span></span><span style=display:flex><span>    } <span style=color:#66d9ef>finally</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>span</span>.<span style=color:#a6e22e>end</span>();
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>tracePaymentProcessing</span>(<span style=color:#a6e22e>orderId</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>parentSpan</span>: <span style=color:#66d9ef>any</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>span</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>tracer</span>.<span style=color:#a6e22e>startSpan</span>(<span style=color:#e6db74>&#39;processPayment&#39;</span>, {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>parent</span>: <span style=color:#66d9ef>parentSpan</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>attributes</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;order.id&#39;</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>orderId</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;payment.processor&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;stripe&#39;</span>
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>startTime</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>performance</span>.<span style=color:#a6e22e>now</span>();
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>processPayment</span>(<span style=color:#a6e22e>orderId</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>processingTime</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>performance</span>.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>-</span> <span style=color:#a6e22e>startTime</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>span</span>.<span style=color:#a6e22e>setAttributes</span>({
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;payment.duration_ms&#39;</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>processingTime</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;payment.status&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;completed&#39;</span>
+</span></span><span style=display:flex><span>      });
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>span</span>.<span style=color:#a6e22e>setStatus</span>({ <span style=color:#a6e22e>code</span>: <span style=color:#66d9ef>SpanStatusCode.OK</span> });
+</span></span><span style=display:flex><span>    } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>span</span>.<span style=color:#a6e22e>setStatus</span>({
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>code</span>: <span style=color:#66d9ef>SpanStatusCode.ERROR</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>message</span>: <span style=color:#66d9ef>error</span> <span style=color:#66d9ef>instanceof</span> Error <span style=color:#f92672>?</span> <span style=color:#a6e22e>error</span>.<span style=color:#a6e22e>message</span> <span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Payment failed&#39;</span>
+</span></span><span style=display:flex><span>      });
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>span</span>.<span style=color:#a6e22e>setAttributes</span>({
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;payment.status&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;failed&#39;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;payment.error&#39;</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>error</span> <span style=color:#66d9ef>instanceof</span> Error <span style=color:#f92672>?</span> <span style=color:#a6e22e>error</span>.<span style=color:#a6e22e>message</span> <span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Unknown error&#39;</span>
+</span></span><span style=display:flex><span>      });
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#a6e22e>error</span>;
+</span></span><span style=display:flex><span>    } <span style=color:#66d9ef>finally</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>span</span>.<span style=color:#a6e22e>end</span>();
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>traceInventoryUpdate</span>(<span style=color:#a6e22e>orderId</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>parentSpan</span>: <span style=color:#66d9ef>any</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>span</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>tracer</span>.<span style=color:#a6e22e>startSpan</span>(<span style=color:#e6db74>&#39;updateInventory&#39;</span>, {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>parent</span>: <span style=color:#66d9ef>parentSpan</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>attributes</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;order.id&#39;</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>orderId</span>
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>startTime</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>performance</span>.<span style=color:#a6e22e>now</span>();
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>itemsUpdated</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>updateInventory</span>(<span style=color:#a6e22e>orderId</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>updateTime</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>performance</span>.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>-</span> <span style=color:#a6e22e>startTime</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>span</span>.<span style=color:#a6e22e>setAttributes</span>({
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;inventory.update_duration_ms&#39;</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>updateTime</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;inventory.items_updated&#39;</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>itemsUpdated</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;inventory.status&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;updated&#39;</span>
+</span></span><span style=display:flex><span>      });
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>span</span>.<span style=color:#a6e22e>setStatus</span>({ <span style=color:#a6e22e>code</span>: <span style=color:#66d9ef>SpanStatusCode.OK</span> });
+</span></span><span style=display:flex><span>    } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>span</span>.<span style=color:#a6e22e>setStatus</span>({
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>code</span>: <span style=color:#66d9ef>SpanStatusCode.ERROR</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>message</span>: <span style=color:#66d9ef>error</span> <span style=color:#66d9ef>instanceof</span> Error <span style=color:#f92672>?</span> <span style=color:#a6e22e>error</span>.<span style=color:#a6e22e>message</span> <span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Inventory update failed&#39;</span>
+</span></span><span style=display:flex><span>      });
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#a6e22e>error</span>;
+</span></span><span style=display:flex><span>    } <span style=color:#66d9ef>finally</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>span</span>.<span style=color:#a6e22e>end</span>();
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>validateOrder</span>(<span style=color:#a6e22e>orderId</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Simulate validation logic
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>sleep</span>(<span style=color:#ae81ff>50</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>processPayment</span>(<span style=color:#a6e22e>orderId</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Simulate payment processing
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>sleep</span>(<span style=color:#ae81ff>200</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>updateInventory</span>(<span style=color:#a6e22e>orderId</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>number</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Simulate inventory update
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>sleep</span>(<span style=color:#ae81ff>100</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>3</span>; <span style=color:#75715e>// Number of items updated
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>sleep</span>(<span style=color:#a6e22e>ms</span>: <span style=color:#66d9ef>number</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Promise</span>(<span style=color:#a6e22e>resolve</span> <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>setTimeout</span>(<span style=color:#a6e22e>resolve</span>, <span style=color:#a6e22e>ms</span>));
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=performance-testing-in-cicd>Performance Testing in CI/CD</h2><h3 id=github-actions-performance-pipeline>GitHub Actions Performance Pipeline</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#75715e># .github/workflows/performance-tests.yml</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>name</span>: <span style=color:#ae81ff>Performance Tests</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>on</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>push</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>branches</span>: [ <span style=color:#ae81ff>main, develop ]</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>pull_request</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>branches</span>: [ <span style=color:#ae81ff>main ]</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>schedule</span>:
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>cron</span>: <span style=color:#e6db74>&#39;0 2 * * *&#39;</span> <span style=color:#75715e># Daily at 2 AM</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>jobs</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>performance-tests</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>runs-on</span>: <span style=color:#ae81ff>ubuntu-latest</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>environment</span>: <span style=color:#ae81ff>performance-testing</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>steps</span>:
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>uses</span>: <span style=color:#ae81ff>actions/checkout@v3</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Setup Node.js</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>uses</span>: <span style=color:#ae81ff>actions/setup-node@v3</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>with</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>node-version</span>: <span style=color:#e6db74>&#39;18&#39;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>cache</span>: <span style=color:#e6db74>&#39;npm&#39;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Install dependencies</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>run</span>: <span style=color:#ae81ff>npm ci</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Run unit performance tests</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>run</span>: <span style=color:#ae81ff>npm run test:performance:unit</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Setup test environment</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>run</span>: |<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>        aws cloudformation deploy \
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          --template-file infrastructure/test-stack.yml \
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          --stack-name perf-test-stack-${{ github.run_id }} \
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          --capabilities CAPABILITY_IAM \
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          --parameter-overrides \
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>            Environment=perf-test \
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>            BranchName=${{ github.ref_name }}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Run API performance tests</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>run</span>: |<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>        export API_BASE_URL=$(aws cloudformation describe-stacks \
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          --stack-name perf-test-stack-${{ github.run_id }} \
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          --query &#39;Stacks[0].Outputs[?OutputKey==`ApiUrl`].OutputValue&#39; \
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          --output text)
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>        npm run test:performance:api</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>env</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>AWS_REGION</span>: <span style=color:#ae81ff>us-east-1</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Run load tests with Artillery</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>run</span>: |<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>        npx artillery run artillery-config.yml \
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          --target $API_BASE_URL \
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          --output performance-results.json</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Analyze performance results</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>run</span>: <span style=color:#ae81ff>node scripts/analyze-performance.js</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Upload performance report</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>uses</span>: <span style=color:#ae81ff>actions/upload-artifact@v3</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>with</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>name</span>: <span style=color:#ae81ff>performance-report</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>path</span>: <span style=color:#ae81ff>performance-report.html</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Comment PR with results</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>if</span>: <span style=color:#ae81ff>github.event_name == &#39;pull_request&#39;</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>uses</span>: <span style=color:#ae81ff>actions/github-script@v6</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>with</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>script</span>: |<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          const fs = require(&#39;fs&#39;);
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          const results = JSON.parse(fs.readFileSync(&#39;performance-summary.json&#39;, &#39;utf8&#39;));
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          const comment = `
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          ## Performance Test Results
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          | Metric | Value | Threshold | Status |
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          |--------|-------|-----------|--------|
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          | Average Response Time | ${results.avgResponseTime}ms | &lt;100ms | ${results.avgResponseTime &lt; 100 ? &#39;✅&#39; : &#39;❌&#39;} |
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          | P95 Response Time | ${results.p95ResponseTime}ms | &lt;200ms | ${results.p95ResponseTime &lt; 200 ? &#39;✅&#39; : &#39;❌&#39;} |
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          | Error Rate | ${results.errorRate}% | &lt;1% | ${results.errorRate &lt; 1 ? &#39;✅&#39; : &#39;❌&#39;} |
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          | Throughput | ${results.throughput} RPS | &gt;100 RPS | ${results.throughput &gt; 100 ? &#39;✅&#39; : &#39;❌&#39;} |
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          `;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          github.rest.issues.createComment({
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>            issue_number: context.issue.number,
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>            owner: context.repo.owner,
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>            repo: context.repo.repo,
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>            body: comment
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          });</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Cleanup test environment</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>if</span>: <span style=color:#ae81ff>always()</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>run</span>: |<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>        aws cloudformation delete-stack \
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          --stack-name perf-test-stack-${{ github.run_id }}</span>
+</span></span></code></pre></div><h2 id=conclusion>Conclusion</h2><p>Performance testing in cloud applications requires a multi-layered approach that spans from unit-level micro-benchmarks to large-scale chaos engineering experiments. Key strategies include:</p><ul><li><strong>Start with unit performance tests</strong> for quick feedback</li><li><strong>Implement comprehensive load testing</strong> with realistic user journeys</li><li><strong>Test serverless-specific patterns</strong> like cold starts and auto-scaling</li><li><strong>Practice chaos engineering</strong> to validate resilience</li><li><strong>Monitor continuously</strong> with distributed tracing and custom metrics</li><li><strong>Integrate performance testing</strong> into your CI/CD pipeline</li></ul><p>The patterns and tools we&rsquo;ve explored provide a foundation for building robust, scalable cloud applications that perform well under real-world conditions.</p><p>In our final post of this series, &ldquo;Technical Debt Management in Growing Codebases,&rdquo; we&rsquo;ll explore strategies for maintaining code quality and performance as your applications evolve and scale.</p><h2 id=further-reading>Further Reading</h2><ul><li><a href=https://docs.aws.amazon.com/wellarchitected/latest/performance-efficiency-pillar/welcome.html>AWS Well-Architected Performance Efficiency Pillar</a></li><li><a href=https://artillery.io/docs/>Artillery.io Load Testing Guide</a></li><li><a href=https://docs.aws.amazon.com/fis/latest/userguide/what-is.html>AWS Fault Injection Simulator User Guide</a></li><li><a href=https://opentelemetry.io/docs/>OpenTelemetry Performance Best Practices</a></li></ul></div></article></main><aside class=blog-sidebar><div class=sidebar-widget><h3>Recent Posts</h3><ul class=recent-posts><li><a href=/posts/using-ai-in-software-engineering/>Harnessing AI in Software Engineering: Opportunities and Challenges</a>
+<span class=post-date>May 29, 2025</span></li><li><a href=/posts/aws-serverless-cost-optimization/>Cost Optimization Strategies for AWS Serverless Applications</a>
+<span class=post-date>Jun 17, 2023</span></li><li><a href=/posts/aws-sns-sqs-typescript/>Building Event-Driven Architectures with AWS SNS/SQS and TypeScript</a>
+<span class=post-date>May 21, 2023</span></li><li><a href=/posts/securing-aws-lambda/>Securing AWS Lambda Functions: Best Practices and Implementation Guide</a>
+<span class=post-date>Apr 7, 2023</span></li><li><a href=/posts/aws-step-functions-typescript/>Step Functions: Orchestrating AWS Lambda Workflows in TypeScript</a>
+<span class=post-date>Mar 5, 2023</span></li></ul></div><div class=sidebar-widget><h3>Categories</h3><ul class=categories><li><a href=/categories/architecture>architecture (1)</a></li><li><a href=/categories/architecture-and-design>architecture and design (3)</a></li><li><a href=/categories/artificial-intelligence>artificial intelligence (1)</a></li><li><a href=/categories/cloud-computing>cloud computing (5)</a></li><li><a href=/categories/code-quality>code quality (1)</a></li><li><a href=/categories/cost-optimization>cost optimization (1)</a></li><li><a href=/categories/database>database (1)</a></li><li><a href=/categories/debugging-and-troubleshooting>debugging and troubleshooting (1)</a></li><li><a href=/categories/development-tools>development tools (2)</a></li><li><a href=/categories/development-tutorials>development tutorials (1)</a></li><li><a href=/categories/microservices>microservices (1)</a></li><li><a href=/categories/performance>performance (1)</a></li><li><a href=/categories/quality-assurance>quality assurance (1)</a></li><li><a href=/categories/security>security (1)</a></li><li><a href=/categories/serverless>serverless (1)</a></li><li><a href=/categories/software-development>software development (8)</a></li><li><a href=/categories/technical-debt>technical debt (1)</a></li><li><a href=/categories/testing>testing (2)</a></li><li><a href=/categories/version-control>version control (1)</a></li></ul></div><div class=sidebar-widget><h3>Post Series</h3><ul class=recent-posts><li><a href=/posts/technical-debt-management-growing-codebases/>Modern Development Practices: Technical Debt Management in Growing Codebases: Strategies for Sustainable Development</a>
+<span class=post-date>Dec 19, 2021</span><div class=series-meta><a href=/series/modern-development-practices/ class=series-link>View all 7 posts in series →</a></div></li></ul></div><div class=sidebar-widget><h3>Tags</h3><div class=tag-cloud><a href=/tags/ai class=tag-cloud-item style=font-size:1rem>ai
+</a><a href=/tags/api-design class=tag-cloud-item style=font-size:1rem>api design
+</a><a href=/tags/architecture class=tag-cloud-item style=font-size:1rem>architecture
+</a><a href=/tags/automation class=tag-cloud-item style=font-size:1rem>automation
+</a><a href=/tags/aws class=tag-cloud-item style=font-size:2rem>aws
+</a><a href=/tags/best-practices class=tag-cloud-item style=font-size:1rem>best practices
+</a><a href=/tags/chaos-engineering class=tag-cloud-item style=font-size:1rem>chaos engineering
+</a><a href=/tags/ci/cd class=tag-cloud-item style=font-size:1rem>ci/cd
+</a><a href=/tags/code-quality class=tag-cloud-item style=font-size:1rem>code quality
+</a><a href=/tags/communication-patterns class=tag-cloud-item style=font-size:1rem>communication patterns
+</a><a href=/tags/cost-optimization class=tag-cloud-item style=font-size:1rem>cost optimization
+</a><a href=/tags/data-modeling class=tag-cloud-item style=font-size:1rem>data modeling
+</a><a href=/tags/database-design class=tag-cloud-item style=font-size:1rem>database design
+</a><a href=/tags/debugging class=tag-cloud-item style=font-size:1rem>debugging
+</a><a href=/tags/developer-tips class=tag-cloud-item style=font-size:1rem>developer tips
+</a><a href=/tags/development class=tag-cloud-item style=font-size:2rem>development
+</a><a href=/tags/distributed-systems class=tag-cloud-item style=font-size:1rem>distributed systems
+</a><a href=/tags/dynamodb class=tag-cloud-item style=font-size:1rem>dynamodb
+</a><a href=/tags/event-driven-architecture class=tag-cloud-item style=font-size:1rem>event-driven architecture
+</a><a href=/tags/graphql class=tag-cloud-item style=font-size:1rem>graphql
+</a><a href=/tags/lambda class=tag-cloud-item style=font-size:1rem>lambda
+</a><a href=/tags/load-testing class=tag-cloud-item style=font-size:1rem>load testing
+</a><a href=/tags/metrics class=tag-cloud-item style=font-size:1rem>metrics
+</a><a href=/tags/microservices class=tag-cloud-item style=font-size:1rem>microservices
+</a><a href=/tags/monitoring class=tag-cloud-item style=font-size:1rem>monitoring
+</a><a href=/tags/nosql class=tag-cloud-item style=font-size:1rem>nosql
+</a><a href=/tags/performance-testing class=tag-cloud-item style=font-size:1rem>performance testing
+</a><a href=/tags/productivity class=tag-cloud-item style=font-size:1rem>productivity
+</a><a href=/tags/refactoring class=tag-cloud-item style=font-size:1rem>refactoring
+</a><a href=/tags/rest class=tag-cloud-item style=font-size:1rem>rest
+</a><a href=/tags/security class=tag-cloud-item style=font-size:1rem>security
+</a><a href=/tags/serverless class=tag-cloud-item style=font-size:1rem>serverless
+</a><a href=/tags/software-engineering class=tag-cloud-item style=font-size:1rem>software engineering
+</a><a href=/tags/standards class=tag-cloud-item style=font-size:1rem>standards
+</a><a href=/tags/tdd class=tag-cloud-item style=font-size:1rem>tdd
+</a><a href=/tags/technical-debt class=tag-cloud-item style=font-size:1rem>technical debt
+</a><a href=/tags/testing class=tag-cloud-item style=font-size:1rem>testing
+</a><a href=/tags/typescript class=tag-cloud-item style=font-size:2rem>typescript</a></div></div><div class=sidebar-widget><h3>Subscribe</h3><div class=subscribe-links><a href=/index.xml class=rss-link><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 019 9"/><path d="M4 4a16 16 0 0116 16"/><circle cx="5" cy="19" r="1"/></svg>
+RSS Feed</a></div></div><div class=sidebar-widget><h3>Archives</h3><ul class=archive-list></ul></div><div class="sidebar-widget npm-packages"><h3>My NPM Packages</h3><div id=npm-list></div></div></aside></div></div><footer class=site-footer><div class=container><p>&copy; 2025 Scott Obert</p></div></footer></body></html>

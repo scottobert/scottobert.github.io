@@ -1,0 +1,1018 @@
+<!doctype html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Scott Obert</title><link rel=stylesheet href=/css/style.css><script src=/js/npm-packages.js defer></script><script defer src=https://cloud.umami.is/script.js data-website-id=e2461896-021d-422a-b83f-624a8819309b></script></head><body><header class=site-header><div class=container><div class=header-content><div class=header-left><h1><a href=/>Scott Obert</a></h1><nav><a href=/posts/>Blog</a></nav></div><div class=social-links><a href=https://www.linkedin.com/in/scott-obert-3a7338b/ target=_blank rel="noopener noreferrer" title="LinkedIn Profile"><svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853.0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601.0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144.0-2.063-.926-2.063-2.065.0-1.138.92-2.063 2.063-2.063 1.14.0 2.064.925 2.064 2.063.0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225.0H1.771C.792.0.0.774.0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2.0 22.222.0h.003z"/></svg>
+<span>LinkedIn</span>
+</a><a href=https://github.com/scottobert target=_blank rel="noopener noreferrer" title="GitHub Profile"><svg viewBox="0 0 24 24"><path d="M12 0C5.37.0.0 5.37.0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577.0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93.0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176.0.0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22.0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22.0 1.605-.015 2.896-.015 3.286.0.315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12"/></svg>
+<span>GitHub</span></a></div></div></div></header><div class=container><div class=content-layout><main class=main-content><article class=post><h1>Database Design for Serverless Applications: NoSQL Patterns and Data Modeling</h1><div class=post-meta><span>Nov 7, 2021</span>
+<span>| Tags: DynamoDB, NoSQL, Serverless, AWS, Database Design, Data Modeling, TypeScript</span></div><div class=post-content><h2 id=introduction>Introduction</h2><p>In our Modern Development Practices series, we&rsquo;ve covered test-driven development, code quality gates, API design patterns, and microservices communication. Today, we&rsquo;re diving into database design for serverless applications – a critical aspect that can make or break your application&rsquo;s performance, scalability, and cost-effectiveness.</p><p>Serverless applications demand a different approach to data storage. Traditional relational database patterns often don&rsquo;t align with the ephemeral, stateless nature of serverless functions. Instead, we need to embrace NoSQL patterns, denormalization strategies, and event-driven data synchronization.</p><h2 id=understanding-serverless-database-constraints>Understanding Serverless Database Constraints</h2><h3 id=connection-pooling-challenges>Connection Pooling Challenges</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// Anti-pattern: Creating new connections in Lambda functions
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>Client</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;pg&#39;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>badHandler</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>async</span> (<span style=color:#a6e22e>event</span>: <span style=color:#66d9ef>APIGatewayProxyEvent</span>) <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// This creates a new connection for every invocation
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>client</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Client</span>({
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>host</span>: <span style=color:#66d9ef>process.env.DB_HOST</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>database</span>: <span style=color:#66d9ef>process.env.DB_NAME</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>user</span>: <span style=color:#66d9ef>process.env.DB_USER</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>password</span>: <span style=color:#66d9ef>process.env.DB_PASSWORD</span>
+</span></span><span style=display:flex><span>  });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>client</span>.<span style=color:#a6e22e>connect</span>();
+</span></span><span style=display:flex><span>  
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>result</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>client</span>.<span style=color:#a6e22e>query</span>(<span style=color:#e6db74>&#39;SELECT * FROM users WHERE id = $1&#39;</span>, [<span style=color:#a6e22e>userId</span>]);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { <span style=color:#a6e22e>statusCode</span>: <span style=color:#66d9ef>200</span>, <span style=color:#a6e22e>body</span>: <span style=color:#66d9ef>JSON.stringify</span>(<span style=color:#a6e22e>result</span>.<span style=color:#a6e22e>rows</span>) };
+</span></span><span style=display:flex><span>  } <span style=color:#66d9ef>finally</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>client</span>.<span style=color:#a6e22e>end</span>(); <span style=color:#75715e>// Connection closed, resources wasted
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  }
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Better: Using RDS Proxy for connection pooling
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>betterHandler</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>async</span> (<span style=color:#a6e22e>event</span>: <span style=color:#66d9ef>APIGatewayProxyEvent</span>) <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// RDS Proxy handles connection pooling automatically
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>client</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Client</span>({
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>host</span>: <span style=color:#66d9ef>process.env.RDS_PROXY_ENDPOINT</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>database</span>: <span style=color:#66d9ef>process.env.DB_NAME</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>user</span>: <span style=color:#66d9ef>process.env.DB_USER</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>password</span>: <span style=color:#66d9ef>process.env.DB_PASSWORD</span>
+</span></span><span style=display:flex><span>  });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>client</span>.<span style=color:#a6e22e>connect</span>();
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// RDS Proxy reuses connections efficiently
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>};
+</span></span></code></pre></div><h3 id=dynamodb-the-serverless-first-choice>DynamoDB: The Serverless-First Choice</h3><p>DynamoDB eliminates connection management entirely and scales automatically:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>DynamoDBClient</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/client-dynamodb&#39;</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>DynamoDBDocumentClient</span>, <span style=color:#a6e22e>GetCommand</span>, <span style=color:#a6e22e>PutCommand</span>, <span style=color:#a6e22e>QueryCommand</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/lib-dynamodb&#39;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>UserRepository</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>docClient</span>: <span style=color:#66d9ef>DynamoDBDocumentClient</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>constructor</span>() {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>client</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>DynamoDBClient</span>({ <span style=color:#a6e22e>region</span>: <span style=color:#66d9ef>process.env.AWS_REGION</span> });
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>docClient</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>DynamoDBDocumentClient</span>.<span style=color:#66d9ef>from</span>(<span style=color:#a6e22e>client</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>getUser</span>(<span style=color:#a6e22e>userId</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>User</span> <span style=color:#960050;background-color:#1e0010>|</span> <span style=color:#a6e22e>null</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>command</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>GetCommand</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>TableName</span>: <span style=color:#66d9ef>process.env.USERS_TABLE</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>Key</span><span style=color:#f92672>:</span> { <span style=color:#a6e22e>PK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`USER#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>userId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>, <span style=color:#a6e22e>SK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`USER#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>userId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span> }
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>result</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>docClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>command</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>result</span>.<span style=color:#a6e22e>Item</span> <span style=color:#f92672>?</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>mapToUser</span>(<span style=color:#a6e22e>result</span>.<span style=color:#a6e22e>Item</span>) <span style=color:#f92672>:</span> <span style=color:#66d9ef>null</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>createUser</span>(<span style=color:#a6e22e>user</span>: <span style=color:#66d9ef>User</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>command</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>PutCommand</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>TableName</span>: <span style=color:#66d9ef>process.env.USERS_TABLE</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>Item</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>PK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`USER#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>user</span>.<span style=color:#a6e22e>id</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>SK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`USER#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>user</span>.<span style=color:#a6e22e>id</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>GSI1PK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`USER#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>user</span>.<span style=color:#a6e22e>email</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>GSI1SK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`USER#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>user</span>.<span style=color:#a6e22e>email</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>        ...<span style=color:#a6e22e>user</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>createdAt</span>: <span style=color:#66d9ef>new</span> Date().<span style=color:#a6e22e>toISOString</span>(),
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>updatedAt</span>: <span style=color:#66d9ef>new</span> Date().<span style=color:#a6e22e>toISOString</span>()
+</span></span><span style=display:flex><span>      },
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>ConditionExpression</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;attribute_not_exists(PK)&#39;</span>
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>docClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>command</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>mapToUser</span>(<span style=color:#a6e22e>item</span>: <span style=color:#66d9ef>any</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>User</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>id</span>: <span style=color:#66d9ef>item.id</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>email</span>: <span style=color:#66d9ef>item.email</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>name</span>: <span style=color:#66d9ef>item.name</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>createdAt</span>: <span style=color:#66d9ef>new</span> Date(<span style=color:#a6e22e>item</span>.<span style=color:#a6e22e>createdAt</span>),
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>updatedAt</span>: <span style=color:#66d9ef>new</span> Date(<span style=color:#a6e22e>item</span>.<span style=color:#a6e22e>updatedAt</span>)
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=single-table-design-patterns>Single Table Design Patterns</h2><h3 id=entity-relationship-modeling>Entity Relationship Modeling</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>EntitySchema</span> {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>PK</span>: <span style=color:#66d9ef>string</span>;      <span style=color:#75715e>// Partition Key
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>SK</span>: <span style=color:#66d9ef>string</span>;      <span style=color:#75715e>// Sort Key
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>GSI1PK?</span>: <span style=color:#66d9ef>string</span>; <span style=color:#75715e>// Global Secondary Index 1 Partition Key
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>GSI1SK?</span>: <span style=color:#66d9ef>string</span>; <span style=color:#75715e>// Global Secondary Index 1 Sort Key
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>GSI2PK?</span>: <span style=color:#66d9ef>string</span>; <span style=color:#75715e>// Global Secondary Index 2 Partition Key
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>GSI2SK?</span>: <span style=color:#66d9ef>string</span>; <span style=color:#75715e>// Global Secondary Index 2 Sort Key
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>entityType</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>  [<span style=color:#a6e22e>key</span>: <span style=color:#66d9ef>string</span>]<span style=color:#f92672>:</span> <span style=color:#66d9ef>any</span>;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>SingleTableRepository</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>docClient</span>: <span style=color:#66d9ef>DynamoDBDocumentClient</span>;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>tableName</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>constructor</span>() {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>client</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>DynamoDBClient</span>({ <span style=color:#a6e22e>region</span>: <span style=color:#66d9ef>process.env.AWS_REGION</span> });
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>docClient</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>DynamoDBDocumentClient</span>.<span style=color:#66d9ef>from</span>(<span style=color:#a6e22e>client</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>tableName</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>process</span>.<span style=color:#a6e22e>env</span>.<span style=color:#a6e22e>MAIN_TABLE</span> <span style=color:#f92672>||</span> <span style=color:#e6db74>&#39;MainTable&#39;</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// User entity: PK = USER#userId, SK = USER#userId
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>createUser</span>(<span style=color:#a6e22e>user</span>: <span style=color:#66d9ef>CreateUserRequest</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>User</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>userId</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>generateId</span>();
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>userEntity</span>: <span style=color:#66d9ef>EntitySchema</span> <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>PK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`USER#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>userId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>SK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`USER#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>userId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>GSI1PK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`USER#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>user</span>.<span style=color:#a6e22e>email</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>, <span style=color:#75715e>// Query by email
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>GSI1SK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`USER#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>user</span>.<span style=color:#a6e22e>email</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>entityType</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;USER&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>id</span>: <span style=color:#66d9ef>userId</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>email</span>: <span style=color:#66d9ef>user.email</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>name</span>: <span style=color:#66d9ef>user.name</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>createdAt</span>: <span style=color:#66d9ef>new</span> Date().<span style=color:#a6e22e>toISOString</span>()
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>docClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>PutCommand</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>TableName</span>: <span style=color:#66d9ef>this.tableName</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>Item</span>: <span style=color:#66d9ef>userEntity</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>ConditionExpression</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;attribute_not_exists(PK)&#39;</span>
+</span></span><span style=display:flex><span>    }));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>mapToUser</span>(<span style=color:#a6e22e>userEntity</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// Order entity: PK = USER#userId, SK = ORDER#orderId
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>createOrder</span>(<span style=color:#a6e22e>order</span>: <span style=color:#66d9ef>CreateOrderRequest</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>Order</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>orderId</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>generateId</span>();
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>orderEntity</span>: <span style=color:#66d9ef>EntitySchema</span> <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>PK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`USER#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>order</span>.<span style=color:#a6e22e>userId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>SK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`ORDER#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>orderId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>GSI1PK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`ORDER#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>order</span>.<span style=color:#a6e22e>status</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>, <span style=color:#75715e>// Query by status
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>GSI1SK</span>: <span style=color:#66d9ef>order.createdAt</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>GSI2PK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`ORDER#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>orderId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>, <span style=color:#75715e>// Direct order lookup
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>GSI2SK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`ORDER#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>orderId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>entityType</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;ORDER&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>id</span>: <span style=color:#66d9ef>orderId</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>userId</span>: <span style=color:#66d9ef>order.userId</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>items</span>: <span style=color:#66d9ef>order.items</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>total</span>: <span style=color:#66d9ef>order.total</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>status</span>: <span style=color:#66d9ef>order.status</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>createdAt</span>: <span style=color:#66d9ef>new</span> Date().<span style=color:#a6e22e>toISOString</span>()
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>docClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>PutCommand</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>TableName</span>: <span style=color:#66d9ef>this.tableName</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>Item</span>: <span style=color:#66d9ef>orderEntity</span>
+</span></span><span style=display:flex><span>    }));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>mapToOrder</span>(<span style=color:#a6e22e>orderEntity</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// Get all orders for a user
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>getUserOrders</span>(<span style=color:#a6e22e>userId</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>Order</span><span style=color:#960050;background-color:#1e0010>[]</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>command</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>QueryCommand</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>TableName</span>: <span style=color:#66d9ef>this.tableName</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>KeyConditionExpression</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;PK = :pk AND begins_with(SK, :sk)&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>ExpressionAttributeValues</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;:pk&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`USER#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>userId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;:sk&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;ORDER#&#39;</span>
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>result</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>docClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>command</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>result</span>.<span style=color:#a6e22e>Items</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>map</span>(<span style=color:#a6e22e>item</span> <span style=color:#f92672>=&gt;</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>mapToOrder</span>(<span style=color:#a6e22e>item</span>)) <span style=color:#f92672>||</span> [];
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// Get orders by status using GSI
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>getOrdersByStatus</span>(<span style=color:#a6e22e>status</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>Order</span><span style=color:#960050;background-color:#1e0010>[]</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>command</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>QueryCommand</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>TableName</span>: <span style=color:#66d9ef>this.tableName</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>IndexName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;GSI1&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>KeyConditionExpression</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;GSI1PK = :pk&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>ExpressionAttributeValues</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;:pk&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`ORDER#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>status</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>result</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>docClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>command</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>result</span>.<span style=color:#a6e22e>Items</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>map</span>(<span style=color:#a6e22e>item</span> <span style=color:#f92672>=&gt;</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>mapToOrder</span>(<span style=color:#a6e22e>item</span>)) <span style=color:#f92672>||</span> [];
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>generateId</span>()<span style=color:#f92672>:</span> <span style=color:#66d9ef>string</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> Math.<span style=color:#a6e22e>random</span>().<span style=color:#a6e22e>toString</span>(<span style=color:#ae81ff>36</span>).<span style=color:#a6e22e>substr</span>(<span style=color:#ae81ff>2</span>, <span style=color:#ae81ff>9</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>mapToUser</span>(<span style=color:#a6e22e>item</span>: <span style=color:#66d9ef>any</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>User</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>id</span>: <span style=color:#66d9ef>item.id</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>email</span>: <span style=color:#66d9ef>item.email</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>name</span>: <span style=color:#66d9ef>item.name</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>createdAt</span>: <span style=color:#66d9ef>new</span> Date(<span style=color:#a6e22e>item</span>.<span style=color:#a6e22e>createdAt</span>)
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>mapToOrder</span>(<span style=color:#a6e22e>item</span>: <span style=color:#66d9ef>any</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Order</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>id</span>: <span style=color:#66d9ef>item.id</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>userId</span>: <span style=color:#66d9ef>item.userId</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>items</span>: <span style=color:#66d9ef>item.items</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>total</span>: <span style=color:#66d9ef>item.total</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>status</span>: <span style=color:#66d9ef>item.status</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>createdAt</span>: <span style=color:#66d9ef>new</span> Date(<span style=color:#a6e22e>item</span>.<span style=color:#a6e22e>createdAt</span>)
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=hierarchical-data-patterns>Hierarchical Data Patterns</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// Forum system with categories, topics, and posts
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>ForumRepository</span> <span style=color:#66d9ef>extends</span> <span style=color:#a6e22e>SingleTableRepository</span> {
+</span></span><span style=display:flex><span>  
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// Category: PK = CATEGORY#categoryId, SK = CATEGORY#categoryId
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>createCategory</span>(<span style=color:#a6e22e>category</span>: <span style=color:#66d9ef>CreateCategoryRequest</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>Category</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>categoryId</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>generateId</span>();
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>entity</span>: <span style=color:#66d9ef>EntitySchema</span> <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>PK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`CATEGORY#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>categoryId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>SK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`CATEGORY#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>categoryId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>GSI1PK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;CATEGORY&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>GSI1SK</span>: <span style=color:#66d9ef>category.name</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>entityType</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;CATEGORY&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>id</span>: <span style=color:#66d9ef>categoryId</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>name</span>: <span style=color:#66d9ef>category.name</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>description</span>: <span style=color:#66d9ef>category.description</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>topicCount</span>: <span style=color:#66d9ef>0</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>createdAt</span>: <span style=color:#66d9ef>new</span> Date().<span style=color:#a6e22e>toISOString</span>()
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>docClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>PutCommand</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>TableName</span>: <span style=color:#66d9ef>this.tableName</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>Item</span>: <span style=color:#66d9ef>entity</span>
+</span></span><span style=display:flex><span>    }));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>mapToCategory</span>(<span style=color:#a6e22e>entity</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// Topic: PK = CATEGORY#categoryId, SK = TOPIC#topicId
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>createTopic</span>(<span style=color:#a6e22e>topic</span>: <span style=color:#66d9ef>CreateTopicRequest</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>Topic</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>topicId</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>generateId</span>();
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>entity</span>: <span style=color:#66d9ef>EntitySchema</span> <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>PK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`CATEGORY#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>topic</span>.<span style=color:#a6e22e>categoryId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>SK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`TOPIC#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>topicId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>GSI1PK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`TOPIC#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>topic</span>.<span style=color:#a6e22e>authorId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>, <span style=color:#75715e>// Topics by author
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>GSI1SK</span>: <span style=color:#66d9ef>new</span> Date().<span style=color:#a6e22e>toISOString</span>(),
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>GSI2PK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`TOPIC#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>topicId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>, <span style=color:#75715e>// Direct topic lookup
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>GSI2SK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`TOPIC#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>topicId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>entityType</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;TOPIC&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>id</span>: <span style=color:#66d9ef>topicId</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>categoryId</span>: <span style=color:#66d9ef>topic.categoryId</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>title</span>: <span style=color:#66d9ef>topic.title</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>content</span>: <span style=color:#66d9ef>topic.content</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>authorId</span>: <span style=color:#66d9ef>topic.authorId</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>postCount</span>: <span style=color:#66d9ef>0</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>lastPostAt</span>: <span style=color:#66d9ef>new</span> Date().<span style=color:#a6e22e>toISOString</span>(),
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>createdAt</span>: <span style=color:#66d9ef>new</span> Date().<span style=color:#a6e22e>toISOString</span>()
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>docClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>PutCommand</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>TableName</span>: <span style=color:#66d9ef>this.tableName</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>Item</span>: <span style=color:#66d9ef>entity</span>
+</span></span><span style=display:flex><span>    }));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>mapToTopic</span>(<span style=color:#a6e22e>entity</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// Post: PK = TOPIC#topicId, SK = POST#timestamp#postId
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>createPost</span>(<span style=color:#a6e22e>post</span>: <span style=color:#66d9ef>CreatePostRequest</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>Post</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>postId</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>generateId</span>();
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>timestamp</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> Date().<span style=color:#a6e22e>toISOString</span>();
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>entity</span>: <span style=color:#66d9ef>EntitySchema</span> <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>PK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`TOPIC#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>post</span>.<span style=color:#a6e22e>topicId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>SK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`POST#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>timestamp</span><span style=color:#e6db74>}</span><span style=color:#e6db74>#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>postId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>GSI1PK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`POST#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>post</span>.<span style=color:#a6e22e>authorId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>, <span style=color:#75715e>// Posts by author
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>GSI1SK</span>: <span style=color:#66d9ef>timestamp</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>entityType</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;POST&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>id</span>: <span style=color:#66d9ef>postId</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>topicId</span>: <span style=color:#66d9ef>post.topicId</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>content</span>: <span style=color:#66d9ef>post.content</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>authorId</span>: <span style=color:#66d9ef>post.authorId</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>createdAt</span>: <span style=color:#66d9ef>timestamp</span>
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>docClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>PutCommand</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>TableName</span>: <span style=color:#66d9ef>this.tableName</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>Item</span>: <span style=color:#66d9ef>entity</span>
+</span></span><span style=display:flex><span>    }));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>mapToPost</span>(<span style=color:#a6e22e>entity</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// Get all topics in a category (with pagination)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>getCategoryTopics</span>(
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>categoryId</span>: <span style=color:#66d9ef>string</span>, 
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>limit</span>: <span style=color:#66d9ef>number</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>20</span>, 
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>lastEvaluatedKey?</span>: <span style=color:#66d9ef>any</span>
+</span></span><span style=display:flex><span>  )<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span><span style=color:#f92672>&lt;</span>{ <span style=color:#a6e22e>topics</span>: <span style=color:#66d9ef>Topic</span>[], <span style=color:#a6e22e>lastEvaluatedKey?</span>: <span style=color:#66d9ef>any</span> }<span style=color:#f92672>&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>command</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>QueryCommand</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>TableName</span>: <span style=color:#66d9ef>this.tableName</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>KeyConditionExpression</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;PK = :pk AND begins_with(SK, :sk)&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>ExpressionAttributeValues</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;:pk&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`CATEGORY#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>categoryId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;:sk&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;TOPIC#&#39;</span>
+</span></span><span style=display:flex><span>      },
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>Limit</span>: <span style=color:#66d9ef>limit</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>ExclusiveStartKey</span>: <span style=color:#66d9ef>lastEvaluatedKey</span>
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>result</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>docClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>command</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>topics</span>: <span style=color:#66d9ef>result.Items?.map</span>(<span style=color:#a6e22e>item</span> <span style=color:#f92672>=&gt;</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>mapToTopic</span>(<span style=color:#a6e22e>item</span>)) <span style=color:#f92672>||</span> [],
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>lastEvaluatedKey</span>: <span style=color:#66d9ef>result.LastEvaluatedKey</span>
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// Get posts in a topic (chronologically ordered)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>getTopicPosts</span>(
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>topicId</span>: <span style=color:#66d9ef>string</span>, 
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>limit</span>: <span style=color:#66d9ef>number</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>50</span>, 
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>lastEvaluatedKey?</span>: <span style=color:#66d9ef>any</span>
+</span></span><span style=display:flex><span>  )<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span><span style=color:#f92672>&lt;</span>{ <span style=color:#a6e22e>posts</span>: <span style=color:#66d9ef>Post</span>[], <span style=color:#a6e22e>lastEvaluatedKey?</span>: <span style=color:#66d9ef>any</span> }<span style=color:#f92672>&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>command</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>QueryCommand</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>TableName</span>: <span style=color:#66d9ef>this.tableName</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>KeyConditionExpression</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;PK = :pk AND begins_with(SK, :sk)&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>ExpressionAttributeValues</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;:pk&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`TOPIC#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>topicId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;:sk&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;POST#&#39;</span>
+</span></span><span style=display:flex><span>      },
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>ScanIndexForward</span>: <span style=color:#66d9ef>true</span>, <span style=color:#75715e>// Ascending order (chronological)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>Limit</span>: <span style=color:#66d9ef>limit</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>ExclusiveStartKey</span>: <span style=color:#66d9ef>lastEvaluatedKey</span>
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>result</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>docClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>command</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>posts</span>: <span style=color:#66d9ef>result.Items?.map</span>(<span style=color:#a6e22e>item</span> <span style=color:#f92672>=&gt;</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>mapToPost</span>(<span style=color:#a6e22e>item</span>)) <span style=color:#f92672>||</span> [],
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>lastEvaluatedKey</span>: <span style=color:#66d9ef>result.LastEvaluatedKey</span>
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=event-sourcing-for-serverless>Event Sourcing for Serverless</h2><h3 id=event-store-implementation>Event Store Implementation</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>DomainEvent</span> {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>eventId</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>aggregateId</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>eventType</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>eventData</span>: <span style=color:#66d9ef>any</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>eventVersion</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>timestamp</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>metadata?</span>: <span style=color:#66d9ef>any</span>;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>DynamoDBEventStore</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>docClient</span>: <span style=color:#66d9ef>DynamoDBDocumentClient</span>;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>eventTable</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>constructor</span>() {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>client</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>DynamoDBClient</span>({ <span style=color:#a6e22e>region</span>: <span style=color:#66d9ef>process.env.AWS_REGION</span> });
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>docClient</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>DynamoDBDocumentClient</span>.<span style=color:#66d9ef>from</span>(<span style=color:#a6e22e>client</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>eventTable</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>process</span>.<span style=color:#a6e22e>env</span>.<span style=color:#a6e22e>EVENT_STORE_TABLE</span> <span style=color:#f92672>||</span> <span style=color:#e6db74>&#39;EventStore&#39;</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>appendEvents</span>(
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>aggregateId</span>: <span style=color:#66d9ef>string</span>, 
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>events</span>: <span style=color:#66d9ef>DomainEvent</span>[], 
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>expectedVersion</span>: <span style=color:#66d9ef>number</span>
+</span></span><span style=display:flex><span>  )<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Optimistic concurrency control
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>versionCheckCommand</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>GetCommand</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>TableName</span>: <span style=color:#66d9ef>this.eventTable</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>Key</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>PK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`AGGREGATE#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>aggregateId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>SK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;VERSION&#39;</span>
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>versionResult</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>docClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>versionCheckCommand</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>currentVersion</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>versionResult</span>.<span style=color:#a6e22e>Item</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>version</span> <span style=color:#f92672>||</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>currentVersion</span> <span style=color:#f92672>!==</span> <span style=color:#a6e22e>expectedVersion</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>`Concurrency conflict. Expected version </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>expectedVersion</span><span style=color:#e6db74>}</span><span style=color:#e6db74>, but current version is </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>currentVersion</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Use transaction to ensure atomicity
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>transactItems</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>events</span>.<span style=color:#a6e22e>map</span>(<span style=color:#a6e22e>event</span> <span style=color:#f92672>=&gt;</span> ({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>Put</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>TableName</span>: <span style=color:#66d9ef>this.eventTable</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>Item</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>PK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`AGGREGATE#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>aggregateId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>SK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`EVENT#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>eventVersion</span>.<span style=color:#a6e22e>toString</span>().<span style=color:#a6e22e>padStart</span>(<span style=color:#ae81ff>10</span>, <span style=color:#e6db74>&#39;0&#39;</span>)<span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>GSI1PK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`EVENT#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>eventType</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>GSI1SK</span>: <span style=color:#66d9ef>event.timestamp</span>,
+</span></span><span style=display:flex><span>          ...<span style=color:#a6e22e>event</span>
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    }));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Update version
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>transactItems</span>.<span style=color:#a6e22e>push</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>Put</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>TableName</span>: <span style=color:#66d9ef>this.eventTable</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>Item</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>PK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`AGGREGATE#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>aggregateId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>SK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;VERSION&#39;</span>,
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>version</span>: <span style=color:#66d9ef>expectedVersion</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>events</span>.<span style=color:#a6e22e>length</span>
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>docClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>TransactWriteCommand</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>TransactItems</span>: <span style=color:#66d9ef>transactItems</span>
+</span></span><span style=display:flex><span>    }));
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>getEvents</span>(<span style=color:#a6e22e>aggregateId</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>fromVersion?</span>: <span style=color:#66d9ef>number</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>DomainEvent</span><span style=color:#960050;background-color:#1e0010>[]</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>keyCondition</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;PK = :pk AND begins_with(SK, :sk)&#39;</span>;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>expressionValues</span>: <span style=color:#66d9ef>any</span> <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#39;:pk&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`AGGREGATE#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>aggregateId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#39;:sk&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;EVENT#&#39;</span>
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>fromVersion</span> <span style=color:#f92672>!==</span> <span style=color:#66d9ef>undefined</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>keyCondition</span> <span style=color:#f92672>+=</span> <span style=color:#e6db74>&#39; AND SK &gt;= :fromVersion&#39;</span>;
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>expressionValues</span>[<span style=color:#e6db74>&#39;:fromVersion&#39;</span>] <span style=color:#f92672>=</span> <span style=color:#e6db74>`EVENT#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>fromVersion</span>.<span style=color:#a6e22e>toString</span>().<span style=color:#a6e22e>padStart</span>(<span style=color:#ae81ff>10</span>, <span style=color:#e6db74>&#39;0&#39;</span>)<span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>command</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>QueryCommand</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>TableName</span>: <span style=color:#66d9ef>this.eventTable</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>KeyConditionExpression</span>: <span style=color:#66d9ef>keyCondition</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>ExpressionAttributeValues</span>: <span style=color:#66d9ef>expressionValues</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>ScanIndexForward</span>: <span style=color:#66d9ef>true</span>
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>result</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>docClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>command</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>result</span>.<span style=color:#a6e22e>Items</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>map</span>(<span style=color:#a6e22e>item</span> <span style=color:#f92672>=&gt;</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>mapToDomainEvent</span>(<span style=color:#a6e22e>item</span>)) <span style=color:#f92672>||</span> [];
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>getEventsByType</span>(<span style=color:#a6e22e>eventType</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>limit?</span>: <span style=color:#66d9ef>number</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>DomainEvent</span><span style=color:#960050;background-color:#1e0010>[]</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>command</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>QueryCommand</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>TableName</span>: <span style=color:#66d9ef>this.eventTable</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>IndexName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;GSI1&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>KeyConditionExpression</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;GSI1PK = :pk&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>ExpressionAttributeValues</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;:pk&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`EVENT#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>eventType</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>
+</span></span><span style=display:flex><span>      },
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>ScanIndexForward</span>: <span style=color:#66d9ef>false</span>, <span style=color:#75715e>// Most recent first
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>Limit</span>: <span style=color:#66d9ef>limit</span>
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>result</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>docClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>command</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>result</span>.<span style=color:#a6e22e>Items</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>map</span>(<span style=color:#a6e22e>item</span> <span style=color:#f92672>=&gt;</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>mapToDomainEvent</span>(<span style=color:#a6e22e>item</span>)) <span style=color:#f92672>||</span> [];
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>mapToDomainEvent</span>(<span style=color:#a6e22e>item</span>: <span style=color:#66d9ef>any</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>DomainEvent</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>eventId</span>: <span style=color:#66d9ef>item.eventId</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>aggregateId</span>: <span style=color:#66d9ef>item.aggregateId</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>eventType</span>: <span style=color:#66d9ef>item.eventType</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>eventData</span>: <span style=color:#66d9ef>item.eventData</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>eventVersion</span>: <span style=color:#66d9ef>item.eventVersion</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>timestamp</span>: <span style=color:#66d9ef>item.timestamp</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>metadata</span>: <span style=color:#66d9ef>item.metadata</span>
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=aggregate-root-with-event-sourcing>Aggregate Root with Event Sourcing</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>abstract</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>EventSourcedAggregate</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>protected</span> <span style=color:#a6e22e>uncommittedEvents</span>: <span style=color:#66d9ef>DomainEvent</span>[] <span style=color:#f92672>=</span> [];
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>protected</span> <span style=color:#a6e22e>version</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>constructor</span>(<span style=color:#66d9ef>protected</span> <span style=color:#a6e22e>id</span>: <span style=color:#66d9ef>string</span>) {}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>getUncommittedEvents</span>()<span style=color:#f92672>:</span> <span style=color:#a6e22e>DomainEvent</span>[] {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> [...<span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>uncommittedEvents</span>];
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>markEventsAsCommitted</span>()<span style=color:#f92672>:</span> <span style=color:#66d9ef>void</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>uncommittedEvents</span> <span style=color:#f92672>=</span> [];
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>getVersion</span>()<span style=color:#f92672>:</span> <span style=color:#66d9ef>number</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>version</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>loadFromHistory</span>(<span style=color:#a6e22e>events</span>: <span style=color:#66d9ef>DomainEvent</span>[])<span style=color:#f92672>:</span> <span style=color:#66d9ef>void</span> {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>events</span>.<span style=color:#a6e22e>forEach</span>(<span style=color:#a6e22e>event</span> <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>applyEvent</span>(<span style=color:#a6e22e>event</span>, <span style=color:#66d9ef>false</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>version</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>eventVersion</span>;
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>protected</span> <span style=color:#a6e22e>addEvent</span>(<span style=color:#a6e22e>eventType</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>eventData</span>: <span style=color:#66d9ef>any</span>, <span style=color:#a6e22e>metadata?</span>: <span style=color:#66d9ef>any</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>void</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>event</span>: <span style=color:#66d9ef>DomainEvent</span> <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>eventId</span>: <span style=color:#66d9ef>this.generateEventId</span>(),
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>aggregateId</span>: <span style=color:#66d9ef>this.id</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>eventType</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>eventData</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>eventVersion</span>: <span style=color:#66d9ef>this.version</span> <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>timestamp</span>: <span style=color:#66d9ef>new</span> Date().<span style=color:#a6e22e>toISOString</span>(),
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>metadata</span>
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>applyEvent</span>(<span style=color:#a6e22e>event</span>, <span style=color:#66d9ef>true</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>uncommittedEvents</span>.<span style=color:#a6e22e>push</span>(<span style=color:#a6e22e>event</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>protected</span> <span style=color:#66d9ef>abstract</span> <span style=color:#a6e22e>applyEvent</span>(<span style=color:#a6e22e>event</span>: <span style=color:#66d9ef>DomainEvent</span>, <span style=color:#a6e22e>isNew</span>: <span style=color:#66d9ef>boolean</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>void</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>generateEventId</span>()<span style=color:#f92672>:</span> <span style=color:#66d9ef>string</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#e6db74>`</span><span style=color:#e6db74>${</span>Date.<span style=color:#a6e22e>now</span>()<span style=color:#e6db74>}</span><span style=color:#e6db74>-</span><span style=color:#e6db74>${</span>Math.<span style=color:#a6e22e>random</span>().<span style=color:#a6e22e>toString</span>(<span style=color:#ae81ff>36</span>).<span style=color:#a6e22e>substr</span>(<span style=color:#ae81ff>2</span>, <span style=color:#ae81ff>9</span>)<span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>BankAccount</span> <span style=color:#66d9ef>extends</span> <span style=color:#a6e22e>EventSourcedAggregate</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>balance</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>isActive</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>false</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>static</span> <span style=color:#a6e22e>create</span>(<span style=color:#a6e22e>accountId</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>initialDeposit</span>: <span style=color:#66d9ef>number</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>BankAccount</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>account</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>BankAccount</span>(<span style=color:#a6e22e>accountId</span>);
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>account</span>.<span style=color:#a6e22e>addEvent</span>(<span style=color:#e6db74>&#39;AccountOpened&#39;</span>, { <span style=color:#a6e22e>initialDeposit</span> });
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>account</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>static</span> <span style=color:#a6e22e>fromHistory</span>(<span style=color:#a6e22e>accountId</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>events</span>: <span style=color:#66d9ef>DomainEvent</span>[])<span style=color:#f92672>:</span> <span style=color:#a6e22e>BankAccount</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>account</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>BankAccount</span>(<span style=color:#a6e22e>accountId</span>);
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>account</span>.<span style=color:#a6e22e>loadFromHistory</span>(<span style=color:#a6e22e>events</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>account</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>deposit</span>(<span style=color:#a6e22e>amount</span>: <span style=color:#66d9ef>number</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>void</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>isActive</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>&#39;Account is not active&#39;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>amount</span> <span style=color:#f92672>&lt;=</span> <span style=color:#ae81ff>0</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>&#39;Deposit amount must be positive&#39;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>addEvent</span>(<span style=color:#e6db74>&#39;MoneyDeposited&#39;</span>, { <span style=color:#a6e22e>amount</span> });
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>withdraw</span>(<span style=color:#a6e22e>amount</span>: <span style=color:#66d9ef>number</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>void</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>isActive</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>&#39;Account is not active&#39;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>amount</span> <span style=color:#f92672>&lt;=</span> <span style=color:#ae81ff>0</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>&#39;Withdrawal amount must be positive&#39;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>balance</span> <span style=color:#f92672>&lt;</span> <span style=color:#a6e22e>amount</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>&#39;Insufficient funds&#39;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>addEvent</span>(<span style=color:#e6db74>&#39;MoneyWithdrawn&#39;</span>, { <span style=color:#a6e22e>amount</span> });
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>close</span>()<span style=color:#f92672>:</span> <span style=color:#66d9ef>void</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>isActive</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>&#39;Account is already closed&#39;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>addEvent</span>(<span style=color:#e6db74>&#39;AccountClosed&#39;</span>, {});
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>getBalance</span>()<span style=color:#f92672>:</span> <span style=color:#66d9ef>number</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>balance</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>isAccountActive</span>()<span style=color:#f92672>:</span> <span style=color:#66d9ef>boolean</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>isActive</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>protected</span> <span style=color:#a6e22e>applyEvent</span>(<span style=color:#a6e22e>event</span>: <span style=color:#66d9ef>DomainEvent</span>, <span style=color:#a6e22e>isNew</span>: <span style=color:#66d9ef>boolean</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>void</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>switch</span> (<span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>eventType</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>case</span> <span style=color:#e6db74>&#39;AccountOpened&#39;</span><span style=color:#f92672>:</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>balance</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>eventData</span>.<span style=color:#a6e22e>initialDeposit</span>;
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>isActive</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>;
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>isNew</span>) <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>version</span><span style=color:#f92672>++</span>;
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>break</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>case</span> <span style=color:#e6db74>&#39;MoneyDeposited&#39;</span><span style=color:#f92672>:</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>balance</span> <span style=color:#f92672>+=</span> <span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>eventData</span>.<span style=color:#a6e22e>amount</span>;
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>isNew</span>) <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>version</span><span style=color:#f92672>++</span>;
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>break</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>case</span> <span style=color:#e6db74>&#39;MoneyWithdrawn&#39;</span><span style=color:#f92672>:</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>balance</span> <span style=color:#f92672>-=</span> <span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>eventData</span>.<span style=color:#a6e22e>amount</span>;
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>isNew</span>) <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>version</span><span style=color:#f92672>++</span>;
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>break</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>case</span> <span style=color:#e6db74>&#39;AccountClosed&#39;</span><span style=color:#f92672>:</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>isActive</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>false</span>;
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>isNew</span>) <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>version</span><span style=color:#f92672>++</span>;
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>break</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>default</span><span style=color:#f92672>:</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>`Unknown event type: </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>eventType</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=data-consistency-patterns>Data Consistency Patterns</h2><h3 id=eventually-consistent-read-models>Eventually Consistent Read Models</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// Projection handler for maintaining read models
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>projectionHandler</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>async</span> (<span style=color:#a6e22e>event</span>: <span style=color:#66d9ef>DynamoDBStreamEvent</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>const</span> <span style=color:#a6e22e>record</span> <span style=color:#66d9ef>of</span> <span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>Records</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>record</span>.<span style=color:#a6e22e>eventName</span> <span style=color:#f92672>===</span> <span style=color:#e6db74>&#39;INSERT&#39;</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#a6e22e>record</span>.<span style=color:#a6e22e>dynamodb</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>NewImage</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>eventData</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>unmarshall</span>(<span style=color:#a6e22e>record</span>.<span style=color:#a6e22e>dynamodb</span>.<span style=color:#a6e22e>NewImage</span>);
+</span></span><span style=display:flex><span>      
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>eventData</span>.<span style=color:#a6e22e>eventType</span> <span style=color:#f92672>===</span> <span style=color:#e6db74>&#39;AccountOpened&#39;</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>createAccountSummary</span>(<span style=color:#a6e22e>eventData</span>);
+</span></span><span style=display:flex><span>      } <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>eventData</span>.<span style=color:#a6e22e>eventType</span> <span style=color:#f92672>===</span> <span style=color:#e6db74>&#39;MoneyDeposited&#39;</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>updateAccountBalance</span>(<span style=color:#a6e22e>eventData</span>);
+</span></span><span style=display:flex><span>      } <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>eventData</span>.<span style=color:#a6e22e>eventType</span> <span style=color:#f92672>===</span> <span style=color:#e6db74>&#39;MoneyWithdrawn&#39;</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>updateAccountBalance</span>(<span style=color:#a6e22e>eventData</span>);
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>async</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>createAccountSummary</span>(<span style=color:#a6e22e>eventData</span>: <span style=color:#66d9ef>any</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>command</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>PutCommand</span>({
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>TableName</span>: <span style=color:#66d9ef>process.env.ACCOUNT_SUMMARY_TABLE</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>Item</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>accountId</span>: <span style=color:#66d9ef>eventData.aggregateId</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>balance</span>: <span style=color:#66d9ef>eventData.eventData.initialDeposit</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>status</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;ACTIVE&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>createdAt</span>: <span style=color:#66d9ef>eventData.timestamp</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>updatedAt</span>: <span style=color:#66d9ef>eventData.timestamp</span>
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>docClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>command</span>);
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>async</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>updateAccountBalance</span>(<span style=color:#a6e22e>eventData</span>: <span style=color:#66d9ef>any</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>updateExpression</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>eventData</span>.<span style=color:#a6e22e>eventType</span> <span style=color:#f92672>===</span> <span style=color:#e6db74>&#39;MoneyDeposited&#39;</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>?</span> <span style=color:#e6db74>&#39;ADD balance :amount SET updatedAt = :timestamp&#39;</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;ADD balance :negAmount SET updatedAt = :timestamp&#39;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>amount</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>eventData</span>.<span style=color:#a6e22e>eventData</span>.<span style=color:#a6e22e>amount</span>;
+</span></span><span style=display:flex><span>  
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>command</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>UpdateCommand</span>({
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>TableName</span>: <span style=color:#66d9ef>process.env.ACCOUNT_SUMMARY_TABLE</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>Key</span><span style=color:#f92672>:</span> { <span style=color:#a6e22e>accountId</span>: <span style=color:#66d9ef>eventData.aggregateId</span> },
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>UpdateExpression</span>: <span style=color:#66d9ef>updateExpression</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>ExpressionAttributeValues</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#39;:amount&#39;</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>amount</span>,
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#39;:negAmount&#39;</span><span style=color:#f92672>:</span> <span style=color:#f92672>-</span><span style=color:#a6e22e>amount</span>,
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#39;:timestamp&#39;</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>eventData</span>.<span style=color:#a6e22e>timestamp</span>
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>docClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>command</span>);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=saga-pattern-with-dynamodb>Saga Pattern with DynamoDB</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>SagaStep</span> {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>stepId</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>status</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;PENDING&#39;</span> <span style=color:#f92672>|</span> <span style=color:#e6db74>&#39;COMPLETED&#39;</span> <span style=color:#f92672>|</span> <span style=color:#e6db74>&#39;FAILED&#39;</span> <span style=color:#f92672>|</span> <span style=color:#e6db74>&#39;COMPENSATED&#39;</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>stepType</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>stepData</span>: <span style=color:#66d9ef>any</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>compensationData?</span>: <span style=color:#66d9ef>any</span>;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>SagaOrchestrator</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>docClient</span>: <span style=color:#66d9ef>DynamoDBDocumentClient</span>;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>sagaTable</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>constructor</span>() {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>client</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>DynamoDBClient</span>({ <span style=color:#a6e22e>region</span>: <span style=color:#66d9ef>process.env.AWS_REGION</span> });
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>docClient</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>DynamoDBDocumentClient</span>.<span style=color:#66d9ef>from</span>(<span style=color:#a6e22e>client</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>sagaTable</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>process</span>.<span style=color:#a6e22e>env</span>.<span style=color:#a6e22e>SAGA_TABLE</span> <span style=color:#f92672>||</span> <span style=color:#e6db74>&#39;SagaTable&#39;</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>startSaga</span>(<span style=color:#a6e22e>sagaId</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>steps</span>: <span style=color:#66d9ef>Omit</span>&lt;<span style=color:#f92672>SagaStep</span>, <span style=color:#e6db74>&#39;status&#39;</span>&gt;[])<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>sagaSteps</span>: <span style=color:#66d9ef>SagaStep</span>[] <span style=color:#f92672>=</span> <span style=color:#a6e22e>steps</span>.<span style=color:#a6e22e>map</span>(<span style=color:#a6e22e>step</span> <span style=color:#f92672>=&gt;</span> ({
+</span></span><span style=display:flex><span>      ...<span style=color:#a6e22e>step</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>status</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;PENDING&#39;</span>
+</span></span><span style=display:flex><span>    }));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>command</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>PutCommand</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>TableName</span>: <span style=color:#66d9ef>this.sagaTable</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>Item</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>PK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`SAGA#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>sagaId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>SK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;METADATA&#39;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>sagaId</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>status</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;STARTED&#39;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>currentStep</span>: <span style=color:#66d9ef>0</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>steps</span>: <span style=color:#66d9ef>sagaSteps</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>createdAt</span>: <span style=color:#66d9ef>new</span> Date().<span style=color:#a6e22e>toISOString</span>()
+</span></span><span style=display:flex><span>      },
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>ConditionExpression</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;attribute_not_exists(PK)&#39;</span>
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>docClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>command</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>executeNextStep</span>(<span style=color:#a6e22e>sagaId</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>executeNextStep</span>(<span style=color:#a6e22e>sagaId</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>saga</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>getSaga</span>(<span style=color:#a6e22e>sagaId</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>saga</span> <span style=color:#f92672>||</span> <span style=color:#a6e22e>saga</span>.<span style=color:#a6e22e>status</span> <span style=color:#f92672>===</span> <span style=color:#e6db74>&#39;COMPLETED&#39;</span> <span style=color:#f92672>||</span> <span style=color:#a6e22e>saga</span>.<span style=color:#a6e22e>status</span> <span style=color:#f92672>===</span> <span style=color:#e6db74>&#39;FAILED&#39;</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>currentStep</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>saga</span>.<span style=color:#a6e22e>steps</span>[<span style=color:#a6e22e>saga</span>.<span style=color:#a6e22e>currentStep</span>];
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>currentStep</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#75715e>// All steps completed
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>completeSaga</span>(<span style=color:#a6e22e>sagaId</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>executeStep</span>(<span style=color:#a6e22e>currentStep</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>markStepCompleted</span>(<span style=color:#a6e22e>sagaId</span>, <span style=color:#a6e22e>saga</span>.<span style=color:#a6e22e>currentStep</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>executeNextStep</span>(<span style=color:#a6e22e>sagaId</span>); <span style=color:#75715e>// Execute next step
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>markStepFailed</span>(<span style=color:#a6e22e>sagaId</span>, <span style=color:#a6e22e>saga</span>.<span style=color:#a6e22e>currentStep</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>startCompensation</span>(<span style=color:#a6e22e>sagaId</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>executeStep</span>(<span style=color:#a6e22e>step</span>: <span style=color:#66d9ef>SagaStep</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>switch</span> (<span style=color:#a6e22e>step</span>.<span style=color:#a6e22e>stepType</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>case</span> <span style=color:#e6db74>&#39;RESERVE_INVENTORY&#39;</span><span style=color:#f92672>:</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>reserveInventory</span>(<span style=color:#a6e22e>step</span>.<span style=color:#a6e22e>stepData</span>);
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>break</span>;
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>case</span> <span style=color:#e6db74>&#39;PROCESS_PAYMENT&#39;</span><span style=color:#f92672>:</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>processPayment</span>(<span style=color:#a6e22e>step</span>.<span style=color:#a6e22e>stepData</span>);
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>break</span>;
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>case</span> <span style=color:#e6db74>&#39;CREATE_SHIPMENT&#39;</span><span style=color:#f92672>:</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>createShipment</span>(<span style=color:#a6e22e>step</span>.<span style=color:#a6e22e>stepData</span>);
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>break</span>;
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>default</span><span style=color:#f92672>:</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>`Unknown step type: </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>step</span>.<span style=color:#a6e22e>stepType</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>startCompensation</span>(<span style=color:#a6e22e>sagaId</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>saga</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>getSaga</span>(<span style=color:#a6e22e>sagaId</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>saga</span>) <span style=color:#66d9ef>return</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Compensate completed steps in reverse order
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>let</span> <span style=color:#a6e22e>i</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>saga</span>.<span style=color:#a6e22e>currentStep</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>; <span style=color:#a6e22e>i</span> <span style=color:#f92672>&gt;=</span> <span style=color:#ae81ff>0</span>; <span style=color:#a6e22e>i</span><span style=color:#f92672>--</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>step</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>saga</span>.<span style=color:#a6e22e>steps</span>[<span style=color:#a6e22e>i</span>];
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>step</span>.<span style=color:#a6e22e>status</span> <span style=color:#f92672>===</span> <span style=color:#e6db74>&#39;COMPLETED&#39;</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>compensateStep</span>(<span style=color:#a6e22e>step</span>);
+</span></span><span style=display:flex><span>          <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>markStepCompensated</span>(<span style=color:#a6e22e>sagaId</span>, <span style=color:#a6e22e>i</span>);
+</span></span><span style=display:flex><span>        } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>error</span>(<span style=color:#e6db74>`Failed to compensate step </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>i</span><span style=color:#e6db74>}</span><span style=color:#e6db74>:`</span>, <span style=color:#a6e22e>error</span>);
+</span></span><span style=display:flex><span>          <span style=color:#75715e>// Log for manual intervention
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        }
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>failSaga</span>(<span style=color:#a6e22e>sagaId</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>compensateStep</span>(<span style=color:#a6e22e>step</span>: <span style=color:#66d9ef>SagaStep</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>switch</span> (<span style=color:#a6e22e>step</span>.<span style=color:#a6e22e>stepType</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>case</span> <span style=color:#e6db74>&#39;RESERVE_INVENTORY&#39;</span><span style=color:#f92672>:</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>releaseInventory</span>(<span style=color:#a6e22e>step</span>.<span style=color:#a6e22e>compensationData</span>);
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>break</span>;
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>case</span> <span style=color:#e6db74>&#39;PROCESS_PAYMENT&#39;</span><span style=color:#f92672>:</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>refundPayment</span>(<span style=color:#a6e22e>step</span>.<span style=color:#a6e22e>compensationData</span>);
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>break</span>;
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>case</span> <span style=color:#e6db74>&#39;CREATE_SHIPMENT&#39;</span><span style=color:#f92672>:</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>cancelShipment</span>(<span style=color:#a6e22e>step</span>.<span style=color:#a6e22e>compensationData</span>);
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>break</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>getSaga</span>(<span style=color:#a6e22e>sagaId</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>any</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>command</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>GetCommand</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>TableName</span>: <span style=color:#66d9ef>this.sagaTable</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>Key</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>PK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`SAGA#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>sagaId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>SK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;METADATA&#39;</span>
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>result</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>docClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>command</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>result</span>.<span style=color:#a6e22e>Item</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=caching-strategies>Caching Strategies</h2><h3 id=dynamodb-accelerator-dax>DynamoDB Accelerator (DAX)</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// DAX client for microsecond latency
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>DynamoDB</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/client-dynamodb&#39;</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#a6e22e>AmazonDaxClient</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;amazon-dax-client&#39;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>CachedUserRepository</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>daxClient</span>: <span style=color:#66d9ef>DynamoDB</span>;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>docClient</span>: <span style=color:#66d9ef>DynamoDBDocumentClient</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>constructor</span>() {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// DAX cluster for read-heavy workloads
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>daxClient</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>AmazonDaxClient</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>endpoints</span><span style=color:#f92672>:</span> [<span style=color:#a6e22e>process</span>.<span style=color:#a6e22e>env</span>.<span style=color:#a6e22e>DAX_ENDPOINT</span>],
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>region</span>: <span style=color:#66d9ef>process.env.AWS_REGION</span>
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>docClient</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>DynamoDBDocumentClient</span>.<span style=color:#66d9ef>from</span>(<span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>daxClient</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>getUser</span>(<span style=color:#a6e22e>userId</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>User</span> <span style=color:#960050;background-color:#1e0010>|</span> <span style=color:#a6e22e>null</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// This will hit DAX cache if available, DynamoDB if not
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>command</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>GetCommand</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>TableName</span>: <span style=color:#66d9ef>process.env.USERS_TABLE</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>Key</span><span style=color:#f92672>:</span> { <span style=color:#a6e22e>PK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`USER#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>userId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>, <span style=color:#a6e22e>SK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`USER#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>userId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span> }
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>result</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>docClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>command</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>result</span>.<span style=color:#a6e22e>Item</span> <span style=color:#f92672>?</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>mapToUser</span>(<span style=color:#a6e22e>result</span>.<span style=color:#a6e22e>Item</span>) <span style=color:#f92672>:</span> <span style=color:#66d9ef>null</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// Writes still go directly to DynamoDB
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>updateUser</span>(<span style=color:#a6e22e>userId</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>updates</span>: <span style=color:#66d9ef>Partial</span>&lt;<span style=color:#f92672>User</span>&gt;)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>command</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>UpdateCommand</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>TableName</span>: <span style=color:#66d9ef>process.env.USERS_TABLE</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>Key</span><span style=color:#f92672>:</span> { <span style=color:#a6e22e>PK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`USER#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>userId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>, <span style=color:#a6e22e>SK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`USER#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>userId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span> },
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>UpdateExpression</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;SET #name = :name, updatedAt = :updatedAt&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>ExpressionAttributeNames</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;#name&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;name&#39;</span>
+</span></span><span style=display:flex><span>      },
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>ExpressionAttributeValues</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;:name&#39;</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>updates</span>.<span style=color:#a6e22e>name</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;:updatedAt&#39;</span><span style=color:#f92672>:</span> <span style=color:#66d9ef>new</span> Date().<span style=color:#a6e22e>toISOString</span>()
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>docClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>command</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=testing-database-patterns>Testing Database Patterns</h2><h3 id=integration-testing-with-dynamodb-local>Integration Testing with DynamoDB Local</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>GenericContainer</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;testcontainers&#39;</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>DynamoDBClient</span>, <span style=color:#a6e22e>CreateTableCommand</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/client-dynamodb&#39;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>describe</span>(<span style=color:#e6db74>&#39;User Repository Integration Tests&#39;</span>, () <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>dynamoContainer</span>: <span style=color:#66d9ef>any</span>;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>repository</span>: <span style=color:#66d9ef>UserRepository</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>beforeAll</span>(<span style=color:#66d9ef>async</span> () <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Start DynamoDB Local container
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>dynamoContainer</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>GenericContainer</span>(<span style=color:#e6db74>&#39;amazon/dynamodb-local&#39;</span>)
+</span></span><span style=display:flex><span>      .<span style=color:#a6e22e>withExposedPorts</span>(<span style=color:#ae81ff>8000</span>)
+</span></span><span style=display:flex><span>      .<span style=color:#a6e22e>withCommand</span>([<span style=color:#e6db74>&#39;-jar&#39;</span>, <span style=color:#e6db74>&#39;DynamoDBLocal.jar&#39;</span>, <span style=color:#e6db74>&#39;-sharedDb&#39;</span>, <span style=color:#e6db74>&#39;-inMemory&#39;</span>])
+</span></span><span style=display:flex><span>      .<span style=color:#a6e22e>start</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>client</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>DynamoDBClient</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>region</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;local&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>endpoint</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`http://localhost:</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>dynamoContainer</span>.<span style=color:#a6e22e>getMappedPort</span>(<span style=color:#ae81ff>8000</span>)<span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>credentials</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>accessKeyId</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;fake&#39;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>secretAccessKey</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;fake&#39;</span>
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Create test table
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>client</span>.<span style=color:#a6e22e>send</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>CreateTableCommand</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>TableName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;TestTable&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>KeySchema</span><span style=color:#f92672>:</span> [
+</span></span><span style=display:flex><span>        { <span style=color:#a6e22e>AttributeName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;PK&#39;</span>, <span style=color:#a6e22e>KeyType</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;HASH&#39;</span> },
+</span></span><span style=display:flex><span>        { <span style=color:#a6e22e>AttributeName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;SK&#39;</span>, <span style=color:#a6e22e>KeyType</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;RANGE&#39;</span> }
+</span></span><span style=display:flex><span>      ],
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>AttributeDefinitions</span><span style=color:#f92672>:</span> [
+</span></span><span style=display:flex><span>        { <span style=color:#a6e22e>AttributeName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;PK&#39;</span>, <span style=color:#a6e22e>AttributeType</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;S&#39;</span> },
+</span></span><span style=display:flex><span>        { <span style=color:#a6e22e>AttributeName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;SK&#39;</span>, <span style=color:#a6e22e>AttributeType</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;S&#39;</span> },
+</span></span><span style=display:flex><span>        { <span style=color:#a6e22e>AttributeName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;GSI1PK&#39;</span>, <span style=color:#a6e22e>AttributeType</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;S&#39;</span> },
+</span></span><span style=display:flex><span>        { <span style=color:#a6e22e>AttributeName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;GSI1SK&#39;</span>, <span style=color:#a6e22e>AttributeType</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;S&#39;</span> }
+</span></span><span style=display:flex><span>      ],
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>GlobalSecondaryIndexes</span><span style=color:#f92672>:</span> [{
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>IndexName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;GSI1&#39;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>KeySchema</span><span style=color:#f92672>:</span> [
+</span></span><span style=display:flex><span>          { <span style=color:#a6e22e>AttributeName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;GSI1PK&#39;</span>, <span style=color:#a6e22e>KeyType</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;HASH&#39;</span> },
+</span></span><span style=display:flex><span>          { <span style=color:#a6e22e>AttributeName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;GSI1SK&#39;</span>, <span style=color:#a6e22e>KeyType</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;RANGE&#39;</span> }
+</span></span><span style=display:flex><span>        ],
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>Projection</span><span style=color:#f92672>:</span> { <span style=color:#a6e22e>ProjectionType</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;ALL&#39;</span> },
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>ProvisionedThroughput</span><span style=color:#f92672>:</span> { <span style=color:#a6e22e>ReadCapacityUnits</span>: <span style=color:#66d9ef>5</span>, <span style=color:#a6e22e>WriteCapacityUnits</span>: <span style=color:#66d9ef>5</span> }
+</span></span><span style=display:flex><span>      }],
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>ProvisionedThroughput</span><span style=color:#f92672>:</span> { <span style=color:#a6e22e>ReadCapacityUnits</span>: <span style=color:#66d9ef>5</span>, <span style=color:#a6e22e>WriteCapacityUnits</span>: <span style=color:#66d9ef>5</span> }
+</span></span><span style=display:flex><span>    }));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>repository</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>UserRepository</span>();
+</span></span><span style=display:flex><span>  });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>afterAll</span>(<span style=color:#66d9ef>async</span> () <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>dynamoContainer</span>.<span style=color:#a6e22e>stop</span>();
+</span></span><span style=display:flex><span>  });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>it</span>(<span style=color:#e6db74>&#39;should create and retrieve user&#39;</span>, <span style=color:#66d9ef>async</span> () <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>user</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>repository</span>.<span style=color:#a6e22e>createUser</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>email</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;test@example.com&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>name</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Test User&#39;</span>
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>expect</span>(<span style=color:#a6e22e>user</span>.<span style=color:#a6e22e>id</span>).<span style=color:#a6e22e>toBeDefined</span>();
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>expect</span>(<span style=color:#a6e22e>user</span>.<span style=color:#a6e22e>email</span>).<span style=color:#a6e22e>toBe</span>(<span style=color:#e6db74>&#39;test@example.com&#39;</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>retrievedUser</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>repository</span>.<span style=color:#a6e22e>getUser</span>(<span style=color:#a6e22e>user</span>.<span style=color:#a6e22e>id</span>);
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>expect</span>(<span style=color:#a6e22e>retrievedUser</span>).<span style=color:#a6e22e>toEqual</span>(<span style=color:#a6e22e>user</span>);
+</span></span><span style=display:flex><span>  });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>it</span>(<span style=color:#e6db74>&#39;should query user by email&#39;</span>, <span style=color:#66d9ef>async</span> () <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>user</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>repository</span>.<span style=color:#a6e22e>createUser</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>email</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;unique@example.com&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>name</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Unique User&#39;</span>
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>foundUser</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>repository</span>.<span style=color:#a6e22e>getUserByEmail</span>(<span style=color:#e6db74>&#39;unique@example.com&#39;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>expect</span>(<span style=color:#a6e22e>foundUser</span>).<span style=color:#a6e22e>toEqual</span>(<span style=color:#a6e22e>user</span>);
+</span></span><span style=display:flex><span>  });
+</span></span><span style=display:flex><span>});
+</span></span></code></pre></div><h2 id=performance-optimization>Performance Optimization</h2><h3 id=batch-operations>Batch Operations</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>BatchUserRepository</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>docClient</span>: <span style=color:#66d9ef>DynamoDBDocumentClient</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>constructor</span>() {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>client</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>DynamoDBClient</span>({ <span style=color:#a6e22e>region</span>: <span style=color:#66d9ef>process.env.AWS_REGION</span> });
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>docClient</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>DynamoDBDocumentClient</span>.<span style=color:#66d9ef>from</span>(<span style=color:#a6e22e>client</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>batchGetUsers</span>(<span style=color:#a6e22e>userIds</span>: <span style=color:#66d9ef>string</span>[])<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>User</span><span style=color:#960050;background-color:#1e0010>[]</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>chunks</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>chunk</span>(<span style=color:#a6e22e>userIds</span>, <span style=color:#ae81ff>100</span>); <span style=color:#75715e>// DynamoDB batch limit
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>users</span>: <span style=color:#66d9ef>User</span>[] <span style=color:#f92672>=</span> [];
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>const</span> <span style=color:#a6e22e>chunk</span> <span style=color:#66d9ef>of</span> <span style=color:#a6e22e>chunks</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>command</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>BatchGetCommand</span>({
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>RequestItems</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>          [<span style=color:#a6e22e>process</span>.<span style=color:#a6e22e>env</span>.<span style=color:#a6e22e>USERS_TABLE</span><span style=color:#f92672>!</span>]<span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>Keys</span>: <span style=color:#66d9ef>chunk.map</span>(<span style=color:#a6e22e>id</span> <span style=color:#f92672>=&gt;</span> ({
+</span></span><span style=display:flex><span>              <span style=color:#a6e22e>PK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`USER#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>id</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>              <span style=color:#a6e22e>SK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`USER#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>id</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>
+</span></span><span style=display:flex><span>            }))
+</span></span><span style=display:flex><span>          }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>      });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>result</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>docClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>command</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>result</span>.<span style=color:#a6e22e>Responses</span><span style=color:#f92672>?</span>.[<span style=color:#a6e22e>process</span>.<span style=color:#a6e22e>env</span>.<span style=color:#a6e22e>USERS_TABLE</span><span style=color:#f92672>!</span>]) {
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>users</span>.<span style=color:#a6e22e>push</span>(...<span style=color:#a6e22e>result</span>.<span style=color:#a6e22e>Responses</span>[<span style=color:#a6e22e>process</span>.<span style=color:#a6e22e>env</span>.<span style=color:#a6e22e>USERS_TABLE</span><span style=color:#f92672>!</span>].<span style=color:#a6e22e>map</span>(<span style=color:#a6e22e>item</span> <span style=color:#f92672>=&gt;</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>mapToUser</span>(<span style=color:#a6e22e>item</span>)));
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>users</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>batchCreateUsers</span>(<span style=color:#a6e22e>users</span>: <span style=color:#66d9ef>CreateUserRequest</span>[])<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>chunks</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>chunk</span>(<span style=color:#a6e22e>users</span>, <span style=color:#ae81ff>25</span>); <span style=color:#75715e>// DynamoDB batch write limit
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>const</span> <span style=color:#a6e22e>chunk</span> <span style=color:#66d9ef>of</span> <span style=color:#a6e22e>chunks</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>command</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>BatchWriteCommand</span>({
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>RequestItems</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>          [<span style=color:#a6e22e>process</span>.<span style=color:#a6e22e>env</span>.<span style=color:#a6e22e>USERS_TABLE</span><span style=color:#f92672>!</span>]<span style=color:#f92672>:</span> <span style=color:#a6e22e>chunk</span>.<span style=color:#a6e22e>map</span>(<span style=color:#a6e22e>user</span> <span style=color:#f92672>=&gt;</span> ({
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>PutRequest</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>              <span style=color:#a6e22e>Item</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>                <span style=color:#a6e22e>PK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`USER#</span><span style=color:#e6db74>${</span><span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>generateId</span>()<span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>                <span style=color:#a6e22e>SK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`USER#</span><span style=color:#e6db74>${</span><span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>generateId</span>()<span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>                <span style=color:#a6e22e>GSI1PK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`USER#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>user</span>.<span style=color:#a6e22e>email</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>                <span style=color:#a6e22e>GSI1SK</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`USER#</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>user</span>.<span style=color:#a6e22e>email</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>                <span style=color:#a6e22e>entityType</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;USER&#39;</span>,
+</span></span><span style=display:flex><span>                ...<span style=color:#a6e22e>user</span>,
+</span></span><span style=display:flex><span>                <span style=color:#a6e22e>createdAt</span>: <span style=color:#66d9ef>new</span> Date().<span style=color:#a6e22e>toISOString</span>()
+</span></span><span style=display:flex><span>              }
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>          }))
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>      });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>docClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>command</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>chunk</span>&lt;<span style=color:#f92672>T</span>&gt;(<span style=color:#a6e22e>array</span>: <span style=color:#66d9ef>T</span>[], <span style=color:#a6e22e>size</span>: <span style=color:#66d9ef>number</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>T</span>[][] {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>chunks</span>: <span style=color:#66d9ef>T</span>[][] <span style=color:#f92672>=</span> [];
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>let</span> <span style=color:#a6e22e>i</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>; <span style=color:#a6e22e>i</span> <span style=color:#f92672>&lt;</span> <span style=color:#a6e22e>array</span>.<span style=color:#a6e22e>length</span>; <span style=color:#a6e22e>i</span> <span style=color:#f92672>+=</span> <span style=color:#a6e22e>size</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>chunks</span>.<span style=color:#a6e22e>push</span>(<span style=color:#a6e22e>array</span>.<span style=color:#a6e22e>slice</span>(<span style=color:#a6e22e>i</span>, <span style=color:#a6e22e>i</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>size</span>));
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>chunks</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=conclusion>Conclusion</h2><p>Database design for serverless applications requires a fundamental shift from traditional relational patterns to NoSQL, event-driven approaches. Key principles include:</p><ul><li><strong>Embrace denormalization</strong> for query optimization</li><li><strong>Use single-table design</strong> to minimize cross-table operations</li><li><strong>Implement event sourcing</strong> for audit trails and temporal queries</li><li><strong>Design for eventual consistency</strong> rather than strong consistency</li><li><strong>Leverage managed services</strong> like DynamoDB and DAX for scalability</li><li><strong>Plan access patterns first</strong> before designing your schema</li></ul><p>The patterns we&rsquo;ve explored – from single-table design to event sourcing and saga orchestration – provide the foundation for building scalable, cost-effective serverless data layers.</p><p>In our next post, &ldquo;Performance Testing Strategies for Cloud Applications,&rdquo; we&rsquo;ll explore how to validate that these database patterns perform under load in production environments.</p><h2 id=further-reading>Further Reading</h2><ul><li><a href=https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/best-practices.html>DynamoDB Best Practices</a></li><li><a href=https://martinfowler.com/eaaDev/EventSourcing.html>Event Sourcing Pattern by Martin Fowler</a></li><li><a href=https://www.dynamodbbook.com/>The DynamoDB Book by Alex DeBrie</a></li></ul></div></article></main><aside class=blog-sidebar><div class=sidebar-widget><h3>Recent Posts</h3><ul class=recent-posts><li><a href=/posts/using-ai-in-software-engineering/>Harnessing AI in Software Engineering: Opportunities and Challenges</a>
+<span class=post-date>May 29, 2025</span></li><li><a href=/posts/aws-serverless-cost-optimization/>Cost Optimization Strategies for AWS Serverless Applications</a>
+<span class=post-date>Jun 17, 2023</span></li><li><a href=/posts/aws-sns-sqs-typescript/>Building Event-Driven Architectures with AWS SNS/SQS and TypeScript</a>
+<span class=post-date>May 21, 2023</span></li><li><a href=/posts/securing-aws-lambda/>Securing AWS Lambda Functions: Best Practices and Implementation Guide</a>
+<span class=post-date>Apr 7, 2023</span></li><li><a href=/posts/aws-step-functions-typescript/>Step Functions: Orchestrating AWS Lambda Workflows in TypeScript</a>
+<span class=post-date>Mar 5, 2023</span></li></ul></div><div class=sidebar-widget><h3>Categories</h3><ul class=categories><li><a href=/categories/architecture>architecture (1)</a></li><li><a href=/categories/architecture-and-design>architecture and design (3)</a></li><li><a href=/categories/artificial-intelligence>artificial intelligence (1)</a></li><li><a href=/categories/cloud-computing>cloud computing (5)</a></li><li><a href=/categories/code-quality>code quality (1)</a></li><li><a href=/categories/cost-optimization>cost optimization (1)</a></li><li><a href=/categories/database>database (1)</a></li><li><a href=/categories/debugging-and-troubleshooting>debugging and troubleshooting (1)</a></li><li><a href=/categories/development-tools>development tools (2)</a></li><li><a href=/categories/development-tutorials>development tutorials (1)</a></li><li><a href=/categories/microservices>microservices (1)</a></li><li><a href=/categories/performance>performance (1)</a></li><li><a href=/categories/quality-assurance>quality assurance (1)</a></li><li><a href=/categories/security>security (1)</a></li><li><a href=/categories/serverless>serverless (1)</a></li><li><a href=/categories/software-development>software development (8)</a></li><li><a href=/categories/technical-debt>technical debt (1)</a></li><li><a href=/categories/testing>testing (2)</a></li><li><a href=/categories/version-control>version control (1)</a></li></ul></div><div class=sidebar-widget><h3>Post Series</h3><ul class=recent-posts><li><a href=/posts/technical-debt-management-growing-codebases/>Modern Development Practices: Technical Debt Management in Growing Codebases: Strategies for Sustainable Development</a>
+<span class=post-date>Dec 19, 2021</span><div class=series-meta><a href=/series/modern-development-practices/ class=series-link>View all 7 posts in series →</a></div></li></ul></div><div class=sidebar-widget><h3>Tags</h3><div class=tag-cloud><a href=/tags/ai class=tag-cloud-item style=font-size:1rem>ai
+</a><a href=/tags/api-design class=tag-cloud-item style=font-size:1rem>api design
+</a><a href=/tags/architecture class=tag-cloud-item style=font-size:1rem>architecture
+</a><a href=/tags/automation class=tag-cloud-item style=font-size:1rem>automation
+</a><a href=/tags/aws class=tag-cloud-item style=font-size:2rem>aws
+</a><a href=/tags/best-practices class=tag-cloud-item style=font-size:1rem>best practices
+</a><a href=/tags/chaos-engineering class=tag-cloud-item style=font-size:1rem>chaos engineering
+</a><a href=/tags/ci/cd class=tag-cloud-item style=font-size:1rem>ci/cd
+</a><a href=/tags/code-quality class=tag-cloud-item style=font-size:1rem>code quality
+</a><a href=/tags/communication-patterns class=tag-cloud-item style=font-size:1rem>communication patterns
+</a><a href=/tags/cost-optimization class=tag-cloud-item style=font-size:1rem>cost optimization
+</a><a href=/tags/data-modeling class=tag-cloud-item style=font-size:1rem>data modeling
+</a><a href=/tags/database-design class=tag-cloud-item style=font-size:1rem>database design
+</a><a href=/tags/debugging class=tag-cloud-item style=font-size:1rem>debugging
+</a><a href=/tags/developer-tips class=tag-cloud-item style=font-size:1rem>developer tips
+</a><a href=/tags/development class=tag-cloud-item style=font-size:2rem>development
+</a><a href=/tags/distributed-systems class=tag-cloud-item style=font-size:1rem>distributed systems
+</a><a href=/tags/dynamodb class=tag-cloud-item style=font-size:1rem>dynamodb
+</a><a href=/tags/event-driven-architecture class=tag-cloud-item style=font-size:1rem>event-driven architecture
+</a><a href=/tags/graphql class=tag-cloud-item style=font-size:1rem>graphql
+</a><a href=/tags/lambda class=tag-cloud-item style=font-size:1rem>lambda
+</a><a href=/tags/load-testing class=tag-cloud-item style=font-size:1rem>load testing
+</a><a href=/tags/metrics class=tag-cloud-item style=font-size:1rem>metrics
+</a><a href=/tags/microservices class=tag-cloud-item style=font-size:1rem>microservices
+</a><a href=/tags/monitoring class=tag-cloud-item style=font-size:1rem>monitoring
+</a><a href=/tags/nosql class=tag-cloud-item style=font-size:1rem>nosql
+</a><a href=/tags/performance-testing class=tag-cloud-item style=font-size:1rem>performance testing
+</a><a href=/tags/productivity class=tag-cloud-item style=font-size:1rem>productivity
+</a><a href=/tags/refactoring class=tag-cloud-item style=font-size:1rem>refactoring
+</a><a href=/tags/rest class=tag-cloud-item style=font-size:1rem>rest
+</a><a href=/tags/security class=tag-cloud-item style=font-size:1rem>security
+</a><a href=/tags/serverless class=tag-cloud-item style=font-size:1rem>serverless
+</a><a href=/tags/software-engineering class=tag-cloud-item style=font-size:1rem>software engineering
+</a><a href=/tags/standards class=tag-cloud-item style=font-size:1rem>standards
+</a><a href=/tags/tdd class=tag-cloud-item style=font-size:1rem>tdd
+</a><a href=/tags/technical-debt class=tag-cloud-item style=font-size:1rem>technical debt
+</a><a href=/tags/testing class=tag-cloud-item style=font-size:1rem>testing
+</a><a href=/tags/typescript class=tag-cloud-item style=font-size:2rem>typescript</a></div></div><div class=sidebar-widget><h3>Subscribe</h3><div class=subscribe-links><a href=/index.xml class=rss-link><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 019 9"/><path d="M4 4a16 16 0 0116 16"/><circle cx="5" cy="19" r="1"/></svg>
+RSS Feed</a></div></div><div class=sidebar-widget><h3>Archives</h3><ul class=archive-list></ul></div><div class="sidebar-widget npm-packages"><h3>My NPM Packages</h3><div id=npm-list></div></div></aside></div></div><footer class=site-footer><div class=container><p>&copy; 2025 Scott Obert</p></div></footer></body></html>
