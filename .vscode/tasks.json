@@ -1,0 +1,86 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Hugo: Serve (Development)",
+            "type": "shell",
+            "command": "hugo",
+            "args": [
+                "server",
+                "--bind", "0.0.0.0",
+                "--baseURL", "http://localhost:1313",
+                "--buildDrafts",
+                "--buildFuture",
+                "--navigateToChanged"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "new"
+            },
+            "isBackground": true,
+            "problemMatcher": [],
+            "runOptions": {
+                "runOn": "folderOpen"
+            }
+        },
+        {
+            "label": "Hugo: Build Site",
+            "type": "shell",
+            "command": "hugo",
+            "args": [
+                "--buildDrafts",
+                "--buildFuture"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Hugo: Clean Build",
+            "type": "shell",
+            "command": "rm",
+            "args": ["-rf", "public/", "resources/"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Hugo: New Post",
+            "type": "shell",
+            "command": "hugo",
+            "args": [
+                "new",
+                "posts/${input:postName}.md"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        }
+    ],
+    "inputs": [
+        {
+            "id": "postName",
+            "description": "Post filename (without .md extension)",
+            "default": "new-post",
+            "type": "promptString"
+        }
+    ]
+}

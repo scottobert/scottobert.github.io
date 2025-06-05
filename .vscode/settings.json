@@ -1,0 +1,26 @@
+{
+    "markdown.preview.fontSize": 14,
+    "markdown.preview.lineHeight": 1.6,
+    "files.associations": {
+        "*.md": "markdown",
+        "*.toml": "toml"
+    },
+    "files.exclude": {
+        "**/public": true,
+        "**/resources": true,
+        "**/.hugo_build.lock": true
+    },
+    "search.exclude": {
+        "**/public": true,
+        "**/resources": true
+    },
+    "markdownlint.config": {
+        "MD013": false,
+        "MD033": false,
+        "MD041": false
+    },
+    "terminal.integrated.cwd": "${workspaceFolder}",
+    "hugo.server.renderToDisk": false,
+    "hugo.server.buildDrafts": true,
+    "hugo.server.buildFuture": true
+}

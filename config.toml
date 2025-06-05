@@ -3,6 +3,11 @@ languageCode = 'en-us'
 title = 'Scott Obert'
 theme = 'engineering-pro'
 
+[taxonomies]
+  category = 'categories'
+  tag = 'tags'
+  series = 'series'
+
 [pagination]
   pagerSize = 5
 

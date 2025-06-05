@@ -12,7 +12,7 @@
       {{ end }}
     </ul>
   </div>
-
+  
   <div class="sidebar-widget">
     <h3>Categories</h3>
     <ul class="categories">
@@ -25,6 +25,38 @@
       {{ end }}
     </ul>
   </div>
+
+  <!-- Post Series Widget -->
+  {{ $seriesPosts := where .Site.RegularPages "Params.series" "!=" nil }}
+  {{ $seriesMap := dict }}
+  {{ range $seriesPosts }}
+    {{ $series := .Params.series }}
+    {{ if isset $seriesMap $series }}
+      {{ $existingPosts := index $seriesMap $series }}
+      {{ $seriesMap = merge $seriesMap (dict $series (append $existingPosts (slice .))) }}
+    {{ else }}
+      {{ $seriesMap = merge $seriesMap (dict $series (slice .)) }}
+    {{ end }}
+  {{ end }}  {{ if $seriesMap }}
+  <div class="sidebar-widget">
+    <h3>Post Series</h3>
+    <ul class="recent-posts">
+      {{ range $seriesName, $posts := $seriesMap }}
+      {{ $sortedPosts := $posts.ByDate.Reverse }}
+      {{ $latestPost := index $sortedPosts 0 }}
+      <li>
+        <a href="{{ $latestPost.RelPermalink }}">{{ $seriesName }}: {{ $latestPost.Title }}</a>
+        <span class="post-date">{{ $latestPost.Date.Format "Jan 2, 2006" }}</span>
+        <div class="series-meta">
+          <a href="{{ "/series/" | relLangURL }}{{ $seriesName | urlize }}/" class="series-link">
+            View all {{ len $posts }} posts in series →
+          </a>
+        </div>
+      </li>
+      {{ end }}
+    </ul>
+  </div>
+  {{ end }}
 
   <div class="sidebar-widget">
     <h3>Tags</h3>

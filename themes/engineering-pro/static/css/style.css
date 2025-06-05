@@ -418,6 +418,205 @@ body {
   font-size: 0.85rem;
 }
 
+/* Series Metadata */
+.series-meta {
+  margin-top: 0.5rem;
+}
+
+.series-link {
+  color: #007acc !important;
+  font-size: 0.8rem !important;
+  text-decoration: none;
+  display: inline-block;
+  padding: 0.25rem 0;
+  border-radius: 3px;
+  transition: color 0.2s;
+}
+
+.series-link:hover {
+  color: #005999 !important;
+  text-decoration: underline;
+}
+
+/* Series Pages Styling */
+.series-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.series-description {
+  color: #6c757d;
+  font-size: 1.1rem;
+  margin-top: 0.5rem;
+}
+
+.series-navigation {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.back-link, .all-series-link {
+  color: #007acc;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.back-link:hover, .all-series-link:hover {
+  background-color: #f8f9fa;
+  text-decoration: none;
+}
+
+/* Series Grid for Terms Page */
+.series-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.series-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border: 1px solid #e9ecef;
+}
+
+.series-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.series-title a {
+  color: #2c3e50;
+  text-decoration: none;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.series-title a:hover {
+  color: #007acc;
+}
+
+.series-count {
+  color: #6c757d;
+  font-size: 0.9rem;
+  background: #f8f9fa;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.series-info {
+  margin-bottom: 1rem;
+}
+
+.date-range {
+  color: #6c757d;
+  font-size: 0.9rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.latest-post {
+  font-size: 0.9rem;
+}
+
+.latest-post a {
+  color: #007acc;
+  text-decoration: none;
+}
+
+.latest-post a:hover {
+  text-decoration: underline;
+}
+
+.series-posts-preview h4 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  color: #2c3e50;
+}
+
+.series-posts-preview ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem 0;
+}
+
+.series-posts-preview li {
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.series-posts-preview li a {
+  color: #007acc;
+  text-decoration: none;
+}
+
+.series-posts-preview li a:hover {
+  text-decoration: underline;
+}
+
+.series-actions {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f0f0f0;
+}
+
+.view-series-btn {
+  color: #007acc;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border: 1px solid #007acc;
+  border-radius: 4px;
+  display: inline-block;
+  transition: all 0.2s;
+}
+
+.view-series-btn:hover {
+  background-color: #007acc;
+  color: white;
+  text-decoration: none;
+}
+
+/* Mobile Responsiveness for Series Pages */
+@media (max-width: 768px) {
+  .series-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .series-card {
+    padding: 1rem;
+  }
+  
+  .series-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .series-navigation {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .back-link, .all-series-link {
+    text-align: center;
+  }
+}
+
 /* Categories Widget */
 .categories {
   list-style: none;
@@ -517,6 +716,65 @@ body {
 
 .archive-list a:hover {
   background-color: #f8f9fa;
+}
+
+/* Series Widget */
+.series-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.series-item {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.series-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.series-item h4 {
+  font-size: 1rem;
+  color: #2c3e50;
+  margin: 0 0 0.5rem 0;
+  font-weight: 600;
+}
+
+.series-count {
+  color: #6c757d;
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+  display: block;
+}
+
+.series-posts {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.series-posts li {
+  margin-bottom: 0.5rem;
+}
+
+.series-posts a {
+  color: #495057;
+  text-decoration: none;
+  font-size: 0.9rem;
+  display: block;
+  padding: 0.25rem 0;
+  border-left: 3px solid transparent;
+  padding-left: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.series-posts a:hover {
+  color: #2c3e50;
+  border-left-color: #28a745;
 }
 
 /* Responsive Design */

@@ -1,0 +1,84 @@
+{{ define "main" }}
+<div class="container">
+  <div class="content-wrapper">
+    <main class="main-content">
+      <div class="page-header">
+        <h1>Post Series</h1>
+        <p class="page-description">
+          Explore our organized content series covering various topics in software development and engineering.
+        </p>
+      </div>
+
+      {{ $seriesPosts := where .Site.RegularPages "Params.series" "!=" nil }}
+      {{ $seriesMap := dict }}
+      {{ range $seriesPosts }}
+        {{ $series := .Params.series }}
+        {{ if isset $seriesMap $series }}
+          {{ $existingPosts := index $seriesMap $series }}
+          {{ $seriesMap = merge $seriesMap (dict $series (append $existingPosts (slice .))) }}
+        {{ else }}
+          {{ $seriesMap = merge $seriesMap (dict $series (slice .)) }}
+        {{ end }}
+      {{ end }}
+
+      {{ if $seriesMap }}
+      <div class="series-grid">
+        {{ range $seriesName, $posts := $seriesMap }}
+        {{ $sortedPosts := $posts.ByDate.Reverse }}
+        {{ $latestPost := index $sortedPosts 0 }}
+        {{ $firstPost := index $posts.ByDate 0 }}
+        <div class="series-card">
+          <div class="series-card-header">
+            <h2 class="series-title">
+              <a href="{{ "/series/" | relLangURL }}{{ $seriesName | urlize }}/">{{ $seriesName }}</a>
+            </h2>
+            <span class="series-count">{{ len $posts }} {{ if eq (len $posts) 1 }}post{{ else }}posts{{ end }}</span>
+          </div>
+          
+          <div class="series-info">
+            <div class="series-dates">
+              <span class="date-range">
+                {{ $firstPost.Date.Format "Jan 2006" }} - {{ $latestPost.Date.Format "Jan 2006" }}
+              </span>
+            </div>
+            
+            <div class="latest-post">
+              <strong>Latest:</strong>
+              <a href="{{ $latestPost.RelPermalink }}">{{ $latestPost.Title }}</a>
+              <span class="post-date">{{ $latestPost.Date.Format "Jan 2, 2006" }}</span>
+            </div>
+          </div>
+
+          <div class="series-posts-preview">
+            <h4>Posts in this series:</h4>
+            <ul>
+              {{ range $posts.ByDate }}
+              <li>
+                <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+                <span class="post-date">{{ .Date.Format "Jan 2, 2006" }}</span>
+              </li>
+              {{ end }}
+            </ul>
+          </div>
+
+          <div class="series-actions">
+            <a href="{{ "/series/" | relLangURL }}{{ $seriesName | urlize }}/" class="view-series-btn">
+              View Series →
+            </a>
+          </div>
+        </div>
+        {{ end }}
+      </div>
+      {{ else }}
+      <div class="no-series">
+        <p>No post series available yet.</p>
+      </div>
+      {{ end }}
+
+      <div class="page-navigation">
+        <a href="/" class="back-link">← Back to Home</a>
+      </div>
+    </main>
+  </div>
+</div>
+{{ end }}

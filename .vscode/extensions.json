@@ -1,0 +1,12 @@
+{
+    "recommendations": [
+        "ms-vscode-remote.remote-containers",
+        "bungcip.better-toml",
+        "davidanson.vscode-markdownlint",
+        "yzhang.markdown-all-in-one",
+        "ms-vscode.vscode-json",
+        "bradlc.vscode-tailwindcss",
+        "formulahendry.auto-rename-tag",
+        "ms-vscode.live-server"
+    ]
+}
