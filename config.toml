@@ -1,4 +1,4 @@
-baseURL = 'https://scottobert.github.io/'
+baseURL = 'https://scottobert.com/'
 languageCode = 'en-us'
 title = 'Scott Obert'
 theme = 'engineering-pro'
