@@ -15,12 +15,11 @@ theme = 'engineering-pro'
   # dir name of your main content (default is `content/posts`).
   # the list of set content will show up on your index page (baseurl).
   contentTypeName = "posts"
-
   # ["orange", "blue", "red", "green", "pink"]
   themeColor = "green"
 
   # if you set this to 0, only submenu trigger will be visible
-  showMenuItems = 2
+  showMenuItems = 3
 
   # show selector to switch language
   showLanguageSelector = false
@@ -104,3 +103,9 @@ theme = 'engineering-pro'
     name = "Blog"
     url = "/posts/"
     weight = 1
+    
+  [[menu.main]]
+    identifier = "about"
+    name = "About"
+    url = "/about/"
+    weight = 2

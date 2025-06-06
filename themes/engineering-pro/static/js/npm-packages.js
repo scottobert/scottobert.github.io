@@ -9,9 +9,7 @@ async function fetchNpmPackages() {
     if (!packages || packages.length === 0) {
       npmList.innerHTML = '<p class="no-packages">No packages found</p>';
       return;
-    }
-
-    npmList.innerHTML = packages
+    }    npmList.innerHTML = packages
       .map(pkg => {
         const p = pkg.package;
         return `

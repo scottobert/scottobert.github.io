@@ -36,14 +36,19 @@
         </div>
       </div>
     </div>
-  </header>
-  <div class="container">
+  </header>  <div class="container">
+    {{ if .IsHome }}
+    <main class="main-content-full">
+      {{ block "main" . }}{{ end }}
+    </main>
+    {{ else }}
     <div class="content-layout">
       <main class="main-content">
         {{ block "main" . }}{{ end }}
       </main>
       {{ partial "sidebar.html" . }}
     </div>
+    {{ end }}
   </div>
   <footer class="site-footer">
     <div class="container">
