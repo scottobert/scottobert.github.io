@@ -1,0 +1,645 @@
+<!doctype html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Scott Obert</title><link rel=stylesheet href=/css/style.css><script src=/js/npm-packages.js defer></script><script defer src=https://cloud.umami.is/script.js data-website-id=e2461896-021d-422a-b83f-624a8819309b></script></head><body><header class=site-header><div class=container><div class=header-content><div class=header-left><h1><a href=/>Scott Obert</a></h1><nav><a href=/posts/>Blog</a></nav></div><div class=social-links><a href=https://www.linkedin.com/in/scott-obert-3a7338b/ target=_blank rel="noopener noreferrer" title="LinkedIn Profile"><svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853.0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601.0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144.0-2.063-.926-2.063-2.065.0-1.138.92-2.063 2.063-2.063 1.14.0 2.064.925 2.064 2.063.0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225.0H1.771C.792.0.0.774.0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2.0 22.222.0h.003z"/></svg>
+<span>LinkedIn</span>
+</a><a href=https://github.com/scottobert target=_blank rel="noopener noreferrer" title="GitHub Profile"><svg viewBox="0 0 24 24"><path d="M12 0C5.37.0.0 5.37.0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577.0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93.0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176.0.0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22.0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22.0 1.605-.015 2.896-.015 3.286.0.315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12"/></svg>
+<span>GitHub</span></a></div></div></div></header><div class=container><div class=content-layout><main class=main-content><article class=post><h1>Distributed System Design Patterns in AWS</h1><div class=post-meta><span>Feb 7, 2021</span>
+<span>| Tags: AWS, Distributed Systems, Microservices, Patterns, Resilience</span></div><div class=post-content><p>Distributed systems present unique challenges that require thoughtful application of proven design patterns to achieve reliability, scalability, and maintainability. Unlike monolithic applications where components communicate through in-process method calls, distributed systems must handle network partitions, variable latency, and partial failures as fundamental aspects of their operation. The patterns that emerge from these constraints form the foundation of robust cloud architectures, particularly when implemented using AWS&rsquo;s managed services ecosystem.</p><div class=plantuml-container><img id=plantuml-circuit-breaker class=plantuml-diagram>
+<a id=plantuml-link-circuit-breaker href=# target=_blank class=plantuml-link title="Open diagram in new window"><span class=plantuml-link-icon>🔍</span></a></div><script src=/js/rawdeflate.js></script><script>function encode64(e){r="";for(i=0;i<e.length;i+=3)i+2==e.length?r+=append3bytes(e.charCodeAt(i),e.charCodeAt(i+1),0):i+1==e.length?r+=append3bytes(e.charCodeAt(i),0,0):r+=append3bytes(e.charCodeAt(i),e.charCodeAt(i+1),e.charCodeAt(i+2));return r}function append3bytes(e,t,n){return c1=e>>2,c2=(e&3)<<4|t>>4,c3=(t&15)<<2|n>>6,c4=n&63,r="",r+=encode6bit(c1&63),r+=encode6bit(c2&63),r+=encode6bit(c3&63),r+=encode6bit(c4&63),r}function encode6bit(e){return e<10?String.fromCharCode(48+e):(e-=10,e<26?String.fromCharCode(65+e):(e-=26,e<26?String.fromCharCode(97+e):(e-=26,e==0?"-":e==1?"_":"?")))}var deflater=window.SharedWorker&&new SharedWorker("/js/rawdeflate.js");deflater?(deflater.port.addEventListener("message",done_deflating,!1),deflater.port.start()):window.Worker&&(deflater=new Worker("/js/rawdeflate.js"),deflater.onmessage=done_deflating);function done_deflating(e){const s=document.getElementById("plantuml-circuit-breaker"),t="https://www.plantuml.com/plantuml/img/"+encode64(e.data);s.src=t;const n=document.getElementById("plantuml-link-circuit-breaker");n&&(n.href=t)}function compress(e){e=unescape(encodeURIComponent(e)),deflater?deflater.port&&deflater.port.postMessage?deflater.port.postMessage(e):deflater.postMessage(e):setTimeout(function(){done_deflating({data:deflate(e)})},100)}compress(`
+@startuml Circuit Breaker Pattern
+!define AWSPuml https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v14.0/dist
+!include AWSPuml/AWSCommon.puml
+!include AWSPuml/Compute/Lambda.puml
+!include AWSPuml/Database/DynamoDBTable.puml
+!include AWSPuml/ApplicationIntegration/APIGateway.puml
+!include AWSPuml/ApplicationIntegration/SimpleQueueServiceQueue.puml
+!include AWSPuml/ApplicationIntegration/SimpleNotificationServiceTopic.puml
+
+skinparam BackgroundColor transparent
+skinparam componentStyle rectangle
+skinparam defaultTextAlignment center
+
+package "Circuit Breaker Pattern Implementation" {
+  component "API Gateway" as api #LightBlue
+  component "Lambda Function" as lambda #LightBlue
+  component "Circuit Breaker State" as state #Orange
+  database "DynamoDB" as dynamodb #LightGreen
+  component "External Service" as external #Pink
+  queue "Fallback Queue" as fallbackQueue #LightYellow
+  component "SNS Notification" as notification #LightCyan
+}
+
+note right of state
+States:
+
+- Closed: Normal operation
+- Open: Failing fast
+- Half-Open: Testing recovery
+end note
+
+api --> lambda : 1. Client Request
+lambda --> state : 2. Check circuit state
+state --> dynamodb : 3. Read/Update state
+state -> external : 4a. If Closed/Half-Open: Call service
+state --> fallbackQueue : 4b. If Open: Use fallback
+external --> state : 5. Update success/failure count
+state --> notification : 6. Circuit state change notification
+
+note bottom of lambda
+Tracks:
+
+- Failure count
+- Error threshold
+- Reset timeout
+- Last failure timestamp
+end note
+
+@enduml
+`)</script><p>The Circuit Breaker pattern addresses one of the most common failure modes in distributed systems: cascading failures caused by unhealthy dependencies. When a downstream service becomes unresponsive, continuing to send requests not only wastes resources but can propagate the failure upstream. A circuit breaker monitors failure rates and response times, automatically switching to an open state when thresholds are exceeded. AWS Application Load Balancer&rsquo;s health checking mechanisms provide a managed implementation of this pattern, automatically removing unhealthy targets from rotation and gradually reintroducing them as they recover.</p><p>Implementing circuit breakers at the application level using AWS Lambda provides fine-grained control over failure detection and recovery strategies. By maintaining circuit state in ElastiCache or DynamoDB, multiple Lambda instances can coordinate their behavior, ensuring consistent responses to downstream failures. The key insight is that circuit breakers should fail fast, providing immediate feedback rather than consuming resources on requests likely to fail. This rapid failure detection prevents resource exhaustion and provides clearer signal to monitoring systems about the nature of system degradation.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// Circuit Breaker implementation using DynamoDB for state management
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>DynamoDBClient</span>, <span style=color:#a6e22e>GetItemCommand</span>, <span style=color:#a6e22e>PutItemCommand</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/client-dynamodb&#39;</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>marshall</span>, <span style=color:#a6e22e>unmarshall</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/util-dynamodb&#39;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>CircuitBreakerState</span> {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>state</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;CLOSED&#39;</span> <span style=color:#f92672>|</span> <span style=color:#e6db74>&#39;OPEN&#39;</span> <span style=color:#f92672>|</span> <span style=color:#e6db74>&#39;HALF_OPEN&#39;</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>failureCount</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>lastFailureTime</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>nextAttemptTime</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>DistributedCircuitBreaker</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>client</span>: <span style=color:#66d9ef>DynamoDBClient</span>;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>tableName</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>failureThreshold</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>timeout</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>constructor</span>(<span style=color:#a6e22e>tableName</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>failureThreshold</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span>, <span style=color:#a6e22e>timeout</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>60000</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>client</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>DynamoDBClient</span>({});
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>tableName</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>tableName</span>;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>failureThreshold</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>failureThreshold</span>;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>timeout</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>timeout</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>execute</span>&lt;<span style=color:#f92672>T</span>&gt;(<span style=color:#a6e22e>serviceKey</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>operation</span><span style=color:#f92672>:</span> () <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>T</span>&gt;)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>T</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>state</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>getState</span>(<span style=color:#a6e22e>serviceKey</span>);
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>state</span>.<span style=color:#a6e22e>state</span> <span style=color:#f92672>===</span> <span style=color:#e6db74>&#39;OPEN&#39;</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (Date.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>&lt;</span> <span style=color:#a6e22e>state</span>.<span style=color:#a6e22e>nextAttemptTime</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>&#39;Circuit breaker is OPEN&#39;</span>);
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>      <span style=color:#75715e>// Transition to HALF_OPEN for retry attempt
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>setState</span>(<span style=color:#a6e22e>serviceKey</span>, { ...<span style=color:#a6e22e>state</span>, <span style=color:#a6e22e>state</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;HALF_OPEN&#39;</span> });
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>result</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>operation</span>();
+</span></span><span style=display:flex><span>      
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>state</span>.<span style=color:#a6e22e>state</span> <span style=color:#f92672>===</span> <span style=color:#e6db74>&#39;HALF_OPEN&#39;</span> <span style=color:#f92672>||</span> <span style=color:#a6e22e>state</span>.<span style=color:#a6e22e>failureCount</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>0</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// Reset on success
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>setState</span>(<span style=color:#a6e22e>serviceKey</span>, {
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>state</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;CLOSED&#39;</span>,
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>failureCount</span>: <span style=color:#66d9ef>0</span>,
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>lastFailureTime</span>: <span style=color:#66d9ef>0</span>,
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>nextAttemptTime</span>: <span style=color:#66d9ef>0</span>
+</span></span><span style=display:flex><span>        });
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>      
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>result</span>;
+</span></span><span style=display:flex><span>    } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>recordFailure</span>(<span style=color:#a6e22e>serviceKey</span>, <span style=color:#a6e22e>state</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#a6e22e>error</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>getState</span>(<span style=color:#a6e22e>serviceKey</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>CircuitBreakerState</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>response</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>client</span>.<span style=color:#a6e22e>send</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>GetItemCommand</span>({
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>TableName</span>: <span style=color:#66d9ef>this.tableName</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>Key</span>: <span style=color:#66d9ef>marshall</span>({ <span style=color:#a6e22e>serviceKey</span> })
+</span></span><span style=display:flex><span>      }));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>response</span>.<span style=color:#a6e22e>Item</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>unmarshall</span>(<span style=color:#a6e22e>response</span>.<span style=color:#a6e22e>Item</span>) <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>CircuitBreakerState</span>;
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#75715e>// Handle DynamoDB errors gracefully
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>state</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;CLOSED&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>failureCount</span>: <span style=color:#66d9ef>0</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>lastFailureTime</span>: <span style=color:#66d9ef>0</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>nextAttemptTime</span>: <span style=color:#66d9ef>0</span>
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>setState</span>(<span style=color:#a6e22e>serviceKey</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>state</span>: <span style=color:#66d9ef>CircuitBreakerState</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>client</span>.<span style=color:#a6e22e>send</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>PutItemCommand</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>TableName</span>: <span style=color:#66d9ef>this.tableName</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>Item</span>: <span style=color:#66d9ef>marshall</span>({ <span style=color:#a6e22e>serviceKey</span>, ...<span style=color:#a6e22e>state</span> })
+</span></span><span style=display:flex><span>    }));
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>recordFailure</span>(<span style=color:#a6e22e>serviceKey</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>currentState</span>: <span style=color:#66d9ef>CircuitBreakerState</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>newFailureCount</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>currentState</span>.<span style=color:#a6e22e>failureCount</span> <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>now</span> <span style=color:#f92672>=</span> Date.<span style=color:#a6e22e>now</span>();
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>newState</span>: <span style=color:#66d9ef>CircuitBreakerState</span> <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>state</span>: <span style=color:#66d9ef>newFailureCount</span> <span style=color:#f92672>&gt;=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>failureThreshold</span> <span style=color:#f92672>?</span> <span style=color:#e6db74>&#39;OPEN&#39;</span> <span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;CLOSED&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>failureCount</span>: <span style=color:#66d9ef>newFailureCount</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>lastFailureTime</span>: <span style=color:#66d9ef>now</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>nextAttemptTime</span>: <span style=color:#66d9ef>newFailureCount</span> <span style=color:#f92672>&gt;=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>failureThreshold</span> <span style=color:#f92672>?</span> <span style=color:#a6e22e>now</span> <span style=color:#f92672>+</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>timeout</span> : <span style=color:#66d9ef>0</span>
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>setState</span>(<span style=color:#a6e22e>serviceKey</span>, <span style=color:#a6e22e>newState</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Usage in Lambda function
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>handler</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>async</span> (<span style=color:#a6e22e>event</span>: <span style=color:#66d9ef>any</span>) <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>circuitBreaker</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>DistributedCircuitBreaker</span>(<span style=color:#e6db74>&#39;circuit-breaker-state&#39;</span>);
+</span></span><span style=display:flex><span>  
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>result</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>circuitBreaker</span>.<span style=color:#a6e22e>execute</span>(<span style=color:#e6db74>&#39;external-api&#39;</span>, <span style=color:#66d9ef>async</span> () <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>      <span style=color:#75715e>// Call to external service that might fail
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>response</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>fetch</span>(<span style=color:#e6db74>&#39;https://api.example.com/data&#39;</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>response</span>.<span style=color:#a6e22e>ok</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>`HTTP </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>response</span>.<span style=color:#a6e22e>status</span><span style=color:#e6db74>}</span><span style=color:#e6db74>: </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>response</span>.<span style=color:#a6e22e>statusText</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>response</span>.<span style=color:#a6e22e>json</span>();
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { <span style=color:#a6e22e>statusCode</span>: <span style=color:#66d9ef>200</span>, <span style=color:#a6e22e>body</span>: <span style=color:#66d9ef>JSON.stringify</span>(<span style=color:#a6e22e>result</span>) };
+</span></span><span style=display:flex><span>  } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { 
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>statusCode</span>: <span style=color:#66d9ef>503</span>, 
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>body</span>: <span style=color:#66d9ef>JSON.stringify</span>({ <span style=color:#a6e22e>error</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Service temporarily unavailable&#39;</span> })
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>};
+</span></span></code></pre></div><p>The Bulkhead pattern isolates system resources to prevent failures in one area from affecting others. In cloud architectures, this manifests as separate execution environments, data stores, and network paths for different system components. AWS accounts provide natural bulkheads, isolating blast radius at the infrastructure level. Within a single account, separate VPCs, subnets, and security groups create network-level isolation. At the application level, separate Lambda function sets, DynamoDB tables, and SQS queues ensure that high-traffic or failure-prone operations don&rsquo;t impact critical system functions.</p><div class=plantuml-container><img id=plantuml-bulkhead-pattern class=plantuml-diagram>
+<a id=plantuml-link-bulkhead-pattern href=# target=_blank class=plantuml-link title="Open diagram in new window"><span class=plantuml-link-icon>🔍</span></a></div><script src=/js/rawdeflate.js></script><script>function encode64(e){r="";for(i=0;i<e.length;i+=3)i+2==e.length?r+=append3bytes(e.charCodeAt(i),e.charCodeAt(i+1),0):i+1==e.length?r+=append3bytes(e.charCodeAt(i),0,0):r+=append3bytes(e.charCodeAt(i),e.charCodeAt(i+1),e.charCodeAt(i+2));return r}function append3bytes(e,t,n){return c1=e>>2,c2=(e&3)<<4|t>>4,c3=(t&15)<<2|n>>6,c4=n&63,r="",r+=encode6bit(c1&63),r+=encode6bit(c2&63),r+=encode6bit(c3&63),r+=encode6bit(c4&63),r}function encode6bit(e){return e<10?String.fromCharCode(48+e):(e-=10,e<26?String.fromCharCode(65+e):(e-=26,e<26?String.fromCharCode(97+e):(e-=26,e==0?"-":e==1?"_":"?")))}var deflater=window.SharedWorker&&new SharedWorker("/js/rawdeflate.js");deflater?(deflater.port.addEventListener("message",done_deflating,!1),deflater.port.start()):window.Worker&&(deflater=new Worker("/js/rawdeflate.js"),deflater.onmessage=done_deflating);function done_deflating(e){const s=document.getElementById("plantuml-bulkhead-pattern"),t="https://www.plantuml.com/plantuml/img/"+encode64(e.data);s.src=t;const n=document.getElementById("plantuml-link-bulkhead-pattern");n&&(n.href=t)}function compress(e){e=unescape(encodeURIComponent(e)),deflater?deflater.port&&deflater.port.postMessage?deflater.port.postMessage(e):deflater.postMessage(e):setTimeout(function(){done_deflating({data:deflate(e)})},100)}compress(`
+@startuml Bulkhead Pattern
+!define AWSPuml "https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v14.0/dist"
+!include AWSPuml/AWSCommon.puml
+!include AWSPuml/Compute/Lambda.puml
+!include AWSPuml/NetworkingContentDelivery/VPC.puml
+!include AWSPuml/SecurityIdentityCompliance/WAF.puml
+!include AWSPuml/General/Traditionalserver.puml
+!include AWSPuml/Database/DynamoDBTable.puml
+!include AWSPuml/ApplicationIntegration/SimpleQueueServiceQueue.puml
+
+skinparam BackgroundColor transparent
+skinparam defaultTextAlignment center
+
+package "API Layer" {
+  [API Gateway Rate Limiter] as api
+}
+
+package "Critical Services" {
+  [Payment Processing] as payment #LightGreen
+  [User Authentication] as auth #LightGreen
+  database "User Data" as userDb #LightGreen
+  queue "Critical Events Queue" as criticalQueue
+  note right of payment
+  Dedicated resources
+  Higher provisioned capacity
+  Lower concurrency limits
+  end note
+}
+
+package "Standard Services" {
+  [Product Catalog] as catalog #Yellow
+  [Order History] as orderHistory #Yellow
+  database "Product Data" as productDb #Yellow
+  queue "Standard Events Queue" as standardQueue
+}
+
+package "Non-critical Services" {
+  [Analytics] as analytics #LightSalmon
+  [Recommendation Engine] as recommendations #LightSalmon
+  database "Analytics Data" as analyticsDb #LightSalmon
+  queue "Batch Processing Queue" as batchQueue
+  note right of analytics
+  Auto-scaling resources
+  Lower priority
+  Can be throttled under load
+  end note
+}
+
+api -down-> payment : Rate limited
+api -down-> auth : Rate limited
+api -down-> catalog
+api -down-> orderHistory
+api -down-> analytics : Lower priority
+api -down-> recommendations : Lower priority
+
+payment -down-> userDb
+auth -down-> userDb
+payment -down-> criticalQueue
+auth -down-> criticalQueue
+
+catalog -down-> productDb
+orderHistory -down-> productDb
+catalog -down-> standardQueue
+orderHistory -down-> standardQueue
+
+analytics -down-> analyticsDb
+recommendations -down-> analyticsDb
+analytics -down-> batchQueue
+recommendations -down-> batchQueue
+
+note bottom of api
+<b>Bulkhead Pattern:</b>
+Isolates components to contain failures
+and prioritizes resource allocation
+end note
+
+@enduml
+`)</script><p>Resource isolation extends beyond just compute and storage to include operational concerns like monitoring, alerting, and deployment pipelines. Separate CloudWatch log groups and metric namespaces prevent noisy components from obscuring critical signals. Independent deployment pipelines ensure that updates to experimental features don&rsquo;t risk core system stability. The economic aspect of bulkheads in AWS reflects the ability to apply different cost optimization strategies to different system components, using spot instances for batch processing while maintaining reserved capacity for latency-sensitive operations.</p><p>The Saga pattern coordinates long-running business processes that span multiple services without requiring distributed transactions. Traditional two-phase commit protocols don&rsquo;t scale well in cloud environments due to their blocking nature and assumption of reliable, low-latency communication. Sagas break complex operations into smaller, compensatable steps, using either choreography or orchestration to coordinate the overall process. AWS Step Functions provides a managed orchestration engine that handles state management, error handling, and retry logic for saga implementations.</p><p>Choreographed sagas rely on event-driven communication, where each service publishes events about its activities and subscribes to events relevant to its responsibilities. EventBridge facilitates this pattern by providing reliable event delivery and content-based routing. The distributed nature of choreographed sagas makes them resilient to individual service failures but can make the overall process flow difficult to understand and debug. Orchestrated sagas centralize the coordination logic, making the process more explicit but creating a potential single point of failure in the orchestrator.</p><p>Compensation logic in saga implementations must be carefully designed to handle partial failures and maintain business invariants. Not all operations can be truly reversed, particularly those involving external systems or real-world effects. Semantic compensation often involves recording the need for human intervention or implementing business policies that account for the complexity of distributed rollback scenarios. The stateful nature of saga coordination requires durable storage that survives individual service failures, making DynamoDB or RDS appropriate choices for maintaining saga state.</p><div class=plantuml-container><img id=plantuml-saga-pattern class=plantuml-diagram>
+<a id=plantuml-link-saga-pattern href=# target=_blank class=plantuml-link title="Open diagram in new window"><span class=plantuml-link-icon>🔍</span></a></div><script src=/js/rawdeflate.js></script><script>function encode64(e){r="";for(i=0;i<e.length;i+=3)i+2==e.length?r+=append3bytes(e.charCodeAt(i),e.charCodeAt(i+1),0):i+1==e.length?r+=append3bytes(e.charCodeAt(i),0,0):r+=append3bytes(e.charCodeAt(i),e.charCodeAt(i+1),e.charCodeAt(i+2));return r}function append3bytes(e,t,n){return c1=e>>2,c2=(e&3)<<4|t>>4,c3=(t&15)<<2|n>>6,c4=n&63,r="",r+=encode6bit(c1&63),r+=encode6bit(c2&63),r+=encode6bit(c3&63),r+=encode6bit(c4&63),r}function encode6bit(e){return e<10?String.fromCharCode(48+e):(e-=10,e<26?String.fromCharCode(65+e):(e-=26,e<26?String.fromCharCode(97+e):(e-=26,e==0?"-":e==1?"_":"?")))}var deflater=window.SharedWorker&&new SharedWorker("/js/rawdeflate.js");deflater?(deflater.port.addEventListener("message",done_deflating,!1),deflater.port.start()):window.Worker&&(deflater=new Worker("/js/rawdeflate.js"),deflater.onmessage=done_deflating);function done_deflating(e){const s=document.getElementById("plantuml-saga-pattern"),t="https://www.plantuml.com/plantuml/img/"+encode64(e.data);s.src=t;const n=document.getElementById("plantuml-link-saga-pattern");n&&(n.href=t)}function compress(e){e=unescape(encodeURIComponent(e)),deflater?deflater.port&&deflater.port.postMessage?deflater.port.postMessage(e):deflater.postMessage(e):setTimeout(function(){done_deflating({data:deflate(e)})},100)}compress(`
+@startuml Saga Pattern
+!define AWSPuml "https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v14.0/dist"
+!include AWSPuml/AWSCommon.puml
+!include AWSPuml/ApplicationIntegration/StepFunctions.puml
+!include AWSPuml/Compute/Lambda.puml
+!include AWSPuml/Database/DynamoDBTable.puml
+
+skinparam BackgroundColor transparent
+skinparam defaultTextAlignment center
+skinparam sequenceArrowThickness 2
+skinparam sequenceGroupBorderThickness 2
+
+box "Order Processing Saga" #LightBlue
+participant "Step Functions\\nOrchestrator" as sfn
+participant "Payment\\nService" as payment
+participant "Inventory\\nService" as inventory
+participant "Shipping\\nService" as shipping
+database "DynamoDB\\nSaga State" as db
+end box
+
+note over sfn, db
+<b>Orchestrated Saga Pattern</b>
+Each transaction has a corresponding compensation
+end note
+
+sfn -> sfn : Start Order Saga
+sfn -> payment : Reserve Payment
+activate payment
+payment -> payment : Process Payment
+payment -> db : Record Payment Reserved
+payment -> sfn : Payment Confirmation
+deactivate payment
+
+alt Success Path
+sfn -> inventory : Reserve Inventory
+activate inventory
+inventory -> inventory : Check Stock
+inventory -> db : Record Inventory Reserved
+inventory -> sfn : Inventory Reserved
+deactivate inventory
+
+sfn -> shipping : Create Shipping Order
+activate shipping
+shipping -> shipping : Schedule Delivery
+shipping -> db : Record Shipping Created
+shipping -> sfn : Shipping Confirmed
+deactivate shipping
+
+sfn -> sfn : Order Confirmed
+else Failure at Inventory Step
+sfn -> inventory : Reserve Inventory
+activate inventory
+inventory -> inventory : Check Stock
+inventory -> sfn : Insufficient Stock
+deactivate inventory
+
+sfn -> payment : Compensation: Release Payment
+activate payment
+payment -> payment : Refund Payment
+payment -> db : Record Payment Released
+payment -> sfn : Payment Released
+deactivate payment
+
+sfn -> sfn : Order Failed
+else Failure at Shipping Step
+sfn -> shipping : Create Shipping Order
+activate shipping
+shipping -> shipping : Schedule Delivery
+shipping -> sfn : Delivery Unavailable
+deactivate shipping
+
+sfn -> inventory : Compensation: Release Inventory
+activate inventory
+inventory -> inventory : Return Items to Stock
+inventory -> db : Record Inventory Released
+inventory -> sfn : Inventory Released
+deactivate inventory
+
+sfn -> payment : Compensation: Release Payment
+activate payment
+payment -> payment : Refund Payment
+payment -> db : Record Payment Released
+payment -> sfn : Payment Released
+deactivate payment
+
+sfn -> sfn : Order Failed
+end
+@enduml
+`)</script><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// Saga pattern implementation using AWS Step Functions and Lambda
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>SFNClient</span>, <span style=color:#a6e22e>StartExecutionCommand</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/client-sfn&#39;</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>DynamoDBClient</span>, <span style=color:#a6e22e>PutItemCommand</span>, <span style=color:#a6e22e>UpdateItemCommand</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/client-dynamodb&#39;</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>marshall</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/util-dynamodb&#39;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>OrderSagaState</span> {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>orderId</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>customerId</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>amount</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>step</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;STARTED&#39;</span> <span style=color:#f92672>|</span> <span style=color:#e6db74>&#39;PAYMENT_RESERVED&#39;</span> <span style=color:#f92672>|</span> <span style=color:#e6db74>&#39;INVENTORY_RESERVED&#39;</span> <span style=color:#f92672>|</span> <span style=color:#e6db74>&#39;COMPLETED&#39;</span> <span style=color:#f92672>|</span> <span style=color:#e6db74>&#39;COMPENSATING&#39;</span> <span style=color:#f92672>|</span> <span style=color:#e6db74>&#39;FAILED&#39;</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>compensationNeeded</span>: <span style=color:#66d9ef>string</span>[];
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Step Functions State Machine Definition (JSON)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>orderSagaStateMachine</span> <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;Comment&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;Order processing saga with compensation&#34;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;StartAt&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;ReservePayment&#34;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;States&#34;</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;ReservePayment&#34;</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Type&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;Task&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Resource&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;arn:aws:lambda:region:account:function:reservePayment&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Retry&#34;</span><span style=color:#f92672>:</span> [{ <span style=color:#e6db74>&#34;ErrorEquals&#34;</span><span style=color:#f92672>:</span> [<span style=color:#e6db74>&#34;States.TaskFailed&#34;</span>], <span style=color:#e6db74>&#34;IntervalSeconds&#34;</span><span style=color:#f92672>:</span> <span style=color:#ae81ff>2</span>, <span style=color:#e6db74>&#34;MaxAttempts&#34;</span><span style=color:#f92672>:</span> <span style=color:#ae81ff>3</span> }],
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Catch&#34;</span><span style=color:#f92672>:</span> [{ <span style=color:#e6db74>&#34;ErrorEquals&#34;</span><span style=color:#f92672>:</span> [<span style=color:#e6db74>&#34;States.ALL&#34;</span>], <span style=color:#e6db74>&#34;Next&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;CompensatePayment&#34;</span> }],
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Next&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;ReserveInventory&#34;</span>
+</span></span><span style=display:flex><span>    },
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;ReserveInventory&#34;</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Type&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;Task&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Resource&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;arn:aws:lambda:region:account:function:reserveInventory&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Retry&#34;</span><span style=color:#f92672>:</span> [{ <span style=color:#e6db74>&#34;ErrorEquals&#34;</span><span style=color:#f92672>:</span> [<span style=color:#e6db74>&#34;States.TaskFailed&#34;</span>], <span style=color:#e6db74>&#34;IntervalSeconds&#34;</span><span style=color:#f92672>:</span> <span style=color:#ae81ff>2</span>, <span style=color:#e6db74>&#34;MaxAttempts&#34;</span><span style=color:#f92672>:</span> <span style=color:#ae81ff>3</span> }],
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Catch&#34;</span><span style=color:#f92672>:</span> [{ <span style=color:#e6db74>&#34;ErrorEquals&#34;</span><span style=color:#f92672>:</span> [<span style=color:#e6db74>&#34;States.ALL&#34;</span>], <span style=color:#e6db74>&#34;Next&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;CompensateInventory&#34;</span> }],
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Next&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;ConfirmOrder&#34;</span>
+</span></span><span style=display:flex><span>    },
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;ConfirmOrder&#34;</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Type&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;Task&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Resource&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;arn:aws:lambda:region:account:function:confirmOrder&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;End&#34;</span><span style=color:#f92672>:</span> <span style=color:#66d9ef>true</span>
+</span></span><span style=display:flex><span>    },
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;CompensateInventory&#34;</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Type&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;Task&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Resource&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;arn:aws:lambda:region:account:function:compensateInventory&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Next&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;CompensatePayment&#34;</span>
+</span></span><span style=display:flex><span>    },
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;CompensatePayment&#34;</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Type&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;Task&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Resource&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;arn:aws:lambda:region:account:function:compensatePayment&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Next&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;OrderFailed&#34;</span>
+</span></span><span style=display:flex><span>    },
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;OrderFailed&#34;</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Type&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;Fail&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Cause&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;Order processing failed&#34;</span>
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Lambda function for payment reservation step
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>reservePaymentHandler</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>async</span> (<span style=color:#a6e22e>event</span>: <span style=color:#66d9ef>OrderSagaState</span>) <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>dynamoClient</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>DynamoDBClient</span>({});
+</span></span><span style=display:flex><span>  
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Simulate payment service call
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>callPaymentService</span>(<span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>customerId</span>, <span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>amount</span>);
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Update saga state
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>dynamoClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>UpdateItemCommand</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>TableName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;OrderSagaState&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>Key</span>: <span style=color:#66d9ef>marshall</span>({ <span style=color:#a6e22e>orderId</span>: <span style=color:#66d9ef>event.orderId</span> }),
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>UpdateExpression</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;SET #step = :step, #compensation = list_append(#compensation, :action)&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>ExpressionAttributeNames</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;#step&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;step&#39;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;#compensation&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;compensationNeeded&#39;</span>
+</span></span><span style=display:flex><span>      },
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>ExpressionAttributeValues</span>: <span style=color:#66d9ef>marshall</span>({
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;:step&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;PAYMENT_RESERVED&#39;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;:action&#39;</span><span style=color:#f92672>:</span> [<span style=color:#e6db74>&#39;RELEASE_PAYMENT&#39;</span>]
+</span></span><span style=display:flex><span>      })
+</span></span><span style=display:flex><span>    }));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { ...<span style=color:#a6e22e>event</span>, <span style=color:#a6e22e>step</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;PAYMENT_RESERVED&#39;</span> };
+</span></span><span style=display:flex><span>  } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Payment reservation failed
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>`Payment reservation failed: </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>error</span>.<span style=color:#a6e22e>message</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Lambda function for inventory reservation step
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>reserveInventoryHandler</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>async</span> (<span style=color:#a6e22e>event</span>: <span style=color:#66d9ef>OrderSagaState</span>) <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>dynamoClient</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>DynamoDBClient</span>({});
+</span></span><span style=display:flex><span>  
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Simulate inventory service call
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>callInventoryService</span>(<span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>orderId</span>);
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Update saga state
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>dynamoClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>UpdateItemCommand</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>TableName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;OrderSagaState&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>Key</span>: <span style=color:#66d9ef>marshall</span>({ <span style=color:#a6e22e>orderId</span>: <span style=color:#66d9ef>event.orderId</span> }),
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>UpdateExpression</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;SET #step = :step, #compensation = list_append(#compensation, :action)&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>ExpressionAttributeNames</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;#step&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;step&#39;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;#compensation&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;compensationNeeded&#39;</span>
+</span></span><span style=display:flex><span>      },
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>ExpressionAttributeValues</span>: <span style=color:#66d9ef>marshall</span>({
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;:step&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;INVENTORY_RESERVED&#39;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;:action&#39;</span><span style=color:#f92672>:</span> [<span style=color:#e6db74>&#39;RELEASE_INVENTORY&#39;</span>]
+</span></span><span style=display:flex><span>      })
+</span></span><span style=display:flex><span>    }));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { ...<span style=color:#a6e22e>event</span>, <span style=color:#a6e22e>step</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;INVENTORY_RESERVED&#39;</span> };
+</span></span><span style=display:flex><span>  } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>`Inventory reservation failed: </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>error</span>.<span style=color:#a6e22e>message</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Compensation function for payment
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>compensatePaymentHandler</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>async</span> (<span style=color:#a6e22e>event</span>: <span style=color:#66d9ef>OrderSagaState</span>) <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>releasePaymentReservation</span>(<span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>customerId</span>, <span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>amount</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { ...<span style=color:#a6e22e>event</span>, <span style=color:#a6e22e>step</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;COMPENSATING&#39;</span> };
+</span></span><span style=display:flex><span>  } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Log compensation failure for manual intervention
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>error</span>(<span style=color:#e6db74>`Failed to compensate payment for order </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>orderId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>:`</span>, <span style=color:#a6e22e>error</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>throw</span> <span style=color:#a6e22e>error</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Helper functions (would be implemented based on actual services)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>async</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>callPaymentService</span>(<span style=color:#a6e22e>customerId</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>amount</span>: <span style=color:#66d9ef>number</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// Implementation would call actual payment service
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>if</span> (Math.<span style=color:#a6e22e>random</span>() <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>0.1</span>) <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>&#39;Payment service unavailable&#39;</span>);
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>async</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>callInventoryService</span>(<span style=color:#a6e22e>orderId</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// Implementation would call actual inventory service
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>if</span> (Math.<span style=color:#a6e22e>random</span>() <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>0.15</span>) <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>&#39;Insufficient inventory&#39;</span>);
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>async</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>releasePaymentReservation</span>(<span style=color:#a6e22e>customerId</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>amount</span>: <span style=color:#66d9ef>number</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// Implementation would release payment hold
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>}
+</span></span></code></pre></div><p>The Ambassador pattern encapsulates cross-cutting concerns like service discovery, load balancing, and protocol translation in a separate component that acts as a proxy for external communications. In AWS environments, this pattern often manifests through API Gateway, which provides authentication, rate limiting, and protocol transformation for backend services. The ambassador handles the complexity of service-to-service communication, allowing business logic to focus on domain concerns rather than infrastructure details.</p><p>Network-level ambassadors using AWS App Mesh provide sophisticated traffic management capabilities, including canary deployments, circuit breaking, and observability features. By deploying ambassadors as sidecars using ECS or EKS, applications gain these capabilities without code changes. The abstraction provided by ambassadors also facilitates testing by allowing mock services to be substituted transparently during development and integration testing phases.</p><p>The Strangler Fig pattern enables gradual migration from legacy systems by incrementally routing traffic to new implementations while maintaining backward compatibility. AWS&rsquo;s traffic management capabilities make this pattern particularly effective for cloud migrations. Route 53 weighted routing can gradually shift traffic percentages, while Application Load Balancer path-based routing can migrate individual features independently. The key to successful strangler fig implementations is maintaining interface compatibility during the transition period, often requiring facade services that translate between old and new data models.</p><p>Event sourcing and event-driven architectures support strangler fig migrations by providing a durable record of business events that can be replayed against new system implementations. This approach allows new systems to be validated against historical data without affecting production traffic. Kinesis Data Streams or EventBridge can serve as the event backbone, ensuring that both old and new systems receive the same business events during the transition period.</p><p>The Scatter-Gather pattern distributes requests across multiple services and aggregates responses, commonly used for search scenarios or when combining data from multiple sources. Lambda&rsquo;s concurrent execution model aligns well with this pattern, allowing multiple requests to be processed simultaneously without thread management complexity. The challenge lies in handling variable response times and partial failures while maintaining acceptable user experience. Implementing timeouts and fallback values ensures that slow or failed requests don&rsquo;t block the overall response.</p><div class=plantuml-container><img id=plantuml-scatter-gather-pattern class=plantuml-diagram>
+<a id=plantuml-link-scatter-gather-pattern href=# target=_blank class=plantuml-link title="Open diagram in new window"><span class=plantuml-link-icon>🔍</span></a></div><script src=/js/rawdeflate.js></script><script>function encode64(e){r="";for(i=0;i<e.length;i+=3)i+2==e.length?r+=append3bytes(e.charCodeAt(i),e.charCodeAt(i+1),0):i+1==e.length?r+=append3bytes(e.charCodeAt(i),0,0):r+=append3bytes(e.charCodeAt(i),e.charCodeAt(i+1),e.charCodeAt(i+2));return r}function append3bytes(e,t,n){return c1=e>>2,c2=(e&3)<<4|t>>4,c3=(t&15)<<2|n>>6,c4=n&63,r="",r+=encode6bit(c1&63),r+=encode6bit(c2&63),r+=encode6bit(c3&63),r+=encode6bit(c4&63),r}function encode6bit(e){return e<10?String.fromCharCode(48+e):(e-=10,e<26?String.fromCharCode(65+e):(e-=26,e<26?String.fromCharCode(97+e):(e-=26,e==0?"-":e==1?"_":"?")))}var deflater=window.SharedWorker&&new SharedWorker("/js/rawdeflate.js");deflater?(deflater.port.addEventListener("message",done_deflating,!1),deflater.port.start()):window.Worker&&(deflater=new Worker("/js/rawdeflate.js"),deflater.onmessage=done_deflating);function done_deflating(e){const s=document.getElementById("plantuml-scatter-gather-pattern"),t="https://www.plantuml.com/plantuml/img/"+encode64(e.data);s.src=t;const n=document.getElementById("plantuml-link-scatter-gather-pattern");n&&(n.href=t)}function compress(e){e=unescape(encodeURIComponent(e)),deflater?deflater.port&&deflater.port.postMessage?deflater.port.postMessage(e):deflater.postMessage(e):setTimeout(function(){done_deflating({data:deflate(e)})},100)}compress(`
+@startuml Scatter-Gather Pattern
+!define AWSPuml "https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v14.0/dist"
+!include AWSPuml/AWSCommon.puml
+!include AWSPuml/Compute/Lambda.puml
+!include AWSPuml/ApplicationIntegration/APIGateway.puml
+!include AWSPuml/Database/DynamoDB.puml
+!include AWSPuml/Storage/SimpleStorageService.puml
+!include AWSPuml/MachineLearning/ElasticInference.puml
+!include AWSPuml/ApplicationIntegration/EventBridge.puml
+!include AWSPuml/ManagementGovernance/CloudWatch.puml
+
+skinparam BackgroundColor transparent
+skinparam defaultTextAlignment center
+skinparam sequenceArrowThickness 2
+skinparam sequenceGroupBorderThickness 2
+
+actor "Client" as client
+participant "API Gateway" as api
+participant "Aggregator\\nLambda" as aggregator
+participant "Product Search\\nService" as products
+participant "User History\\nService" as history
+participant "Recommendations\\nService" as recommendations
+participant "External API\\nService" as external
+collections "Results\\nCollector" as results
+
+api -> aggregator : Search Request
+activate aggregator
+
+note right of aggregator
+<b>Scatter Phase:</b>
+Send parallel requests with timeouts
+end note
+
+par
+aggregator -> products : Query Products
+activate products
+else
+aggregator -> history : Query User History
+activate history
+else
+aggregator -> recommendations : Get Recommendations
+activate recommendations
+else
+aggregator -> external : External API Call
+activate external
+end
+
+products --> aggregator : Product Results (200ms)
+deactivate products
+
+history --> aggregator : History Results (150ms)
+deactivate history
+
+recommendations --> aggregator : Recommendation Results (300ms)
+deactivate recommendations
+
+alt Successful case
+external --> aggregator : External API Results (180ms)
+deactivate external
+else Timeout/Failure case
+aggregator -> aggregator : Timeout after 400ms
+note right of aggregator
+External service too slow
+Use fallback results
+end note
+end
+
+note right of aggregator
+<b>Gather Phase:</b>
+Combine results, handle missing data
+end note
+
+loop For each result set
+aggregator -> results : Add to Combined Results
+activate results
+results -> results : Sort by Relevance
+results -> results : Remove Duplicates
+results -> aggregator : Processed Results
+deactivate results
+end
+
+aggregator -> api : Aggregated Response
+deactivate aggregator
+
+api -> client : Search Results
+
+note bottom of aggregator
+Handles:
+
+- Service failures
+- Timeouts
+- Partial results
+- Priority merging
+end note
+
+@enduml
+`)</script><p>DynamoDB&rsquo;s parallel scan capabilities provide infrastructure-level support for scatter-gather patterns when querying large datasets. By distributing scan operations across multiple segments and aggregating results, applications can achieve higher throughput than sequential scanning would allow. The eventual consistency model of DynamoDB requires careful consideration of read consistency requirements in scatter-gather scenarios.</p><p>Observability in distributed systems requires correlation of activities across service boundaries, typically through distributed tracing and correlation identifiers. AWS X-Ray provides managed distributed tracing that automatically captures service maps and latency distributions. Implementing correlation IDs that flow through request chains enables log correlation across services, making it possible to understand complex distributed operations. CloudWatch Insights queries can correlate logs across multiple services using these correlation identifiers, providing end-to-end visibility into distributed operations.</p><p>The performance characteristics of distributed systems differ fundamentally from monolithic applications due to network latency and serialization overhead. Designing for network efficiency often involves batching operations, using compression, and minimizing round trips. AWS services like SQS batch operations and DynamoDB batch writes provide infrastructure support for efficient distributed operations. Understanding the latency characteristics of different AWS regions and availability zones helps inform service placement decisions that minimize communication overhead.</p><p>Error handling in distributed systems must account for the complexity of partial failures and network partitions. Implementing idempotency ensures that retry operations don&rsquo;t cause unintended side effects. Using exponential backoff with jitter prevents thundering herd problems when multiple clients retry simultaneously. DynamoDB&rsquo;s conditional writes and SQS&rsquo;s exactly-once processing provide infrastructure-level support for idempotent operations, reducing the complexity of implementing these patterns at the application level.</p></div></article></main><aside class=blog-sidebar><div class=sidebar-widget><h3>Recent Posts</h3><ul class=recent-posts><li><a href=/posts/using-ai-in-software-engineering/>Harnessing AI in Software Engineering: Opportunities and Challenges</a>
+<span class=post-date>May 29, 2025</span></li><li><a href=/posts/aws-serverless-cost-optimization/>Cost Optimization Strategies for AWS Serverless Applications</a>
+<span class=post-date>Jun 17, 2023</span></li><li><a href=/posts/aws-sns-sqs-typescript/>Building Event-Driven Architectures with AWS SNS/SQS and TypeScript</a>
+<span class=post-date>May 21, 2023</span></li><li><a href=/posts/securing-aws-lambda/>Securing AWS Lambda Functions: Best Practices and Implementation Guide</a>
+<span class=post-date>Apr 7, 2023</span></li><li><a href=/posts/aws-step-functions-typescript/>Step Functions: Orchestrating AWS Lambda Workflows in TypeScript</a>
+<span class=post-date>Mar 5, 2023</span></li></ul></div><div class=sidebar-widget><h3>Categories</h3><ul class=categories><li><a href=/categories/architecture>architecture (1)</a></li><li><a href=/categories/architecture-and-design>architecture and design (7)</a></li><li><a href=/categories/artificial-intelligence>artificial intelligence (1)</a></li><li><a href=/categories/cloud-computing>cloud computing (11)</a></li><li><a href=/categories/code-quality>code quality (1)</a></li><li><a href=/categories/cost-optimization>cost optimization (1)</a></li><li><a href=/categories/data-engineering>data engineering (2)</a></li><li><a href=/categories/database>database (1)</a></li><li><a href=/categories/debugging-and-troubleshooting>debugging and troubleshooting (1)</a></li><li><a href=/categories/development-tools>development tools (2)</a></li><li><a href=/categories/development-tutorials>development tutorials (1)</a></li><li><a href=/categories/microservices>microservices (1)</a></li><li><a href=/categories/performance>performance (1)</a></li><li><a href=/categories/quality-assurance>quality assurance (1)</a></li><li><a href=/categories/security>security (1)</a></li><li><a href=/categories/serverless>serverless (1)</a></li><li><a href=/categories/software-development>software development (8)</a></li><li><a href=/categories/technical-debt>technical debt (1)</a></li><li><a href=/categories/testing>testing (2)</a></li><li><a href=/categories/version-control>version control (1)</a></li></ul></div><div class=sidebar-widget><h3>Post Series</h3><ul class=recent-posts><li><a href=/posts/real-time-processing-architectures/>Cloud Architecture Patterns: Real-time Processing Architectures</a>
+<span class=post-date>Apr 11, 2021</span><div class=series-meta><a href=/series/cloud-architecture-patterns/ class=series-link>View all 7 posts in series →</a></div></li><li><a href=/posts/technical-debt-management-growing-codebases/>Modern Development Practices: Technical Debt Management in Growing Codebases: Strategies for Sustainable Development</a>
+<span class=post-date>Dec 19, 2021</span><div class=series-meta><a href=/series/modern-development-practices/ class=series-link>View all 7 posts in series →</a></div></li></ul></div><div class=sidebar-widget><h3>Tags</h3><div class=tag-cloud><a href=/tags/ai class=tag-cloud-item style=font-size:1rem>ai
+</a><a href=/tags/api-design class=tag-cloud-item style=font-size:1rem>api design
+</a><a href=/tags/architecture class=tag-cloud-item style=font-size:1rem>architecture
+</a><a href=/tags/athena class=tag-cloud-item style=font-size:1rem>athena
+</a><a href=/tags/automation class=tag-cloud-item style=font-size:1rem>automation
+</a><a href=/tags/aws class=tag-cloud-item style=font-size:2rem>aws
+</a><a href=/tags/best-practices class=tag-cloud-item style=font-size:1rem>best practices
+</a><a href=/tags/chaos-engineering class=tag-cloud-item style=font-size:1rem>chaos engineering
+</a><a href=/tags/ci/cd class=tag-cloud-item style=font-size:1rem>ci/cd
+</a><a href=/tags/code-quality class=tag-cloud-item style=font-size:1rem>code quality
+</a><a href=/tags/communication-patterns class=tag-cloud-item style=font-size:1rem>communication patterns
+</a><a href=/tags/cost-optimization class=tag-cloud-item style=font-size:1rem>cost optimization
+</a><a href=/tags/cqrs class=tag-cloud-item style=font-size:1rem>cqrs
+</a><a href=/tags/data-architecture class=tag-cloud-item style=font-size:1rem>data architecture
+</a><a href=/tags/data-lake class=tag-cloud-item style=font-size:1rem>data lake
+</a><a href=/tags/data-modeling class=tag-cloud-item style=font-size:1rem>data modeling
+</a><a href=/tags/database-design class=tag-cloud-item style=font-size:1rem>database design
+</a><a href=/tags/debugging class=tag-cloud-item style=font-size:1rem>debugging
+</a><a href=/tags/developer-tips class=tag-cloud-item style=font-size:1rem>developer tips
+</a><a href=/tags/development class=tag-cloud-item style=font-size:2rem>development
+</a><a href=/tags/distributed-systems class=tag-cloud-item style=font-size:1rem>distributed systems
+</a><a href=/tags/dynamodb class=tag-cloud-item style=font-size:1rem>dynamodb
+</a><a href=/tags/enterprise-architecture class=tag-cloud-item style=font-size:1rem>enterprise architecture
+</a><a href=/tags/event-sourcing class=tag-cloud-item style=font-size:1rem>event sourcing
+</a><a href=/tags/event-driven-architecture class=tag-cloud-item style=font-size:1rem>event-driven architecture
+</a><a href=/tags/eventbridge class=tag-cloud-item style=font-size:1rem>eventbridge
+</a><a href=/tags/fault-tolerance class=tag-cloud-item style=font-size:1rem>fault tolerance
+</a><a href=/tags/glue class=tag-cloud-item style=font-size:1rem>glue
+</a><a href=/tags/graphql class=tag-cloud-item style=font-size:1rem>graphql
+</a><a href=/tags/kinesis class=tag-cloud-item style=font-size:1rem>kinesis
+</a><a href=/tags/lambda class=tag-cloud-item style=font-size:1rem>lambda
+</a><a href=/tags/load-testing class=tag-cloud-item style=font-size:1rem>load testing
+</a><a href=/tags/metrics class=tag-cloud-item style=font-size:1rem>metrics
+</a><a href=/tags/microservices class=tag-cloud-item style=font-size:1rem>microservices
+</a><a href=/tags/monitoring class=tag-cloud-item style=font-size:1rem>monitoring
+</a><a href=/tags/multi-account class=tag-cloud-item style=font-size:1rem>multi-account
+</a><a href=/tags/nosql class=tag-cloud-item style=font-size:1rem>nosql
+</a><a href=/tags/patterns class=tag-cloud-item style=font-size:1rem>patterns
+</a><a href=/tags/performance-testing class=tag-cloud-item style=font-size:1rem>performance testing
+</a><a href=/tags/productivity class=tag-cloud-item style=font-size:1rem>productivity
+</a><a href=/tags/real-time class=tag-cloud-item style=font-size:1rem>real-time
+</a><a href=/tags/refactoring class=tag-cloud-item style=font-size:1rem>refactoring
+</a><a href=/tags/reliability class=tag-cloud-item style=font-size:1rem>reliability
+</a><a href=/tags/resilience class=tag-cloud-item style=font-size:1rem>resilience
+</a><a href=/tags/rest class=tag-cloud-item style=font-size:1rem>rest
+</a><a href=/tags/s3 class=tag-cloud-item style=font-size:1rem>s3
+</a><a href=/tags/security class=tag-cloud-item style=font-size:1rem>security
+</a><a href=/tags/serverless class=tag-cloud-item style=font-size:1rem>serverless
+</a><a href=/tags/software-engineering class=tag-cloud-item style=font-size:1rem>software engineering
+</a><a href=/tags/standards class=tag-cloud-item style=font-size:1rem>standards
+</a><a href=/tags/stream-processing class=tag-cloud-item style=font-size:1rem>stream processing
+</a><a href=/tags/tdd class=tag-cloud-item style=font-size:1rem>tdd
+</a><a href=/tags/technical-debt class=tag-cloud-item style=font-size:1rem>technical debt
+</a><a href=/tags/testing class=tag-cloud-item style=font-size:1rem>testing
+</a><a href=/tags/typescript class=tag-cloud-item style=font-size:2rem>typescript</a></div></div><div class=sidebar-widget><h3>Subscribe</h3><div class=subscribe-links><a href=/index.xml class=rss-link><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 019 9"/><path d="M4 4a16 16 0 0116 16"/><circle cx="5" cy="19" r="1"/></svg>
+RSS Feed</a></div></div><div class=sidebar-widget><h3>Archives</h3><ul class=archive-list></ul></div><div class="sidebar-widget npm-packages"><h3>My NPM Packages</h3><div id=npm-list></div></div></aside></div></div><footer class=site-footer><div class=container><p>&copy; 2025 Scott Obert</p></div></footer></body></html>

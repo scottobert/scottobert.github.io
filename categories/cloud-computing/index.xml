@@ -9,4 +9,106 @@
 &lt;p>In the AWS Lambda context, the shared responsibility model takes on a unique form. AWS handles the security of the runtime environment, execution environment isolation, and underlying infrastructure. However, developers are responsible for securing their application code, managing IAM permissions, protecting sensitive data, and ensuring secure communication between services. This division of responsibility allows you to focus on application-specific security while AWS handles the infrastructure security.&lt;/p></description></item><item><title>Step Functions: Orchestrating AWS Lambda Workflows in TypeScript</title><link>https://scottobert.github.io/posts/aws-step-functions-typescript/</link><pubDate>Sun, 05 Mar 2023 10:00:00 -0700</pubDate><guid>https://scottobert.github.io/posts/aws-step-functions-typescript/</guid><description>&lt;p>Building on our previous exploration of AWS Lambda with TypeScript, let&amp;rsquo;s dive into how Step Functions can orchestrate complex workflows across multiple Lambda functions. Step Functions provide a reliable way to coordinate distributed components and handle long-running processes in your serverless applications.&lt;/p>
 &lt;h2 id="why-step-functions">Why Step Functions?&lt;/h2>
 &lt;p>While individual Lambda functions excel at discrete tasks, real-world applications demand more sophisticated orchestration capabilities. Applications typically need to manage complex workflows with multiple interconnected steps, implement comprehensive error handling and retry logic, and handle processes that extend beyond Lambda&amp;rsquo;s 15-minute execution limit. Additionally, maintaining state between steps and coordinating parallel task execution are common requirements in distributed systems. Step Functions address these challenges by providing a robust state machine-based orchestration service that brings structure and reliability to complex serverless workflows.&lt;/p></description></item><item><title>How to deploy an AWS Lambda function written in TypeScript using SAM CLI</title><link>https://scottobert.github.io/posts/aws-lambda-typescript/</link><pubDate>Fri, 17 Feb 2023 13:30:32 -0700</pubDate><guid>https://scottobert.github.io/posts/aws-lambda-typescript/</guid><description>&lt;p>Welcome to the world of AWS Serverless! In this blog post, we will be discussing how to deploy an AWS Lambda function written in TypeScript using the AWS SAM CLI.&lt;/p>
-&lt;p>AWS Lambda is a compute service that allows you to run your code in response to events or triggers, such as changes to data in an S3 bucket, or updates to a DynamoDB table. AWS Serverless Application Model (SAM) is an open-source framework for building serverless applications. The SAM CLI provides a local development and testing environment for AWS Serverless applications.&lt;/p></description></item></channel></rss>
+&lt;p>AWS Lambda is a compute service that allows you to run your code in response to events or triggers, such as changes to data in an S3 bucket, or updates to a DynamoDB table. AWS Serverless Application Model (SAM) is an open-source framework for building serverless applications. The SAM CLI provides a local development and testing environment for AWS Serverless applications.&lt;/p></description></item><item><title>Real-time Processing Architectures</title><link>https://scottobert.github.io/posts/real-time-processing-architectures/</link><pubDate>Sun, 11 Apr 2021 09:00:00 -0500</pubDate><guid>https://scottobert.github.io/posts/real-time-processing-architectures/</guid><description>&lt;p>Real-time processing architectures address the fundamental challenge of extracting actionable insights from continuously flowing data streams while maintaining low latency and high throughput requirements. Unlike batch processing systems that operate on static datasets with relaxed timing constraints, real-time systems must process events as they arrive, often within milliseconds or seconds of generation. This temporal sensitivity introduces unique design considerations around event ordering, backpressure handling, and state management that distinguish real-time architectures from their batch-oriented counterparts.&lt;/p></description></item><item><title>Data Lake Architecture with AWS</title><link>https://scottobert.github.io/posts/data-lake-architecture-aws/</link><pubDate>Sun, 21 Mar 2021 09:00:00 -0500</pubDate><guid>https://scottobert.github.io/posts/data-lake-architecture-aws/</guid><description>&lt;p>Data lake architectures represent a fundamental departure from traditional data warehousing approaches, embracing schema-on-read principles and polyglot storage strategies that accommodate the velocity, variety, and volume characteristics of modern data ecosystems. Unlike data warehouses that require upfront schema definition and ETL processes to conform data to predefined structures, data lakes preserve raw data in its native format while providing flexible analysis capabilities that adapt to evolving analytical requirements. AWS provides a comprehensive suite of services that enable sophisticated data lake implementations while managing the operational complexity traditionally associated with big data platforms.&lt;/p></description></item><item><title>Resilience Engineering: Building Fault-Tolerant Systems</title><link>https://scottobert.github.io/posts/resilience-engineering-building-fault-tolerant-systems/</link><pubDate>Sun, 28 Feb 2021 09:00:00 -0500</pubDate><guid>https://scottobert.github.io/posts/resilience-engineering-building-fault-tolerant-systems/</guid><description>&lt;p>Resilience engineering represents a paradigm shift from trying to prevent all failures to designing systems that gracefully adapt and recover when failures inevitably occur. Traditional approaches focused on eliminating failure modes through redundancy and robust design, but complex distributed systems exhibit emergent behaviors that cannot be fully predicted or prevented. Instead, resilient systems embrace failure as a normal operating condition and build adaptive capabilities that maintain essential functions even under adverse conditions.&lt;/p></description></item><item><title>CQRS Implementation with AWS Services</title><link>https://scottobert.github.io/posts/cqrs-implementation-aws-services/</link><pubDate>Sun, 17 Jan 2021 09:00:00 -0500</pubDate><guid>https://scottobert.github.io/posts/cqrs-implementation-aws-services/</guid><description>&lt;p>Command Query Responsibility Segregation represents a fundamental shift in how we think about data persistence and retrieval in distributed systems. Rather than treating reads and writes as symmetric operations against a single data model, CQRS acknowledges the inherent differences between these operations and optimizes each path independently. In the context of AWS services, this pattern becomes particularly powerful when we leverage the managed services ecosystem to handle the complexity of maintaining separate command and query models.&lt;/p></description></item><item><title>Event Sourcing Patterns in AWS</title><link>https://scottobert.github.io/posts/event-sourcing-patterns-aws/</link><pubDate>Sun, 27 Dec 2020 11:00:00 -0700</pubDate><guid>https://scottobert.github.io/posts/event-sourcing-patterns-aws/</guid><description>&lt;p>Event sourcing fundamentally changes how applications handle state management by storing every state change as an immutable event rather than maintaining current state snapshots. This architectural pattern becomes particularly powerful when implemented on AWS, where managed services provide the scalability and durability required for enterprise-grade event sourcing systems. Understanding how to leverage AWS services effectively for event sourcing can transform application architectures from brittle state-dependent systems into resilient, audit-friendly, and highly scalable solutions.&lt;/p></description></item><item><title>Multi-Account AWS Strategies for Enterprise Applications</title><link>https://scottobert.github.io/posts/multi-account-aws-strategies-enterprise-applications/</link><pubDate>Sun, 06 Dec 2020 11:00:00 -0700</pubDate><guid>https://scottobert.github.io/posts/multi-account-aws-strategies-enterprise-applications/</guid><description>&lt;p>Enterprise organizations face unique challenges when scaling their AWS infrastructure beyond simple single-account deployments. As applications grow in complexity and regulatory requirements become more stringent, the need for sophisticated multi-account strategies becomes paramount. This exploration delves into proven patterns that enable organizations to maintain security, compliance, and operational efficiency across distributed cloud environments.&lt;/p>
+&lt;div class="plantuml-container">
+ &lt;img id="plantuml-multi-account-architecture" class="plantuml-diagram"/>
+ &lt;a id="plantuml-link-multi-account-architecture" href="#" target="_blank" class="plantuml-link" title="Open diagram in new window">
+ &lt;span class="plantuml-link-icon">🔍&lt;/span>
+ &lt;/a>
+&lt;/div>
+&lt;script src="https://scottobert.github.io/js/rawdeflate.js">&lt;/script>
+&lt;script>
+ 
+
+ function encode64(data) {
+ r = "";
+ for (i=0; i&lt;data.length; i+=3) {
+ if (i+2==data.length) {
+ r +=append3bytes(data.charCodeAt(i), data.charCodeAt(i+1), 0);
+ } else if (i+1==data.length) {
+ r += append3bytes(data.charCodeAt(i), 0, 0);
+ } else {
+ r += append3bytes(data.charCodeAt(i), data.charCodeAt(i+1),
+ data.charCodeAt(i+2));
+ }
+ }
+ return r;
+ }
+
+ function append3bytes(b1, b2, b3) {
+ c1 = b1 >> 2;
+ c2 = ((b1 &amp; 0x3) &lt;&lt; 4) | (b2 >> 4);
+ c3 = ((b2 &amp; 0xF) &lt;&lt; 2) | (b3 >> 6);
+ c4 = b3 &amp; 0x3F;
+ r = "";
+ r += encode6bit(c1 &amp; 0x3F);
+ r += encode6bit(c2 &amp; 0x3F);
+ r += encode6bit(c3 &amp; 0x3F);
+ r += encode6bit(c4 &amp; 0x3F);
+ return r;
+ }
+
+ function encode6bit(b) {
+ if (b &lt; 10) {
+ return String.fromCharCode(48 + b);
+ }
+ b -= 10;
+ if (b &lt; 26) {
+ return String.fromCharCode(65 + b);
+ }
+ b -= 26;
+ if (b &lt; 26) {
+ return String.fromCharCode(97 + b);
+ }
+ b -= 26;
+ if (b == 0) {
+ return '-';
+ }
+ if (b == 1) {
+ return '_';
+ }
+ return '?';
+ }
+
+ var deflater = window.SharedWorker &amp;&amp; new SharedWorker('/js/rawdeflate.js');
+ if (deflater) {
+ deflater.port.addEventListener('message', done_deflating, false);
+ deflater.port.start();
+ } else if (window.Worker) {
+ deflater = new Worker('/js/rawdeflate.js');
+ deflater.onmessage = done_deflating;
+ }
+
+ function done_deflating(e) {
+ const img = document.getElementById("plantuml-multi-account-architecture");
+ const imgUrl = "https://www.plantuml.com/plantuml/img/"+encode64(e.data);
+ img.src = imgUrl;
+ 
+ 
+ const link = document.getElementById("plantuml-link-multi-account-architecture");
+ if (link) {
+ link.href = imgUrl;
+ }
+ }
+
+ function compress(s) {
+ 
+ s = unescape(encodeURIComponent(s));
+ 
+ if (deflater) {
+ if (deflater.port &amp;&amp; deflater.port.postMessage) {
+ deflater.port.postMessage(s);
+ } else {
+ deflater.postMessage(s);
+ }
+ } else {
+ setTimeout(function() {
+ done_deflating({ data: deflate(s) });
+ }, 100);
+ }
+ }
+
+ compress("\n@startuml\n!theme aws-orange\ntitle Multi-Account AWS Architecture Pattern\n\npackage \u0022Management Account\u0022 {\n [AWS Organizations]\n [Consolidated Billing]\n [AWS SSO]\n [CloudTrail (Org)]\n}\n\npackage \u0022Security Account\u0022 {\n [GuardDuty Master]\n [Security Hub]\n [Config Aggregator]\n [CloudTrail Logs]\n}\n\npackage \u0022Production Account\u0022 {\n [Application Services]\n [RDS Production]\n [S3 Production]\n}\n\npackage \u0022Development Account\u0022 {\n [Dev Services]\n [RDS Dev]\n [S3 Dev]\n}\n\npackage \u0022Shared Services Account\u0022 {\n [Transit Gateway]\n [DNS Resolution]\n [Centralized Logging]\n}\n\n[AWS Organizations] --\u003e [Security Account]\n[AWS Organizations] --\u003e [Production Account]\n[AWS Organizations] --\u003e [Development Account]\n[AWS Organizations] --\u003e [Shared Services Account]\n\n[Transit Gateway] --\u003e [Production Account]\n[Transit Gateway] --\u003e [Development Account]\n\n@enduml\n")
+&lt;/script>
+&lt;h2 id="understanding-the-multi-account-imperative">Understanding the Multi-Account Imperative&lt;/h2>
+&lt;p>The traditional approach of housing all resources within a single AWS account quickly becomes untenable for enterprise applications. Security boundaries blur when development, staging, and production workloads share the same account, creating unnecessary risk exposure. Compliance frameworks often mandate strict separation of environments, making single-account architectures insufficient for regulated industries.&lt;/p></description></item></channel></rss>

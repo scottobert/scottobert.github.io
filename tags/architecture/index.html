@@ -71,15 +71,32 @@
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>};
-</span></span></code></pre></div><h3 id=resource-oriented-design>Resource-Oriented Design</h3><p>Structure APIs around resources, not actions:</p></div><footer><a href=/posts/api-design-patterns-modern-applications/ class=read-more>Read More →</a></footer></article></div></section></main><aside class=blog-sidebar><div class=sidebar-widget><h3>Recent Posts</h3><ul class=recent-posts><li><a href=/posts/using-ai-in-software-engineering/>Harnessing AI in Software Engineering: Opportunities and Challenges</a>
+</span></span></code></pre></div><h3 id=resource-oriented-design>Resource-Oriented Design</h3><p>Structure APIs around resources, not actions:</p></div><footer><a href=/posts/api-design-patterns-modern-applications/ class=read-more>Read More →</a></footer></article><article class=post-summary><header><h2><a href=/posts/real-time-processing-architectures/>Real-time Processing Architectures</a></h2><div class=post-meta><time datetime=2021-04-11T09:00:00-05:00>April 11, 2021</time><div class=tags><a href=/tags/aws class=tag>AWS</a>
+<a href=/tags/real-time class=tag>Real-time</a>
+<a href=/tags/kinesis class=tag>Kinesis</a>
+<a href=/tags/lambda class=tag>Lambda</a>
+<a href=/tags/stream-processing class=tag>Stream Processing</a>
+<a href=/tags/architecture class=tag>Architecture</a></div></div></header><div class=summary><p>Real-time processing architectures address the fundamental challenge of extracting actionable insights from continuously flowing data streams while maintaining low latency and high throughput requirements. Unlike batch processing systems that operate on static datasets with relaxed timing constraints, real-time systems must process events as they arrive, often within milliseconds or seconds of generation. This temporal sensitivity introduces unique design considerations around event ordering, backpressure handling, and state management that distinguish real-time architectures from their batch-oriented counterparts.</p></div><footer><a href=/posts/real-time-processing-architectures/ class=read-more>Read More →</a></footer></article><article class=post-summary><header><h2><a href=/posts/cqrs-implementation-aws-services/>CQRS Implementation with AWS Services</a></h2><div class=post-meta><time datetime=2021-01-17T09:00:00-05:00>January 17, 2021</time><div class=tags><a href=/tags/aws class=tag>AWS</a>
+<a href=/tags/cqrs class=tag>CQRS</a>
+<a href=/tags/dynamodb class=tag>DynamoDB</a>
+<a href=/tags/lambda class=tag>Lambda</a>
+<a href=/tags/eventbridge class=tag>EventBridge</a>
+<a href=/tags/architecture class=tag>Architecture</a></div></div></header><div class=summary><p>Command Query Responsibility Segregation represents a fundamental shift in how we think about data persistence and retrieval in distributed systems. Rather than treating reads and writes as symmetric operations against a single data model, CQRS acknowledges the inherent differences between these operations and optimizes each path independently. In the context of AWS services, this pattern becomes particularly powerful when we leverage the managed services ecosystem to handle the complexity of maintaining separate command and query models.</p></div><footer><a href=/posts/cqrs-implementation-aws-services/ class=read-more>Read More →</a></footer></article><article class=post-summary><header><h2><a href=/posts/event-sourcing-patterns-aws/>Event Sourcing Patterns in AWS</a></h2><div class=post-meta><time datetime=2020-12-27T11:00:00-07:00>December 27, 2020</time><div class=tags><a href=/tags/aws class=tag>AWS</a>
+<a href=/tags/event-sourcing class=tag>Event Sourcing</a>
+<a href=/tags/architecture class=tag>Architecture</a>
+<a href=/tags/dynamodb class=tag>DynamoDB</a>
+<a href=/tags/eventbridge class=tag>EventBridge</a>
+<a href=/tags/best-practices class=tag>Best Practices</a></div></div></header><div class=summary><p>Event sourcing fundamentally changes how applications handle state management by storing every state change as an immutable event rather than maintaining current state snapshots. This architectural pattern becomes particularly powerful when implemented on AWS, where managed services provide the scalability and durability required for enterprise-grade event sourcing systems. Understanding how to leverage AWS services effectively for event sourcing can transform application architectures from brittle state-dependent systems into resilient, audit-friendly, and highly scalable solutions.</p></div><footer><a href=/posts/event-sourcing-patterns-aws/ class=read-more>Read More →</a></footer></article></div></section></main><aside class=blog-sidebar><div class=sidebar-widget><h3>Recent Posts</h3><ul class=recent-posts><li><a href=/posts/using-ai-in-software-engineering/>Harnessing AI in Software Engineering: Opportunities and Challenges</a>
 <span class=post-date>May 29, 2025</span></li><li><a href=/posts/aws-serverless-cost-optimization/>Cost Optimization Strategies for AWS Serverless Applications</a>
 <span class=post-date>Jun 17, 2023</span></li><li><a href=/posts/aws-sns-sqs-typescript/>Building Event-Driven Architectures with AWS SNS/SQS and TypeScript</a>
 <span class=post-date>May 21, 2023</span></li><li><a href=/posts/securing-aws-lambda/>Securing AWS Lambda Functions: Best Practices and Implementation Guide</a>
 <span class=post-date>Apr 7, 2023</span></li><li><a href=/posts/aws-step-functions-typescript/>Step Functions: Orchestrating AWS Lambda Workflows in TypeScript</a>
-<span class=post-date>Mar 5, 2023</span></li></ul></div><div class=sidebar-widget><h3>Categories</h3><ul class=categories><li><a href=/categories/architecture>architecture (1)</a></li><li><a href=/categories/architecture-and-design>architecture and design (3)</a></li><li><a href=/categories/artificial-intelligence>artificial intelligence (1)</a></li><li><a href=/categories/cloud-computing>cloud computing (5)</a></li><li><a href=/categories/code-quality>code quality (1)</a></li><li><a href=/categories/cost-optimization>cost optimization (1)</a></li><li><a href=/categories/database>database (1)</a></li><li><a href=/categories/debugging-and-troubleshooting>debugging and troubleshooting (1)</a></li><li><a href=/categories/development-tools>development tools (2)</a></li><li><a href=/categories/development-tutorials>development tutorials (1)</a></li><li><a href=/categories/microservices>microservices (1)</a></li><li><a href=/categories/performance>performance (1)</a></li><li><a href=/categories/quality-assurance>quality assurance (1)</a></li><li><a href=/categories/security>security (1)</a></li><li><a href=/categories/serverless>serverless (1)</a></li><li><a href=/categories/software-development>software development (8)</a></li><li><a href=/categories/technical-debt>technical debt (1)</a></li><li><a href=/categories/testing>testing (2)</a></li><li><a href=/categories/version-control>version control (1)</a></li></ul></div><div class=sidebar-widget><h3>Post Series</h3><ul class=recent-posts><li><a href=/posts/technical-debt-management-growing-codebases/>Modern Development Practices: Technical Debt Management in Growing Codebases: Strategies for Sustainable Development</a>
+<span class=post-date>Mar 5, 2023</span></li></ul></div><div class=sidebar-widget><h3>Categories</h3><ul class=categories><li><a href=/categories/architecture>architecture (1)</a></li><li><a href=/categories/architecture-and-design>architecture and design (7)</a></li><li><a href=/categories/artificial-intelligence>artificial intelligence (1)</a></li><li><a href=/categories/cloud-computing>cloud computing (11)</a></li><li><a href=/categories/code-quality>code quality (1)</a></li><li><a href=/categories/cost-optimization>cost optimization (1)</a></li><li><a href=/categories/data-engineering>data engineering (2)</a></li><li><a href=/categories/database>database (1)</a></li><li><a href=/categories/debugging-and-troubleshooting>debugging and troubleshooting (1)</a></li><li><a href=/categories/development-tools>development tools (2)</a></li><li><a href=/categories/development-tutorials>development tutorials (1)</a></li><li><a href=/categories/microservices>microservices (1)</a></li><li><a href=/categories/performance>performance (1)</a></li><li><a href=/categories/quality-assurance>quality assurance (1)</a></li><li><a href=/categories/security>security (1)</a></li><li><a href=/categories/serverless>serverless (1)</a></li><li><a href=/categories/software-development>software development (8)</a></li><li><a href=/categories/technical-debt>technical debt (1)</a></li><li><a href=/categories/testing>testing (2)</a></li><li><a href=/categories/version-control>version control (1)</a></li></ul></div><div class=sidebar-widget><h3>Post Series</h3><ul class=recent-posts><li><a href=/posts/real-time-processing-architectures/>Cloud Architecture Patterns: Real-time Processing Architectures</a>
+<span class=post-date>Apr 11, 2021</span><div class=series-meta><a href=/series/cloud-architecture-patterns/ class=series-link>View all 7 posts in series →</a></div></li><li><a href=/posts/technical-debt-management-growing-codebases/>Modern Development Practices: Technical Debt Management in Growing Codebases: Strategies for Sustainable Development</a>
 <span class=post-date>Dec 19, 2021</span><div class=series-meta><a href=/series/modern-development-practices/ class=series-link>View all 7 posts in series →</a></div></li></ul></div><div class=sidebar-widget><h3>Tags</h3><div class=tag-cloud><a href=/tags/ai class=tag-cloud-item style=font-size:1rem>ai
 </a><a href=/tags/api-design class=tag-cloud-item style=font-size:1rem>api design
 </a><a href=/tags/architecture class=tag-cloud-item style=font-size:1rem>architecture
+</a><a href=/tags/athena class=tag-cloud-item style=font-size:1rem>athena
 </a><a href=/tags/automation class=tag-cloud-item style=font-size:1rem>automation
 </a><a href=/tags/aws class=tag-cloud-item style=font-size:2rem>aws
 </a><a href=/tags/best-practices class=tag-cloud-item style=font-size:1rem>best practices
@@ -88,6 +105,9 @@
 </a><a href=/tags/code-quality class=tag-cloud-item style=font-size:1rem>code quality
 </a><a href=/tags/communication-patterns class=tag-cloud-item style=font-size:1rem>communication patterns
 </a><a href=/tags/cost-optimization class=tag-cloud-item style=font-size:1rem>cost optimization
+</a><a href=/tags/cqrs class=tag-cloud-item style=font-size:1rem>cqrs
+</a><a href=/tags/data-architecture class=tag-cloud-item style=font-size:1rem>data architecture
+</a><a href=/tags/data-lake class=tag-cloud-item style=font-size:1rem>data lake
 </a><a href=/tags/data-modeling class=tag-cloud-item style=font-size:1rem>data modeling
 </a><a href=/tags/database-design class=tag-cloud-item style=font-size:1rem>database design
 </a><a href=/tags/debugging class=tag-cloud-item style=font-size:1rem>debugging
@@ -95,22 +115,35 @@
 </a><a href=/tags/development class=tag-cloud-item style=font-size:2rem>development
 </a><a href=/tags/distributed-systems class=tag-cloud-item style=font-size:1rem>distributed systems
 </a><a href=/tags/dynamodb class=tag-cloud-item style=font-size:1rem>dynamodb
+</a><a href=/tags/enterprise-architecture class=tag-cloud-item style=font-size:1rem>enterprise architecture
+</a><a href=/tags/event-sourcing class=tag-cloud-item style=font-size:1rem>event sourcing
 </a><a href=/tags/event-driven-architecture class=tag-cloud-item style=font-size:1rem>event-driven architecture
+</a><a href=/tags/eventbridge class=tag-cloud-item style=font-size:1rem>eventbridge
+</a><a href=/tags/fault-tolerance class=tag-cloud-item style=font-size:1rem>fault tolerance
+</a><a href=/tags/glue class=tag-cloud-item style=font-size:1rem>glue
 </a><a href=/tags/graphql class=tag-cloud-item style=font-size:1rem>graphql
+</a><a href=/tags/kinesis class=tag-cloud-item style=font-size:1rem>kinesis
 </a><a href=/tags/lambda class=tag-cloud-item style=font-size:1rem>lambda
 </a><a href=/tags/load-testing class=tag-cloud-item style=font-size:1rem>load testing
 </a><a href=/tags/metrics class=tag-cloud-item style=font-size:1rem>metrics
 </a><a href=/tags/microservices class=tag-cloud-item style=font-size:1rem>microservices
 </a><a href=/tags/monitoring class=tag-cloud-item style=font-size:1rem>monitoring
+</a><a href=/tags/multi-account class=tag-cloud-item style=font-size:1rem>multi-account
 </a><a href=/tags/nosql class=tag-cloud-item style=font-size:1rem>nosql
+</a><a href=/tags/patterns class=tag-cloud-item style=font-size:1rem>patterns
 </a><a href=/tags/performance-testing class=tag-cloud-item style=font-size:1rem>performance testing
 </a><a href=/tags/productivity class=tag-cloud-item style=font-size:1rem>productivity
+</a><a href=/tags/real-time class=tag-cloud-item style=font-size:1rem>real-time
 </a><a href=/tags/refactoring class=tag-cloud-item style=font-size:1rem>refactoring
+</a><a href=/tags/reliability class=tag-cloud-item style=font-size:1rem>reliability
+</a><a href=/tags/resilience class=tag-cloud-item style=font-size:1rem>resilience
 </a><a href=/tags/rest class=tag-cloud-item style=font-size:1rem>rest
+</a><a href=/tags/s3 class=tag-cloud-item style=font-size:1rem>s3
 </a><a href=/tags/security class=tag-cloud-item style=font-size:1rem>security
 </a><a href=/tags/serverless class=tag-cloud-item style=font-size:1rem>serverless
 </a><a href=/tags/software-engineering class=tag-cloud-item style=font-size:1rem>software engineering
 </a><a href=/tags/standards class=tag-cloud-item style=font-size:1rem>standards
+</a><a href=/tags/stream-processing class=tag-cloud-item style=font-size:1rem>stream processing
 </a><a href=/tags/tdd class=tag-cloud-item style=font-size:1rem>tdd
 </a><a href=/tags/technical-debt class=tag-cloud-item style=font-size:1rem>technical debt
 </a><a href=/tags/testing class=tag-cloud-item style=font-size:1rem>testing

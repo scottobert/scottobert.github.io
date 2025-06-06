@@ -1,0 +1,525 @@
+<!doctype html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Scott Obert</title><link rel=stylesheet href=/css/style.css><script src=/js/npm-packages.js defer></script><script defer src=https://cloud.umami.is/script.js data-website-id=e2461896-021d-422a-b83f-624a8819309b></script></head><body><header class=site-header><div class=container><div class=header-content><div class=header-left><h1><a href=/>Scott Obert</a></h1><nav><a href=/posts/>Blog</a></nav></div><div class=social-links><a href=https://www.linkedin.com/in/scott-obert-3a7338b/ target=_blank rel="noopener noreferrer" title="LinkedIn Profile"><svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853.0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601.0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144.0-2.063-.926-2.063-2.065.0-1.138.92-2.063 2.063-2.063 1.14.0 2.064.925 2.064 2.063.0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225.0H1.771C.792.0.0.774.0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2.0 22.222.0h.003z"/></svg>
+<span>LinkedIn</span>
+</a><a href=https://github.com/scottobert target=_blank rel="noopener noreferrer" title="GitHub Profile"><svg viewBox="0 0 24 24"><path d="M12 0C5.37.0.0 5.37.0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577.0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93.0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176.0.0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22.0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22.0 1.605-.015 2.896-.015 3.286.0.315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12"/></svg>
+<span>GitHub</span></a></div></div></div></header><div class=container><div class=content-layout><main class=main-content><article class=post><h1>Real-time Processing Architectures</h1><div class=post-meta><span>Apr 11, 2021</span>
+<span>| Tags: AWS, Real-time, Kinesis, Lambda, Stream Processing, Architecture</span></div><div class=post-content><p>Real-time processing architectures address the fundamental challenge of extracting actionable insights from continuously flowing data streams while maintaining low latency and high throughput requirements. Unlike batch processing systems that operate on static datasets with relaxed timing constraints, real-time systems must process events as they arrive, often within milliseconds or seconds of generation. This temporal sensitivity introduces unique design considerations around event ordering, backpressure handling, and state management that distinguish real-time architectures from their batch-oriented counterparts.</p><div class=plantuml-container><img id=plantuml-real-time-processing class=plantuml-diagram>
+<a id=plantuml-link-real-time-processing href=# target=_blank class=plantuml-link title="Open diagram in new window"><span class=plantuml-link-icon>🔍</span></a></div><script src=/js/rawdeflate.js></script><script>function encode64(e){r="";for(i=0;i<e.length;i+=3)i+2==e.length?r+=append3bytes(e.charCodeAt(i),e.charCodeAt(i+1),0):i+1==e.length?r+=append3bytes(e.charCodeAt(i),0,0):r+=append3bytes(e.charCodeAt(i),e.charCodeAt(i+1),e.charCodeAt(i+2));return r}function append3bytes(e,t,n){return c1=e>>2,c2=(e&3)<<4|t>>4,c3=(t&15)<<2|n>>6,c4=n&63,r="",r+=encode6bit(c1&63),r+=encode6bit(c2&63),r+=encode6bit(c3&63),r+=encode6bit(c4&63),r}function encode6bit(e){return e<10?String.fromCharCode(48+e):(e-=10,e<26?String.fromCharCode(65+e):(e-=26,e<26?String.fromCharCode(97+e):(e-=26,e==0?"-":e==1?"_":"?")))}var deflater=window.SharedWorker&&new SharedWorker("/js/rawdeflate.js");deflater?(deflater.port.addEventListener("message",done_deflating,!1),deflater.port.start()):window.Worker&&(deflater=new Worker("/js/rawdeflate.js"),deflater.onmessage=done_deflating);function done_deflating(e){const s=document.getElementById("plantuml-real-time-processing"),t="https://www.plantuml.com/plantuml/img/"+encode64(e.data);s.src=t;const n=document.getElementById("plantuml-link-real-time-processing");n&&(n.href=t)}function compress(e){e=unescape(encodeURIComponent(e)),deflater?deflater.port&&deflater.port.postMessage?deflater.port.postMessage(e):deflater.postMessage(e):setTimeout(function(){done_deflating({data:deflate(e)})},100)}compress(`
+@startuml
+!theme aws-orange
+title Real-time Stream Processing Architecture
+
+package "Data Sources" {
+  [Web Applications] as WebApps
+  [Mobile Devices] as Mobile
+  [IoT Sensors] as IoT
+  [Transaction Systems] as Transactions
+  [Logs & Metrics] as Logs
+}
+
+package "Ingestion Layer" {
+  [Kinesis Data Streams] as KinesisStream
+  [MSK (Kafka)] as MSK
+  [IoT Core] as IoTCore
+}
+
+package "Processing Layer" {
+  package "Stream Processing" {
+    [Kinesis Data Analytics\\n(Apache Flink)] as KDA
+    [Lambda Consumer] as Lambda
+    [Self-managed Kafka Streams] as KafkaStreams
+    [EMR Streaming] as EMR
+  }
+  
+  database "State Storage" {
+    [ElastiCache] as ElastiCache
+    [DynamoDB] as DynamoDB
+  }
+}
+
+package "Serving Layer" {
+  [DynamoDB Tables] as DynamoTables
+  [OpenSearch Service] as OpenSearch
+  [Timestream] as Timestream
+  [S3 (time-partitioned)] as S3
+}
+
+package "Consumption Layer" {
+  [Real-time Dashboards] as Dashboards
+  [Alerts & Notifications] as Alerts
+  [API Gateway] as API
+  [EventBridge Rules] as EventRules
+}
+
+WebApps --> KinesisStream
+Mobile --> KinesisStream
+IoT --> IoTCore
+Transactions --> MSK
+Logs --> KinesisStream
+
+IoTCore --> KinesisStream
+
+KinesisStream --> KDA
+KinesisStream --> Lambda
+MSK --> KafkaStreams
+MSK --> KDA
+KinesisStream --> EMR
+
+KDA <--> ElastiCache : Stateful processing
+KDA <--> DynamoDB : Checkpointing
+Lambda <--> DynamoDB : State lookups
+KafkaStreams <--> ElastiCache : Windowed aggregations
+
+KDA --> DynamoTables : Real-time aggregations
+KDA --> OpenSearch : Searchable metrics
+KDA --> Timestream : Time series data
+Lambda --> DynamoTables : Enriched events
+Lambda --> S3 : Archival storage
+KafkaStreams --> DynamoTables : Processed events
+EMR --> S3 : Windowed results
+
+DynamoTables --> API
+OpenSearch --> Dashboards
+Timestream --> Dashboards
+DynamoTables --> Alerts
+OpenSearch --> EventRules
+DynamoTables --> EventRules
+
+note right of KinesisStream
+  * Ordered within partitions
+  * Millisecond latency
+  * Optimized for high throughput
+end note
+
+note right of KDA
+  * Stateful stream processing
+  * Windowed aggregations
+  * Exactly-once semantics
+  * Sub-second processing
+end note
+
+note right of Lambda
+  * Event-driven processing
+  * Simple transformations
+  * Fan-out pattern
+  * At-least-once delivery
+end note
+
+note bottom of DynamoDB
+  * Low-latency lookups
+  * Transaction support
+  * Time-to-live for state
+end note
+@enduml
+`)</script><p>The evolution from traditional batch processing to real-time streaming reflects the changing nature of modern business requirements where delayed insights often lose their value. Financial trading systems require microsecond response times to capitalize on market opportunities. Fraud detection systems must identify suspicious patterns before transactions complete. Recommendation engines need to incorporate user behavior in real-time to maximize engagement. These use cases share the common requirement that data processing latency directly impacts business value, making architectural decisions about streaming infrastructure critical to organizational success.</p><p>AWS Kinesis Data Streams provides the foundational infrastructure for real-time data ingestion, offering managed scaling and durability guarantees that simplify the operational overhead of stream processing systems. The shard-based partitioning model enables horizontal scaling by distributing records across multiple shards based on partition keys, allowing different parts of the data stream to be processed independently. Understanding the relationship between partition key selection and shard distribution becomes critical for achieving balanced throughput and avoiding hot sharding scenarios that can bottleneck entire processing pipelines.</p><p>The ordered delivery guarantees within individual shards provide the consistency foundation necessary for stateful stream processing operations. Applications that require global ordering across all records must use single-shard streams, accepting throughput limitations in exchange for ordering guarantees. More commonly, applications design around partition-level ordering by carefully selecting partition keys that align with business requirements. User-based partitioning ensures that events for individual users arrive in order, enabling session-based analytics and sequential pattern detection.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// Real-time stream processing pipeline using Kinesis and Lambda
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>KinesisClient</span>, <span style=color:#a6e22e>PutRecordCommand</span>, <span style=color:#a6e22e>PutRecordsCommand</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/client-kinesis&#39;</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>DynamoDBClient</span>, <span style=color:#a6e22e>PutItemCommand</span>, <span style=color:#a6e22e>UpdateItemCommand</span>, <span style=color:#a6e22e>GetItemCommand</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/client-dynamodb&#39;</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>marshall</span>, <span style=color:#a6e22e>unmarshall</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/util-dynamodb&#39;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>StreamEvent</span> {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>eventId</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>userId</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>eventType</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>timestamp</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>data</span>: <span style=color:#66d9ef>any</span>;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>UserSession</span> {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>userId</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>sessionId</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>startTime</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>lastActivity</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>events</span>: <span style=color:#66d9ef>StreamEvent</span>[];
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>aggregates</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>pageViews</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>purchases</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>totalSpent</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  };
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>RealTimeStreamProcessor</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>kinesisClient</span>: <span style=color:#66d9ef>KinesisClient</span>;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>dynamoClient</span>: <span style=color:#66d9ef>DynamoDBClient</span>;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>streamName</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>sessionTable</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>constructor</span>(<span style=color:#a6e22e>streamName</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>sessionTable</span>: <span style=color:#66d9ef>string</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>kinesisClient</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>KinesisClient</span>({});
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>dynamoClient</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>DynamoDBClient</span>({});
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>streamName</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>streamName</span>;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>sessionTable</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>sessionTable</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>publishEvent</span>(<span style=color:#a6e22e>event</span>: <span style=color:#66d9ef>StreamEvent</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>record</span> <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>Data</span>: <span style=color:#66d9ef>JSON.stringify</span>(<span style=color:#a6e22e>event</span>),
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>PartitionKey</span>: <span style=color:#66d9ef>event.userId</span>, <span style=color:#75715e>// Ensures ordering per user
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#a6e22e>ExplicitHashKey</span>: <span style=color:#66d9ef>undefined</span>
+</span></span><span style=display:flex><span>      };
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>kinesisClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>PutRecordCommand</span>({
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>StreamName</span>: <span style=color:#66d9ef>this.streamName</span>,
+</span></span><span style=display:flex><span>        ...<span style=color:#a6e22e>record</span>
+</span></span><span style=display:flex><span>      }));
+</span></span><span style=display:flex><span>    } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>error</span>(<span style=color:#e6db74>&#39;Failed to publish event to Kinesis:&#39;</span>, <span style=color:#a6e22e>error</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#a6e22e>error</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>publishBatch</span>(<span style=color:#a6e22e>events</span>: <span style=color:#66d9ef>StreamEvent</span>[])<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>records</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>events</span>.<span style=color:#a6e22e>map</span>(<span style=color:#a6e22e>event</span> <span style=color:#f92672>=&gt;</span> ({
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>Data</span>: <span style=color:#66d9ef>JSON.stringify</span>(<span style=color:#a6e22e>event</span>),
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>PartitionKey</span>: <span style=color:#66d9ef>event.userId</span>
+</span></span><span style=display:flex><span>      }));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#75715e>// Kinesis supports up to 500 records per batch
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>batchSize</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>500</span>;
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>let</span> <span style=color:#a6e22e>i</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>; <span style=color:#a6e22e>i</span> <span style=color:#f92672>&lt;</span> <span style=color:#a6e22e>records</span>.<span style=color:#a6e22e>length</span>; <span style=color:#a6e22e>i</span> <span style=color:#f92672>+=</span> <span style=color:#a6e22e>batchSize</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>batch</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>records</span>.<span style=color:#a6e22e>slice</span>(<span style=color:#a6e22e>i</span>, <span style=color:#a6e22e>i</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>batchSize</span>);
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>kinesisClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>PutRecordsCommand</span>({
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>StreamName</span>: <span style=color:#66d9ef>this.streamName</span>,
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>Records</span>: <span style=color:#66d9ef>batch</span>
+</span></span><span style=display:flex><span>        }));
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>error</span>(<span style=color:#e6db74>&#39;Failed to publish batch to Kinesis:&#39;</span>, <span style=color:#a6e22e>error</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#a6e22e>error</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>processStreamEvent</span>(<span style=color:#a6e22e>kinesisRecord</span>: <span style=color:#66d9ef>any</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>      <span style=color:#75715e>// Decode the event from Kinesis record
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>eventData</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>JSON</span>.<span style=color:#a6e22e>parse</span>(
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>Buffer</span>.<span style=color:#66d9ef>from</span>(<span style=color:#a6e22e>kinesisRecord</span>.<span style=color:#a6e22e>data</span>, <span style=color:#e6db74>&#39;base64&#39;</span>).<span style=color:#a6e22e>toString</span>(<span style=color:#e6db74>&#39;utf-8&#39;</span>)
+</span></span><span style=display:flex><span>      );
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>event</span>: <span style=color:#66d9ef>StreamEvent</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>eventData</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#75715e>// Update user session with new event
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>updateUserSession</span>(<span style=color:#a6e22e>event</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#75715e>// Check for real-time alerts or triggers
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>checkRealTimeRules</span>(<span style=color:#a6e22e>event</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#75715e>// Update real-time analytics
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>updateRealTimeMetrics</span>(<span style=color:#a6e22e>event</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>error</span>(<span style=color:#e6db74>&#39;Failed to process stream event:&#39;</span>, <span style=color:#a6e22e>error</span>);
+</span></span><span style=display:flex><span>      <span style=color:#75715e>// In production, would send to DLQ for retry
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>throw</span> <span style=color:#a6e22e>error</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>updateUserSession</span>(<span style=color:#a6e22e>event</span>: <span style=color:#66d9ef>StreamEvent</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>sessionTimeout</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>30</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>60</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>1000</span>; <span style=color:#75715e>// 30 minutes
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>now</span> <span style=color:#f92672>=</span> Date.<span style=color:#a6e22e>now</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>      <span style=color:#75715e>// Get current session
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>response</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>dynamoClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>GetItemCommand</span>({
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>TableName</span>: <span style=color:#66d9ef>this.sessionTable</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>Key</span>: <span style=color:#66d9ef>marshall</span>({ <span style=color:#a6e22e>userId</span>: <span style=color:#66d9ef>event.userId</span> })
+</span></span><span style=display:flex><span>      }));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>session</span>: <span style=color:#66d9ef>UserSession</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>response</span>.<span style=color:#a6e22e>Item</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>session</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>unmarshall</span>(<span style=color:#a6e22e>response</span>.<span style=color:#a6e22e>Item</span>) <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>UserSession</span>;
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// Check if session has expired
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>now</span> <span style=color:#f92672>-</span> <span style=color:#a6e22e>session</span>.<span style=color:#a6e22e>lastActivity</span> <span style=color:#f92672>&gt;</span> <span style=color:#a6e22e>sessionTimeout</span>) {
+</span></span><span style=display:flex><span>          <span style=color:#75715e>// Start new session
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>          <span style=color:#a6e22e>session</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>createNewSession</span>(<span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>userId</span>, <span style=color:#a6e22e>now</span>);
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>      } <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// Create new session
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#a6e22e>session</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>createNewSession</span>(<span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>userId</span>, <span style=color:#a6e22e>now</span>);
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#75715e>// Update session with new event
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>session</span>.<span style=color:#a6e22e>lastActivity</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>now</span>;
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>session</span>.<span style=color:#a6e22e>events</span>.<span style=color:#a6e22e>push</span>(<span style=color:#a6e22e>event</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#75715e>// Update aggregates based on event type
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>updateSessionAggregates</span>(<span style=color:#a6e22e>session</span>, <span style=color:#a6e22e>event</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#75715e>// Save updated session
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>dynamoClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>PutItemCommand</span>({
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>TableName</span>: <span style=color:#66d9ef>this.sessionTable</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>Item</span>: <span style=color:#66d9ef>marshall</span>(<span style=color:#a6e22e>session</span>)
+</span></span><span style=display:flex><span>      }));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>error</span>(<span style=color:#e6db74>&#39;Failed to update user session:&#39;</span>, <span style=color:#a6e22e>error</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#a6e22e>error</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>createNewSession</span>(<span style=color:#a6e22e>userId</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>timestamp</span>: <span style=color:#66d9ef>number</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>UserSession</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>userId</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>sessionId</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>userId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>-</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>timestamp</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>startTime</span>: <span style=color:#66d9ef>timestamp</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>lastActivity</span>: <span style=color:#66d9ef>timestamp</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>events</span><span style=color:#f92672>:</span> [],
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>aggregates</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>pageViews</span>: <span style=color:#66d9ef>0</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>purchases</span>: <span style=color:#66d9ef>0</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>totalSpent</span>: <span style=color:#66d9ef>0</span>
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>updateSessionAggregates</span>(<span style=color:#a6e22e>session</span>: <span style=color:#66d9ef>UserSession</span>, <span style=color:#a6e22e>event</span>: <span style=color:#66d9ef>StreamEvent</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>void</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>switch</span> (<span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>eventType</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>case</span> <span style=color:#e6db74>&#39;page_view&#39;</span><span style=color:#f92672>:</span>
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>session</span>.<span style=color:#a6e22e>aggregates</span>.<span style=color:#a6e22e>pageViews</span><span style=color:#f92672>++</span>;
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>break</span>;
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>case</span> <span style=color:#e6db74>&#39;purchase&#39;</span><span style=color:#f92672>:</span>
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>session</span>.<span style=color:#a6e22e>aggregates</span>.<span style=color:#a6e22e>purchases</span><span style=color:#f92672>++</span>;
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>session</span>.<span style=color:#a6e22e>aggregates</span>.<span style=color:#a6e22e>totalSpent</span> <span style=color:#f92672>+=</span> <span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>data</span>.<span style=color:#a6e22e>amount</span> <span style=color:#f92672>||</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>break</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>checkRealTimeRules</span>(<span style=color:#a6e22e>event</span>: <span style=color:#66d9ef>StreamEvent</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Example: Fraud detection for large purchases
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>eventType</span> <span style=color:#f92672>===</span> <span style=color:#e6db74>&#39;purchase&#39;</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>data</span>.<span style=color:#a6e22e>amount</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>1000</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>triggerFraudAlert</span>(<span style=color:#a6e22e>event</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Example: Personalization trigger
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>eventType</span> <span style=color:#f92672>===</span> <span style=color:#e6db74>&#39;product_view&#39;</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>updatePersonalizationModel</span>(<span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>userId</span>, <span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>data</span>.<span style=color:#a6e22e>productId</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>triggerFraudAlert</span>(<span style=color:#a6e22e>event</span>: <span style=color:#66d9ef>StreamEvent</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Implementation would send alert to fraud detection system
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>`Fraud alert triggered for user </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>userId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>, amount: </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>data</span>.<span style=color:#a6e22e>amount</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>updatePersonalizationModel</span>(<span style=color:#a6e22e>userId</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>productId</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Implementation would update ML model or recommendation cache
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>`Updating personalization for user </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>userId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>, product </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>productId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>updateRealTimeMetrics</span>(<span style=color:#a6e22e>event</span>: <span style=color:#66d9ef>StreamEvent</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Update real-time dashboards and metrics
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// Implementation would publish to CloudWatch or custom metrics system
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Lambda function for processing Kinesis stream records
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>kinesisStreamProcessor</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>async</span> (<span style=color:#a6e22e>event</span>: <span style=color:#66d9ef>any</span>) <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>processor</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>RealTimeStreamProcessor</span>(
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>process</span>.<span style=color:#a6e22e>env</span>.<span style=color:#a6e22e>KINESIS_STREAM_NAME</span><span style=color:#f92672>!</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>process</span>.<span style=color:#a6e22e>env</span>.<span style=color:#a6e22e>SESSION_TABLE_NAME</span><span style=color:#f92672>!</span>
+</span></span><span style=display:flex><span>  );
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>results</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>Promise</span>.<span style=color:#a6e22e>allSettled</span>(
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>Records</span>.<span style=color:#a6e22e>map</span>(<span style=color:#66d9ef>async</span> (<span style=color:#a6e22e>record</span>: <span style=color:#66d9ef>any</span>) <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>processor</span>.<span style=color:#a6e22e>processStreamEvent</span>(<span style=color:#a6e22e>record</span>.<span style=color:#a6e22e>kinesis</span>);
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> { <span style=color:#a6e22e>recordId</span>: <span style=color:#66d9ef>record.eventID</span>, <span style=color:#a6e22e>result</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Ok&#39;</span> };
+</span></span><span style=display:flex><span>      } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>error</span>(<span style=color:#e6db74>`Failed to process record </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>record</span>.<span style=color:#a6e22e>eventID</span><span style=color:#e6db74>}</span><span style=color:#e6db74>:`</span>, <span style=color:#a6e22e>error</span>);
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> { <span style=color:#a6e22e>recordId</span>: <span style=color:#66d9ef>record.eventID</span>, <span style=color:#a6e22e>result</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;ProcessingFailed&#39;</span> };
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    })
+</span></span><span style=display:flex><span>  );
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// Return processing results for Kinesis to handle retries
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>return</span> {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>records</span>: <span style=color:#66d9ef>results.map</span>(<span style=color:#a6e22e>result</span> <span style=color:#f92672>=&gt;</span> 
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>result</span>.<span style=color:#a6e22e>status</span> <span style=color:#f92672>===</span> <span style=color:#e6db74>&#39;fulfilled&#39;</span> 
+</span></span><span style=display:flex><span>        <span style=color:#f92672>?</span> <span style=color:#a6e22e>result</span>.<span style=color:#a6e22e>value</span> 
+</span></span><span style=display:flex><span>        <span style=color:#f92672>:</span> { <span style=color:#a6e22e>recordId</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;unknown&#39;</span>, <span style=color:#a6e22e>result</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;ProcessingFailed&#39;</span> }
+</span></span><span style=display:flex><span>    )
+</span></span><span style=display:flex><span>  };
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Real-time analytics aggregator using sliding windows
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>SlidingWindowAnalytics</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>windowSize</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>slideInterval</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>metrics</span>: <span style=color:#66d9ef>Map</span>&lt;<span style=color:#f92672>string</span>, <span style=color:#a6e22e>number</span><span style=color:#960050;background-color:#1e0010>[]</span>&gt; <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Map</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>constructor</span>(<span style=color:#a6e22e>windowSizeMs</span>: <span style=color:#66d9ef>number</span>, <span style=color:#a6e22e>slideIntervalMs</span>: <span style=color:#66d9ef>number</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>windowSize</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>windowSizeMs</span>;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>slideInterval</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>slideIntervalMs</span>;
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Clean up old data periodically
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>setInterval</span>(() <span style=color:#f92672>=&gt;</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>cleanup</span>(), <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>slideInterval</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>addMetric</span>(<span style=color:#a6e22e>metricName</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>value</span>: <span style=color:#66d9ef>number</span>, <span style=color:#a6e22e>timestamp</span>: <span style=color:#66d9ef>number</span> <span style=color:#f92672>=</span> Date.<span style=color:#a6e22e>now</span>())<span style=color:#f92672>:</span> <span style=color:#66d9ef>void</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>metrics</span>.<span style=color:#a6e22e>has</span>(<span style=color:#a6e22e>metricName</span>)) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>metrics</span>.<span style=color:#66d9ef>set</span>(<span style=color:#a6e22e>metricName</span>, []);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>values</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>metrics</span>.<span style=color:#66d9ef>get</span>(<span style=color:#a6e22e>metricName</span>)<span style=color:#f92672>!</span>;
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>values</span>.<span style=color:#a6e22e>push</span>(<span style=color:#a6e22e>timestamp</span>, <span style=color:#a6e22e>value</span>); <span style=color:#75715e>// Store timestamp and value pairs
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>getAverage</span>(<span style=color:#a6e22e>metricName</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>number</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>values</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>getValuesInWindow</span>(<span style=color:#a6e22e>metricName</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>values</span>.<span style=color:#a6e22e>length</span> <span style=color:#f92672>===</span> <span style=color:#ae81ff>0</span>) <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>values</span>.<span style=color:#a6e22e>reduce</span>((<span style=color:#a6e22e>sum</span>, <span style=color:#a6e22e>val</span>) <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>sum</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>val</span>, <span style=color:#ae81ff>0</span>) <span style=color:#f92672>/</span> <span style=color:#a6e22e>values</span>.<span style=color:#a6e22e>length</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>getSum</span>(<span style=color:#a6e22e>metricName</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>number</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>values</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>getValuesInWindow</span>(<span style=color:#a6e22e>metricName</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>values</span>.<span style=color:#a6e22e>reduce</span>((<span style=color:#a6e22e>sum</span>, <span style=color:#a6e22e>val</span>) <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>sum</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>val</span>, <span style=color:#ae81ff>0</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>getCount</span>(<span style=color:#a6e22e>metricName</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>number</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>getValuesInWindow</span>(<span style=color:#a6e22e>metricName</span>).<span style=color:#a6e22e>length</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>getValuesInWindow</span>(<span style=color:#a6e22e>metricName</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>number</span>[] {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>data</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>metrics</span>.<span style=color:#66d9ef>get</span>(<span style=color:#a6e22e>metricName</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>data</span>) <span style=color:#66d9ef>return</span> [];
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>now</span> <span style=color:#f92672>=</span> Date.<span style=color:#a6e22e>now</span>();
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>windowStart</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>now</span> <span style=color:#f92672>-</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>windowSize</span>;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>values</span>: <span style=color:#66d9ef>number</span>[] <span style=color:#f92672>=</span> [];
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Data is stored as [timestamp1, value1, timestamp2, value2, ...]
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>let</span> <span style=color:#a6e22e>i</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>; <span style=color:#a6e22e>i</span> <span style=color:#f92672>&lt;</span> <span style=color:#a6e22e>data</span>.<span style=color:#a6e22e>length</span>; <span style=color:#a6e22e>i</span> <span style=color:#f92672>+=</span> <span style=color:#ae81ff>2</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>timestamp</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>data</span>[<span style=color:#a6e22e>i</span>];
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>value</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>data</span>[<span style=color:#a6e22e>i</span> <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>];
+</span></span><span style=display:flex><span>      
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>timestamp</span> <span style=color:#f92672>&gt;=</span> <span style=color:#a6e22e>windowStart</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>values</span>.<span style=color:#a6e22e>push</span>(<span style=color:#a6e22e>value</span>);
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>values</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>cleanup</span>()<span style=color:#f92672>:</span> <span style=color:#66d9ef>void</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>now</span> <span style=color:#f92672>=</span> Date.<span style=color:#a6e22e>now</span>();
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>windowStart</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>now</span> <span style=color:#f92672>-</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>windowSize</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>const</span> [<span style=color:#a6e22e>metricName</span>, <span style=color:#a6e22e>data</span>] <span style=color:#66d9ef>of</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>metrics</span>.<span style=color:#a6e22e>entries</span>()) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>cleanedData</span>: <span style=color:#66d9ef>number</span>[] <span style=color:#f92672>=</span> [];
+</span></span><span style=display:flex><span>      
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>let</span> <span style=color:#a6e22e>i</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>; <span style=color:#a6e22e>i</span> <span style=color:#f92672>&lt;</span> <span style=color:#a6e22e>data</span>.<span style=color:#a6e22e>length</span>; <span style=color:#a6e22e>i</span> <span style=color:#f92672>+=</span> <span style=color:#ae81ff>2</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>timestamp</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>data</span>[<span style=color:#a6e22e>i</span>];
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>value</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>data</span>[<span style=color:#a6e22e>i</span> <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>];
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>timestamp</span> <span style=color:#f92672>&gt;=</span> <span style=color:#a6e22e>windowStart</span>) {
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>cleanedData</span>.<span style=color:#a6e22e>push</span>(<span style=color:#a6e22e>timestamp</span>, <span style=color:#a6e22e>value</span>);
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>      
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>metrics</span>.<span style=color:#66d9ef>set</span>(<span style=color:#a6e22e>metricName</span>, <span style=color:#a6e22e>cleanedData</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Real-time event processor with sliding window analytics
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>realTimeAnalyticsHandler</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>async</span> (<span style=color:#a6e22e>event</span>: <span style=color:#66d9ef>StreamEvent</span>) <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>analytics</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>SlidingWindowAnalytics</span>(
+</span></span><span style=display:flex><span>    <span style=color:#ae81ff>5</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>60</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>1000</span>, <span style=color:#75715e>// 5 minute window
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#ae81ff>30</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>1000</span>      <span style=color:#75715e>// 30 second slide interval
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  );
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// Process the event and update metrics
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>analytics</span>.<span style=color:#a6e22e>addMetric</span>(<span style=color:#e6db74>&#39;events_per_minute&#39;</span>, <span style=color:#ae81ff>1</span>);
+</span></span><span style=display:flex><span>  
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>eventType</span> <span style=color:#f92672>===</span> <span style=color:#e6db74>&#39;purchase&#39;</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>analytics</span>.<span style=color:#a6e22e>addMetric</span>(<span style=color:#e6db74>&#39;revenue_per_minute&#39;</span>, <span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>data</span>.<span style=color:#a6e22e>amount</span> <span style=color:#f92672>||</span> <span style=color:#ae81ff>0</span>);
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>analytics</span>.<span style=color:#a6e22e>addMetric</span>(<span style=color:#e6db74>&#39;purchases_per_minute&#39;</span>, <span style=color:#ae81ff>1</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// Get current metrics
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>currentMetrics</span> <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>eventsPerMinute</span>: <span style=color:#66d9ef>analytics.getSum</span>(<span style=color:#e6db74>&#39;events_per_minute&#39;</span>),
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>revenuePerMinute</span>: <span style=color:#66d9ef>analytics.getSum</span>(<span style=color:#e6db74>&#39;revenue_per_minute&#39;</span>),
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>purchasesPerMinute</span>: <span style=color:#66d9ef>analytics.getSum</span>(<span style=color:#e6db74>&#39;purchases_per_minute&#39;</span>),
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>averageOrderValue</span>: <span style=color:#66d9ef>analytics.getAverage</span>(<span style=color:#e6db74>&#39;revenue_per_minute&#39;</span>)
+</span></span><span style=display:flex><span>  };
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// Check for anomalies or alerts
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>currentMetrics</span>.<span style=color:#a6e22e>eventsPerMinute</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>1000</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>warn</span>(<span style=color:#e6db74>&#39;High event volume detected:&#39;</span>, <span style=color:#a6e22e>currentMetrics</span>.<span style=color:#a6e22e>eventsPerMinute</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>statusCode</span>: <span style=color:#66d9ef>200</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>body</span>: <span style=color:#66d9ef>JSON.stringify</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>processed</span>: <span style=color:#66d9ef>true</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>metrics</span>: <span style=color:#66d9ef>currentMetrics</span>
+</span></span><span style=display:flex><span>    })
+</span></span><span style=display:flex><span>  };
+</span></span><span style=display:flex><span>};
+</span></span></code></pre></div></div></article></main><aside class=blog-sidebar><div class=sidebar-widget><h3>Recent Posts</h3><ul class=recent-posts><li><a href=/posts/using-ai-in-software-engineering/>Harnessing AI in Software Engineering: Opportunities and Challenges</a>
+<span class=post-date>May 29, 2025</span></li><li><a href=/posts/aws-serverless-cost-optimization/>Cost Optimization Strategies for AWS Serverless Applications</a>
+<span class=post-date>Jun 17, 2023</span></li><li><a href=/posts/aws-sns-sqs-typescript/>Building Event-Driven Architectures with AWS SNS/SQS and TypeScript</a>
+<span class=post-date>May 21, 2023</span></li><li><a href=/posts/securing-aws-lambda/>Securing AWS Lambda Functions: Best Practices and Implementation Guide</a>
+<span class=post-date>Apr 7, 2023</span></li><li><a href=/posts/aws-step-functions-typescript/>Step Functions: Orchestrating AWS Lambda Workflows in TypeScript</a>
+<span class=post-date>Mar 5, 2023</span></li></ul></div><div class=sidebar-widget><h3>Categories</h3><ul class=categories><li><a href=/categories/architecture>architecture (1)</a></li><li><a href=/categories/architecture-and-design>architecture and design (7)</a></li><li><a href=/categories/artificial-intelligence>artificial intelligence (1)</a></li><li><a href=/categories/cloud-computing>cloud computing (11)</a></li><li><a href=/categories/code-quality>code quality (1)</a></li><li><a href=/categories/cost-optimization>cost optimization (1)</a></li><li><a href=/categories/data-engineering>data engineering (2)</a></li><li><a href=/categories/database>database (1)</a></li><li><a href=/categories/debugging-and-troubleshooting>debugging and troubleshooting (1)</a></li><li><a href=/categories/development-tools>development tools (2)</a></li><li><a href=/categories/development-tutorials>development tutorials (1)</a></li><li><a href=/categories/microservices>microservices (1)</a></li><li><a href=/categories/performance>performance (1)</a></li><li><a href=/categories/quality-assurance>quality assurance (1)</a></li><li><a href=/categories/security>security (1)</a></li><li><a href=/categories/serverless>serverless (1)</a></li><li><a href=/categories/software-development>software development (8)</a></li><li><a href=/categories/technical-debt>technical debt (1)</a></li><li><a href=/categories/testing>testing (2)</a></li><li><a href=/categories/version-control>version control (1)</a></li></ul></div><div class=sidebar-widget><h3>Post Series</h3><ul class=recent-posts><li><a href=/posts/real-time-processing-architectures/>Cloud Architecture Patterns: Real-time Processing Architectures</a>
+<span class=post-date>Apr 11, 2021</span><div class=series-meta><a href=/series/cloud-architecture-patterns/ class=series-link>View all 7 posts in series →</a></div></li><li><a href=/posts/technical-debt-management-growing-codebases/>Modern Development Practices: Technical Debt Management in Growing Codebases: Strategies for Sustainable Development</a>
+<span class=post-date>Dec 19, 2021</span><div class=series-meta><a href=/series/modern-development-practices/ class=series-link>View all 7 posts in series →</a></div></li></ul></div><div class=sidebar-widget><h3>Tags</h3><div class=tag-cloud><a href=/tags/ai class=tag-cloud-item style=font-size:1rem>ai
+</a><a href=/tags/api-design class=tag-cloud-item style=font-size:1rem>api design
+</a><a href=/tags/architecture class=tag-cloud-item style=font-size:1rem>architecture
+</a><a href=/tags/athena class=tag-cloud-item style=font-size:1rem>athena
+</a><a href=/tags/automation class=tag-cloud-item style=font-size:1rem>automation
+</a><a href=/tags/aws class=tag-cloud-item style=font-size:2rem>aws
+</a><a href=/tags/best-practices class=tag-cloud-item style=font-size:1rem>best practices
+</a><a href=/tags/chaos-engineering class=tag-cloud-item style=font-size:1rem>chaos engineering
+</a><a href=/tags/ci/cd class=tag-cloud-item style=font-size:1rem>ci/cd
+</a><a href=/tags/code-quality class=tag-cloud-item style=font-size:1rem>code quality
+</a><a href=/tags/communication-patterns class=tag-cloud-item style=font-size:1rem>communication patterns
+</a><a href=/tags/cost-optimization class=tag-cloud-item style=font-size:1rem>cost optimization
+</a><a href=/tags/cqrs class=tag-cloud-item style=font-size:1rem>cqrs
+</a><a href=/tags/data-architecture class=tag-cloud-item style=font-size:1rem>data architecture
+</a><a href=/tags/data-lake class=tag-cloud-item style=font-size:1rem>data lake
+</a><a href=/tags/data-modeling class=tag-cloud-item style=font-size:1rem>data modeling
+</a><a href=/tags/database-design class=tag-cloud-item style=font-size:1rem>database design
+</a><a href=/tags/debugging class=tag-cloud-item style=font-size:1rem>debugging
+</a><a href=/tags/developer-tips class=tag-cloud-item style=font-size:1rem>developer tips
+</a><a href=/tags/development class=tag-cloud-item style=font-size:2rem>development
+</a><a href=/tags/distributed-systems class=tag-cloud-item style=font-size:1rem>distributed systems
+</a><a href=/tags/dynamodb class=tag-cloud-item style=font-size:1rem>dynamodb
+</a><a href=/tags/enterprise-architecture class=tag-cloud-item style=font-size:1rem>enterprise architecture
+</a><a href=/tags/event-sourcing class=tag-cloud-item style=font-size:1rem>event sourcing
+</a><a href=/tags/event-driven-architecture class=tag-cloud-item style=font-size:1rem>event-driven architecture
+</a><a href=/tags/eventbridge class=tag-cloud-item style=font-size:1rem>eventbridge
+</a><a href=/tags/fault-tolerance class=tag-cloud-item style=font-size:1rem>fault tolerance
+</a><a href=/tags/glue class=tag-cloud-item style=font-size:1rem>glue
+</a><a href=/tags/graphql class=tag-cloud-item style=font-size:1rem>graphql
+</a><a href=/tags/kinesis class=tag-cloud-item style=font-size:1rem>kinesis
+</a><a href=/tags/lambda class=tag-cloud-item style=font-size:1rem>lambda
+</a><a href=/tags/load-testing class=tag-cloud-item style=font-size:1rem>load testing
+</a><a href=/tags/metrics class=tag-cloud-item style=font-size:1rem>metrics
+</a><a href=/tags/microservices class=tag-cloud-item style=font-size:1rem>microservices
+</a><a href=/tags/monitoring class=tag-cloud-item style=font-size:1rem>monitoring
+</a><a href=/tags/multi-account class=tag-cloud-item style=font-size:1rem>multi-account
+</a><a href=/tags/nosql class=tag-cloud-item style=font-size:1rem>nosql
+</a><a href=/tags/patterns class=tag-cloud-item style=font-size:1rem>patterns
+</a><a href=/tags/performance-testing class=tag-cloud-item style=font-size:1rem>performance testing
+</a><a href=/tags/productivity class=tag-cloud-item style=font-size:1rem>productivity
+</a><a href=/tags/real-time class=tag-cloud-item style=font-size:1rem>real-time
+</a><a href=/tags/refactoring class=tag-cloud-item style=font-size:1rem>refactoring
+</a><a href=/tags/reliability class=tag-cloud-item style=font-size:1rem>reliability
+</a><a href=/tags/resilience class=tag-cloud-item style=font-size:1rem>resilience
+</a><a href=/tags/rest class=tag-cloud-item style=font-size:1rem>rest
+</a><a href=/tags/s3 class=tag-cloud-item style=font-size:1rem>s3
+</a><a href=/tags/security class=tag-cloud-item style=font-size:1rem>security
+</a><a href=/tags/serverless class=tag-cloud-item style=font-size:1rem>serverless
+</a><a href=/tags/software-engineering class=tag-cloud-item style=font-size:1rem>software engineering
+</a><a href=/tags/standards class=tag-cloud-item style=font-size:1rem>standards
+</a><a href=/tags/stream-processing class=tag-cloud-item style=font-size:1rem>stream processing
+</a><a href=/tags/tdd class=tag-cloud-item style=font-size:1rem>tdd
+</a><a href=/tags/technical-debt class=tag-cloud-item style=font-size:1rem>technical debt
+</a><a href=/tags/testing class=tag-cloud-item style=font-size:1rem>testing
+</a><a href=/tags/typescript class=tag-cloud-item style=font-size:2rem>typescript</a></div></div><div class=sidebar-widget><h3>Subscribe</h3><div class=subscribe-links><a href=/index.xml class=rss-link><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 019 9"/><path d="M4 4a16 16 0 0116 16"/><circle cx="5" cy="19" r="1"/></svg>
+RSS Feed</a></div></div><div class=sidebar-widget><h3>Archives</h3><ul class=archive-list></ul></div><div class="sidebar-widget npm-packages"><h3>My NPM Packages</h3><div id=npm-list></div></div></aside></div></div><footer class=site-footer><div class=container><p>&copy; 2025 Scott Obert</p></div></footer></body></html>

@@ -87,4 +87,105 @@
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="request-response-with-retry-and-timeout">Request-Response with Retry and Timeout&lt;/h3>
-&lt;p>Implement robust retry mechanisms with exponential backoff:&lt;/p></description></item></channel></rss>
+&lt;p>Implement robust retry mechanisms with exponential backoff:&lt;/p></description></item><item><title>Distributed System Design Patterns in AWS</title><link>https://scottobert.github.io/posts/distributed-system-design-patterns/</link><pubDate>Sun, 07 Feb 2021 09:00:00 -0500</pubDate><guid>https://scottobert.github.io/posts/distributed-system-design-patterns/</guid><description>&lt;p>Distributed systems present unique challenges that require thoughtful application of proven design patterns to achieve reliability, scalability, and maintainability. Unlike monolithic applications where components communicate through in-process method calls, distributed systems must handle network partitions, variable latency, and partial failures as fundamental aspects of their operation. The patterns that emerge from these constraints form the foundation of robust cloud architectures, particularly when implemented using AWS&amp;rsquo;s managed services ecosystem.&lt;/p>
+&lt;div class="plantuml-container">
+ &lt;img id="plantuml-circuit-breaker" class="plantuml-diagram"/>
+ &lt;a id="plantuml-link-circuit-breaker" href="#" target="_blank" class="plantuml-link" title="Open diagram in new window">
+ &lt;span class="plantuml-link-icon">🔍&lt;/span>
+ &lt;/a>
+&lt;/div>
+&lt;script src="https://scottobert.github.io/js/rawdeflate.js">&lt;/script>
+&lt;script>
+ 
+
+ function encode64(data) {
+ r = "";
+ for (i=0; i&lt;data.length; i+=3) {
+ if (i+2==data.length) {
+ r +=append3bytes(data.charCodeAt(i), data.charCodeAt(i+1), 0);
+ } else if (i+1==data.length) {
+ r += append3bytes(data.charCodeAt(i), 0, 0);
+ } else {
+ r += append3bytes(data.charCodeAt(i), data.charCodeAt(i+1),
+ data.charCodeAt(i+2));
+ }
+ }
+ return r;
+ }
+
+ function append3bytes(b1, b2, b3) {
+ c1 = b1 >> 2;
+ c2 = ((b1 &amp; 0x3) &lt;&lt; 4) | (b2 >> 4);
+ c3 = ((b2 &amp; 0xF) &lt;&lt; 2) | (b3 >> 6);
+ c4 = b3 &amp; 0x3F;
+ r = "";
+ r += encode6bit(c1 &amp; 0x3F);
+ r += encode6bit(c2 &amp; 0x3F);
+ r += encode6bit(c3 &amp; 0x3F);
+ r += encode6bit(c4 &amp; 0x3F);
+ return r;
+ }
+
+ function encode6bit(b) {
+ if (b &lt; 10) {
+ return String.fromCharCode(48 + b);
+ }
+ b -= 10;
+ if (b &lt; 26) {
+ return String.fromCharCode(65 + b);
+ }
+ b -= 26;
+ if (b &lt; 26) {
+ return String.fromCharCode(97 + b);
+ }
+ b -= 26;
+ if (b == 0) {
+ return '-';
+ }
+ if (b == 1) {
+ return '_';
+ }
+ return '?';
+ }
+
+ var deflater = window.SharedWorker &amp;&amp; new SharedWorker('/js/rawdeflate.js');
+ if (deflater) {
+ deflater.port.addEventListener('message', done_deflating, false);
+ deflater.port.start();
+ } else if (window.Worker) {
+ deflater = new Worker('/js/rawdeflate.js');
+ deflater.onmessage = done_deflating;
+ }
+
+ function done_deflating(e) {
+ const img = document.getElementById("plantuml-circuit-breaker");
+ const imgUrl = "https://www.plantuml.com/plantuml/img/"+encode64(e.data);
+ img.src = imgUrl;
+ 
+ 
+ const link = document.getElementById("plantuml-link-circuit-breaker");
+ if (link) {
+ link.href = imgUrl;
+ }
+ }
+
+ function compress(s) {
+ 
+ s = unescape(encodeURIComponent(s));
+ 
+ if (deflater) {
+ if (deflater.port &amp;&amp; deflater.port.postMessage) {
+ deflater.port.postMessage(s);
+ } else {
+ deflater.postMessage(s);
+ }
+ } else {
+ setTimeout(function() {
+ done_deflating({ data: deflate(s) });
+ }, 100);
+ }
+ }
+
+ compress("\n@startuml Circuit Breaker Pattern\n!define AWSPuml https:\/\/raw.githubusercontent.com\/awslabs\/aws-icons-for-plantuml\/v14.0\/dist\n!include AWSPuml\/AWSCommon.puml\n!include AWSPuml\/Compute\/Lambda.puml\n!include AWSPuml\/Database\/DynamoDBTable.puml\n!include AWSPuml\/ApplicationIntegration\/APIGateway.puml\n!include AWSPuml\/ApplicationIntegration\/SimpleQueueServiceQueue.puml\n!include AWSPuml\/ApplicationIntegration\/SimpleNotificationServiceTopic.puml\n\nskinparam BackgroundColor transparent\nskinparam componentStyle rectangle\nskinparam defaultTextAlignment center\n\npackage \u0022Circuit Breaker Pattern Implementation\u0022 {\n component \u0022API Gateway\u0022 as api #LightBlue\n component \u0022Lambda Function\u0022 as lambda #LightBlue\n component \u0022Circuit Breaker State\u0022 as state #Orange\n database \u0022DynamoDB\u0022 as dynamodb #LightGreen\n component \u0022External Service\u0022 as external #Pink\n queue \u0022Fallback Queue\u0022 as fallbackQueue #LightYellow\n component \u0022SNS Notification\u0022 as notification #LightCyan\n}\n\nnote right of state\nStates:\n\n- Closed: Normal operation\n- Open: Failing fast\n- Half-Open: Testing recovery\nend note\n\napi --\u003e lambda : 1. Client Request\nlambda --\u003e state : 2. Check circuit state\nstate --\u003e dynamodb : 3. Read\/Update state\nstate -\u003e external : 4a. If Closed\/Half-Open: Call service\nstate --\u003e fallbackQueue : 4b. If Open: Use fallback\nexternal --\u003e state : 5. Update success\/failure count\nstate --\u003e notification : 6. Circuit state change notification\n\nnote bottom of lambda\nTracks:\n\n- Failure count\n- Error threshold\n- Reset timeout\n- Last failure timestamp\nend note\n\n@enduml\n")
+&lt;/script>
+&lt;p>The Circuit Breaker pattern addresses one of the most common failure modes in distributed systems: cascading failures caused by unhealthy dependencies. When a downstream service becomes unresponsive, continuing to send requests not only wastes resources but can propagate the failure upstream. A circuit breaker monitors failure rates and response times, automatically switching to an open state when thresholds are exceeded. AWS Application Load Balancer&amp;rsquo;s health checking mechanisms provide a managed implementation of this pattern, automatically removing unhealthy targets from rotation and gradually reintroducing them as they recover.&lt;/p></description></item></channel></rss>

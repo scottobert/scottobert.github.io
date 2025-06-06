@@ -1,0 +1,632 @@
+<!doctype html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Scott Obert</title><link rel=stylesheet href=/css/style.css><script src=/js/npm-packages.js defer></script><script defer src=https://cloud.umami.is/script.js data-website-id=e2461896-021d-422a-b83f-624a8819309b></script></head><body><header class=site-header><div class=container><div class=header-content><div class=header-left><h1><a href=/>Scott Obert</a></h1><nav><a href=/posts/>Blog</a></nav></div><div class=social-links><a href=https://www.linkedin.com/in/scott-obert-3a7338b/ target=_blank rel="noopener noreferrer" title="LinkedIn Profile"><svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853.0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601.0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144.0-2.063-.926-2.063-2.065.0-1.138.92-2.063 2.063-2.063 1.14.0 2.064.925 2.064 2.063.0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225.0H1.771C.792.0.0.774.0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2.0 22.222.0h.003z"/></svg>
+<span>LinkedIn</span>
+</a><a href=https://github.com/scottobert target=_blank rel="noopener noreferrer" title="GitHub Profile"><svg viewBox="0 0 24 24"><path d="M12 0C5.37.0.0 5.37.0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577.0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93.0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176.0.0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22.0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22.0 1.605-.015 2.896-.015 3.286.0.315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12"/></svg>
+<span>GitHub</span></a></div></div></div></header><div class=container><div class=content-layout><main class=main-content><article class=post><h1>Resilience Engineering: Building Fault-Tolerant Systems</h1><div class=post-meta><span>Feb 28, 2021</span>
+<span>| Tags: AWS, Resilience, Fault Tolerance, Reliability, Chaos Engineering</span></div><div class=post-content><p>Resilience engineering represents a paradigm shift from trying to prevent all failures to designing systems that gracefully adapt and recover when failures inevitably occur. Traditional approaches focused on eliminating failure modes through redundancy and robust design, but complex distributed systems exhibit emergent behaviors that cannot be fully predicted or prevented. Instead, resilient systems embrace failure as a normal operating condition and build adaptive capabilities that maintain essential functions even under adverse conditions.</p><p>The foundation of resilient systems lies in understanding the difference between complicated and complex systems. Complicated systems, like mechanical clocks, have predictable behaviors that can be fully understood through analysis of their components. Complex systems, like distributed cloud applications, exhibit emergent properties that arise from the interactions between components rather than the components themselves. This complexity means that failures often cascade through unexpected pathways, requiring design approaches that focus on containment and adaptation rather than prevention.</p><p>AWS&rsquo;s shared responsibility model reflects this resilience philosophy by providing robust infrastructure services while expecting applications to handle service-level failures gracefully. The cloud provider ensures that individual services meet their availability targets, but applications must be designed to handle the inevitable outages, throttling, and degraded performance that occur in distributed systems. This division of responsibility encourages architects to build applications that don&rsquo;t depend on perfect infrastructure reliability but instead adapt to varying service levels.</p><p>Implementing graceful degradation requires careful analysis of system functions to identify which capabilities are essential and which can be temporarily reduced or eliminated during stress conditions. An e-commerce platform might disable recommendation engines and advanced search features while maintaining core ordering capabilities during peak load events. This prioritization of functionality ensures that the most critical business processes remain available even when supporting systems fail or become overloaded.</p><p>AWS Auto Scaling groups and Application Load Balancers provide infrastructure-level support for graceful degradation by automatically adjusting capacity in response to demand changes. However, application-level degradation requires explicit design decisions about feature prioritization and fallback behaviors. Circuit breakers and feature flags enable dynamic adjustment of system behavior based on real-time conditions, allowing operators to shed non-essential load without requiring code deployments.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// Graceful degradation implementation with feature flags and fallback mechanisms
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>DynamoDBClient</span>, <span style=color:#a6e22e>GetItemCommand</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/client-dynamodb&#39;</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>CloudWatchClient</span>, <span style=color:#a6e22e>GetMetricStatisticsCommand</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/client-cloudwatch&#39;</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>marshall</span>, <span style=color:#a6e22e>unmarshall</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/util-dynamodb&#39;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>FeatureFlag</span> {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>name</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>enabled</span>: <span style=color:#66d9ef>boolean</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>conditions</span><span style=color:#f92672>?:</span> {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>maxErrorRate?</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>maxLatency?</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>maxCpuUtilization?</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  };
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>SystemHealth</span> {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>errorRate</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>averageLatency</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>cpuUtilization</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>activeConnections</span>: <span style=color:#66d9ef>number</span>;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>ResilienceManager</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>dynamoClient</span>: <span style=color:#66d9ef>DynamoDBClient</span>;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>cloudWatchClient</span>: <span style=color:#66d9ef>CloudWatchClient</span>;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>featureFlagsTable</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>constructor</span>(<span style=color:#a6e22e>featureFlagsTable</span>: <span style=color:#66d9ef>string</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>dynamoClient</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>DynamoDBClient</span>({});
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>cloudWatchClient</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>CloudWatchClient</span>({});
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>featureFlagsTable</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>featureFlagsTable</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>shouldEnableFeature</span>(<span style=color:#a6e22e>featureName</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>boolean</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>featureFlag</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>getFeatureFlag</span>(<span style=color:#a6e22e>featureName</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>featureFlag</span>.<span style=color:#a6e22e>enabled</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>false</span>;
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>featureFlag</span>.<span style=color:#a6e22e>conditions</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>systemHealth</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>getSystemHealth</span>();
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>evaluateHealthConditions</span>(<span style=color:#a6e22e>featureFlag</span>.<span style=color:#a6e22e>conditions</span>, <span style=color:#a6e22e>systemHealth</span>);
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>true</span>;
+</span></span><span style=display:flex><span>    } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#75715e>// Fail safe: disable features when unable to determine status
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>error</span>(<span style=color:#e6db74>`Error checking feature flag </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>featureName</span><span style=color:#e6db74>}</span><span style=color:#e6db74>:`</span>, <span style=color:#a6e22e>error</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>false</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>getFeatureFlag</span>(<span style=color:#a6e22e>name</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>FeatureFlag</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>response</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>dynamoClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>GetItemCommand</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>TableName</span>: <span style=color:#66d9ef>this.featureFlagsTable</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>Key</span>: <span style=color:#66d9ef>marshall</span>({ <span style=color:#a6e22e>name</span> })
+</span></span><span style=display:flex><span>    }));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>response</span>.<span style=color:#a6e22e>Item</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>`Feature flag </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>name</span><span style=color:#e6db74>}</span><span style=color:#e6db74> not found`</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>unmarshall</span>(<span style=color:#a6e22e>response</span>.<span style=color:#a6e22e>Item</span>) <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>FeatureFlag</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>getSystemHealth</span>()<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>SystemHealth</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>now</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> Date();
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>fiveMinutesAgo</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> Date(<span style=color:#a6e22e>now</span>.<span style=color:#a6e22e>getTime</span>() <span style=color:#f92672>-</span> <span style=color:#ae81ff>5</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>60</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>1000</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Get error rate from CloudWatch
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>errorRateMetric</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>cloudWatchClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>GetMetricStatisticsCommand</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>Namespace</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;AWS/Lambda&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>MetricName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Errors&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>StartTime</span>: <span style=color:#66d9ef>fiveMinutesAgo</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>EndTime</span>: <span style=color:#66d9ef>now</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>Period</span>: <span style=color:#66d9ef>300</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>Statistics</span><span style=color:#f92672>:</span> [<span style=color:#e6db74>&#39;Sum&#39;</span>]
+</span></span><span style=display:flex><span>    }));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>invocationsMetric</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>cloudWatchClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>GetMetricStatisticsCommand</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>Namespace</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;AWS/Lambda&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>MetricName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Invocations&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>StartTime</span>: <span style=color:#66d9ef>fiveMinutesAgo</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>EndTime</span>: <span style=color:#66d9ef>now</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>Period</span>: <span style=color:#66d9ef>300</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>Statistics</span><span style=color:#f92672>:</span> [<span style=color:#e6db74>&#39;Sum&#39;</span>]
+</span></span><span style=display:flex><span>    }));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>errors</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>errorRateMetric</span>.<span style=color:#a6e22e>Datapoints</span><span style=color:#f92672>?</span>.[<span style=color:#ae81ff>0</span>]<span style=color:#f92672>?</span>.<span style=color:#a6e22e>Sum</span> <span style=color:#f92672>||</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>invocations</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>invocationsMetric</span>.<span style=color:#a6e22e>Datapoints</span><span style=color:#f92672>?</span>.[<span style=color:#ae81ff>0</span>]<span style=color:#f92672>?</span>.<span style=color:#a6e22e>Sum</span> <span style=color:#f92672>||</span> <span style=color:#ae81ff>1</span>;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>errorRate</span> <span style=color:#f92672>=</span> (<span style=color:#a6e22e>errors</span> <span style=color:#f92672>/</span> <span style=color:#a6e22e>invocations</span>) <span style=color:#f92672>*</span> <span style=color:#ae81ff>100</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Get average latency
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>latencyMetric</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>cloudWatchClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>GetMetricStatisticsCommand</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>Namespace</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;AWS/Lambda&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>MetricName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Duration&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>StartTime</span>: <span style=color:#66d9ef>fiveMinutesAgo</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>EndTime</span>: <span style=color:#66d9ef>now</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>Period</span>: <span style=color:#66d9ef>300</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>Statistics</span><span style=color:#f92672>:</span> [<span style=color:#e6db74>&#39;Average&#39;</span>]
+</span></span><span style=display:flex><span>    }));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>averageLatency</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>latencyMetric</span>.<span style=color:#a6e22e>Datapoints</span><span style=color:#f92672>?</span>.[<span style=color:#ae81ff>0</span>]<span style=color:#f92672>?</span>.<span style=color:#a6e22e>Average</span> <span style=color:#f92672>||</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>errorRate</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>averageLatency</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>cpuUtilization</span>: <span style=color:#66d9ef>0</span>, <span style=color:#75715e>// Would implement based on your infrastructure
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>activeConnections</span>: <span style=color:#66d9ef>0</span> <span style=color:#75715e>// Would implement based on your load balancer metrics
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    };
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>evaluateHealthConditions</span>(<span style=color:#a6e22e>conditions</span>: <span style=color:#66d9ef>FeatureFlag</span>[<span style=color:#e6db74>&#39;conditions&#39;</span>], <span style=color:#a6e22e>health</span>: <span style=color:#66d9ef>SystemHealth</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>boolean</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>conditions</span>.<span style=color:#a6e22e>maxErrorRate</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#a6e22e>health</span>.<span style=color:#a6e22e>errorRate</span> <span style=color:#f92672>&gt;</span> <span style=color:#a6e22e>conditions</span>.<span style=color:#a6e22e>maxErrorRate</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>false</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>conditions</span>.<span style=color:#a6e22e>maxLatency</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#a6e22e>health</span>.<span style=color:#a6e22e>averageLatency</span> <span style=color:#f92672>&gt;</span> <span style=color:#a6e22e>conditions</span>.<span style=color:#a6e22e>maxLatency</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>false</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>conditions</span>.<span style=color:#a6e22e>maxCpuUtilization</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#a6e22e>health</span>.<span style=color:#a6e22e>cpuUtilization</span> <span style=color:#f92672>&gt;</span> <span style=color:#a6e22e>conditions</span>.<span style=color:#a6e22e>maxCpuUtilization</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>false</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>true</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Application service with graceful degradation
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>ECommerceService</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>resilienceManager</span>: <span style=color:#66d9ef>ResilienceManager</span>;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>cache</span>: <span style=color:#66d9ef>Map</span>&lt;<span style=color:#f92672>string</span>, <span style=color:#a6e22e>any</span>&gt; <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Map</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>constructor</span>() {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>resilienceManager</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>ResilienceManager</span>(<span style=color:#e6db74>&#39;feature-flags&#39;</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>getProductRecommendations</span>(<span style=color:#a6e22e>userId</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>any</span><span style=color:#960050;background-color:#1e0010>[]</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>canUseMLRecommendations</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>resilienceManager</span>.<span style=color:#a6e22e>shouldEnableFeature</span>(<span style=color:#e6db74>&#39;ml-recommendations&#39;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>canUseCollaborativeFiltering</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>resilienceManager</span>.<span style=color:#a6e22e>shouldEnableFeature</span>(<span style=color:#e6db74>&#39;collaborative-filtering&#39;</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>canUseMLRecommendations</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>getMLRecommendations</span>(<span style=color:#a6e22e>userId</span>);
+</span></span><span style=display:flex><span>      } <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>canUseCollaborativeFiltering</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>getCollaborativeRecommendations</span>(<span style=color:#a6e22e>userId</span>);
+</span></span><span style=display:flex><span>      } <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// Fallback to simple popular products
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>getPopularProducts</span>();
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>error</span>(<span style=color:#e6db74>&#39;Recommendation service failed, using fallback:&#39;</span>, <span style=color:#a6e22e>error</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>getCachedRecommendations</span>(<span style=color:#a6e22e>userId</span>) <span style=color:#f92672>||</span> [];
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>processOrder</span>(<span style=color:#a6e22e>orderData</span>: <span style=color:#66d9ef>any</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span><span style=color:#f92672>&lt;</span>{ <span style=color:#a6e22e>success</span>: <span style=color:#66d9ef>boolean</span>; <span style=color:#a6e22e>orderId?</span>: <span style=color:#66d9ef>string</span>; <span style=color:#a6e22e>message</span>: <span style=color:#66d9ef>string</span> }<span style=color:#f92672>&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>canUseAdvancedPricing</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>resilienceManager</span>.<span style=color:#a6e22e>shouldEnableFeature</span>(<span style=color:#e6db74>&#39;advanced-pricing&#39;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>canUseInventoryReservation</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>resilienceManager</span>.<span style=color:#a6e22e>shouldEnableFeature</span>(<span style=color:#e6db74>&#39;inventory-reservation&#39;</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>      <span style=color:#75715e>// Core order processing always enabled
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>orderId</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>createOrder</span>(<span style=color:#a6e22e>orderData</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#75715e>// Optional features with graceful degradation
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>canUseAdvancedPricing</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>applyAdvancedPricing</span>(<span style=color:#a6e22e>orderId</span>, <span style=color:#a6e22e>orderData</span>);
+</span></span><span style=display:flex><span>      } <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>applyBasicPricing</span>(<span style=color:#a6e22e>orderId</span>, <span style=color:#a6e22e>orderData</span>);
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>canUseInventoryReservation</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>reserveInventory</span>(<span style=color:#a6e22e>orderId</span>, <span style=color:#a6e22e>orderData</span>.<span style=color:#a6e22e>items</span>);
+</span></span><span style=display:flex><span>      } <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// Process without reservation, accept slight overselling risk
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>warn</span>(<span style=color:#e6db74>`Inventory reservation disabled for order </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>orderId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> {
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>success</span>: <span style=color:#66d9ef>true</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>orderId</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>message</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Order processed successfully&#39;</span>
+</span></span><span style=display:flex><span>      };
+</span></span><span style=display:flex><span>    } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> {
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>success</span>: <span style=color:#66d9ef>false</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>message</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Order processing failed. Please try again.&#39;</span>
+</span></span><span style=display:flex><span>      };
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// Placeholder methods for actual implementations
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>getMLRecommendations</span>(<span style=color:#a6e22e>userId</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>any</span><span style=color:#960050;background-color:#1e0010>[]</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Call to ML service
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>return</span> [];
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>getCollaborativeRecommendations</span>(<span style=color:#a6e22e>userId</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>any</span><span style=color:#960050;background-color:#1e0010>[]</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Call to collaborative filtering service
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>return</span> [];
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>getPopularProducts</span>()<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>any</span><span style=color:#960050;background-color:#1e0010>[]</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Return cached popular products
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>cache</span>.<span style=color:#66d9ef>get</span>(<span style=color:#e6db74>&#39;popular-products&#39;</span>) <span style=color:#f92672>||</span> [];
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>getCachedRecommendations</span>(<span style=color:#a6e22e>userId</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>any</span><span style=color:#960050;background-color:#1e0010>[]</span> <span style=color:#960050;background-color:#1e0010>|</span> <span style=color:#a6e22e>null</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>cache</span>.<span style=color:#66d9ef>get</span>(<span style=color:#e6db74>`recommendations-</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>userId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>createOrder</span>(<span style=color:#a6e22e>orderData</span>: <span style=color:#66d9ef>any</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>string</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Core order creation logic
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#39;order-&#39;</span> <span style=color:#f92672>+</span> Date.<span style=color:#a6e22e>now</span>();
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>applyAdvancedPricing</span>(<span style=color:#a6e22e>orderId</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>orderData</span>: <span style=color:#66d9ef>any</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Advanced pricing logic with dynamic discounts
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>applyBasicPricing</span>(<span style=color:#a6e22e>orderId</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>orderData</span>: <span style=color:#66d9ef>any</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Simple pricing calculation
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>reserveInventory</span>(<span style=color:#a6e22e>orderId</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>items</span>: <span style=color:#66d9ef>any</span>[])<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Inventory reservation logic
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Lambda handler with resilience patterns
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>orderHandler</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>async</span> (<span style=color:#a6e22e>event</span>: <span style=color:#66d9ef>any</span>) <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>service</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>ECommerceService</span>();
+</span></span><span style=display:flex><span>  
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>result</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>service</span>.<span style=color:#a6e22e>processOrder</span>(<span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>orderData</span>);
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>statusCode</span>: <span style=color:#66d9ef>result.success</span> <span style=color:#f92672>?</span> <span style=color:#a6e22e>200</span> : <span style=color:#66d9ef>400</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>body</span>: <span style=color:#66d9ef>JSON.stringify</span>(<span style=color:#a6e22e>result</span>)
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>  } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Circuit breaker pattern: fail fast on repeated errors
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>error</span>(<span style=color:#e6db74>&#39;Order processing error:&#39;</span>, <span style=color:#a6e22e>error</span>);
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>statusCode</span>: <span style=color:#66d9ef>503</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>body</span>: <span style=color:#66d9ef>JSON.stringify</span>({
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>success</span>: <span style=color:#66d9ef>false</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>message</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Service temporarily unavailable. Please try again later.&#39;</span>
+</span></span><span style=display:flex><span>      })
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>The</span> <span style=color:#a6e22e>concept</span> <span style=color:#66d9ef>of</span> <span style=color:#a6e22e>antifragility</span> <span style=color:#66d9ef>extends</span> <span style=color:#a6e22e>beyond</span> <span style=color:#a6e22e>mere</span> <span style=color:#a6e22e>resilience</span> <span style=color:#a6e22e>to</span> <span style=color:#a6e22e>systems</span> <span style=color:#a6e22e>that</span> <span style=color:#a6e22e>actually</span> <span style=color:#a6e22e>improve</span> <span style=color:#a6e22e>under</span> <span style=color:#a6e22e>stress</span>. <span style=color:#a6e22e>While</span> <span style=color:#a6e22e>most</span> <span style=color:#a6e22e>systems</span> <span style=color:#a6e22e>degrade</span> <span style=color:#a6e22e>gracefully</span> <span style=color:#a6e22e>under</span> <span style=color:#a6e22e>load</span>, <span style=color:#a6e22e>antifragile</span> <span style=color:#a6e22e>systems</span> <span style=color:#a6e22e>use</span> <span style=color:#a6e22e>stress</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>information</span> <span style=color:#a6e22e>to</span> <span style=color:#a6e22e>strengthen</span> <span style=color:#a6e22e>their</span> <span style=color:#a6e22e>future</span> <span style=color:#a6e22e>responses</span>. <span style=color:#a6e22e>AWS</span> <span style=color:#a6e22e>services</span> <span style=color:#a6e22e>like</span> <span style=color:#a6e22e>Auto</span> <span style=color:#a6e22e>Scaling</span> <span style=color:#a6e22e>exhibit</span> <span style=color:#a6e22e>antifragile</span> <span style=color:#a6e22e>characteristics</span> <span style=color:#a6e22e>by</span> <span style=color:#a6e22e>learning</span> <span style=color:#66d9ef>from</span> <span style=color:#a6e22e>historical</span> <span style=color:#a6e22e>load</span> <span style=color:#a6e22e>patterns</span> <span style=color:#a6e22e>to</span> <span style=color:#a6e22e>pre</span><span style=color:#f92672>-</span><span style=color:#a6e22e>scale</span> <span style=color:#a6e22e>resources</span> <span style=color:#a6e22e>before</span> <span style=color:#a6e22e>anticipated</span> <span style=color:#a6e22e>demand</span> <span style=color:#a6e22e>spikes</span>. <span style=color:#a6e22e>Application</span><span style=color:#f92672>-</span><span style=color:#a6e22e>level</span> <span style=color:#a6e22e>antifragility</span> <span style=color:#a6e22e>might</span> <span style=color:#a6e22e>involve</span> <span style=color:#a6e22e>machine</span> <span style=color:#a6e22e>learning</span> <span style=color:#a6e22e>models</span> <span style=color:#a6e22e>that</span> <span style=color:#a6e22e>improve</span> <span style=color:#a6e22e>their</span> <span style=color:#a6e22e>predictions</span> <span style=color:#a6e22e>based</span> <span style=color:#a6e22e>on</span> <span style=color:#a6e22e>past</span> <span style=color:#a6e22e>failure</span> <span style=color:#a6e22e>patterns</span> <span style=color:#a6e22e>or</span> <span style=color:#a6e22e>monitoring</span> <span style=color:#a6e22e>systems</span> <span style=color:#a6e22e>that</span> <span style=color:#a6e22e>automatically</span> <span style=color:#a6e22e>tune</span> <span style=color:#a6e22e>alert</span> <span style=color:#a6e22e>thresholds</span> <span style=color:#a6e22e>based</span> <span style=color:#a6e22e>on</span> <span style=color:#a6e22e>operational</span> <span style=color:#a6e22e>experience</span>.
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>Chaos</span> <span style=color:#a6e22e>engineering</span> <span style=color:#a6e22e>practices</span> <span style=color:#a6e22e>deliberately</span> <span style=color:#a6e22e>introduce</span> <span style=color:#a6e22e>failures</span> <span style=color:#a6e22e>to</span> <span style=color:#a6e22e>validate</span> <span style=color:#a6e22e>resilience</span> <span style=color:#a6e22e>assumptions</span> <span style=color:#a6e22e>and</span> <span style=color:#a6e22e>discover</span> <span style=color:#a6e22e>weaknesses</span> <span style=color:#a6e22e>before</span> <span style=color:#a6e22e>they</span> <span style=color:#a6e22e>manifest</span> <span style=color:#66d9ef>in</span> <span style=color:#a6e22e>production</span>. <span style=color:#a6e22e>AWS</span> <span style=color:#a6e22e>Fault</span> <span style=color:#a6e22e>Injection</span> <span style=color:#a6e22e>Simulator</span> <span style=color:#a6e22e>provides</span> <span style=color:#a6e22e>managed</span> <span style=color:#a6e22e>chaos</span> <span style=color:#a6e22e>engineering</span> <span style=color:#a6e22e>capabilities</span> <span style=color:#a6e22e>that</span> <span style=color:#a6e22e>can</span> <span style=color:#a6e22e>simulate</span> <span style=color:#a6e22e>various</span> <span style=color:#a6e22e>failure</span> <span style=color:#a6e22e>modes</span> <span style=color:#a6e22e>across</span> <span style=color:#a6e22e>AWS</span> <span style=color:#a6e22e>services</span>. <span style=color:#a6e22e>The</span> <span style=color:#a6e22e>practice</span> <span style=color:#66d9ef>of</span> <span style=color:#a6e22e>regularly</span> <span style=color:#a6e22e>conducting</span> <span style=color:#a6e22e>chaos</span> <span style=color:#a6e22e>experiments</span> <span style=color:#a6e22e>helps</span> <span style=color:#a6e22e>teams</span> <span style=color:#a6e22e>develop</span> <span style=color:#a6e22e>muscle</span> <span style=color:#a6e22e>memory</span> <span style=color:#66d9ef>for</span> <span style=color:#a6e22e>incident</span> <span style=color:#a6e22e>response</span> <span style=color:#a6e22e>and</span> <span style=color:#a6e22e>validates</span> <span style=color:#a6e22e>that</span> <span style=color:#a6e22e>monitoring</span> <span style=color:#a6e22e>and</span> <span style=color:#a6e22e>alerting</span> <span style=color:#a6e22e>systems</span> <span style=color:#a6e22e>correctly</span> <span style=color:#a6e22e>identify</span> <span style=color:#a6e22e>and</span> <span style=color:#a6e22e>escalate</span> <span style=color:#a6e22e>problems</span>.
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>Implementing</span> <span style=color:#a6e22e>effective</span> <span style=color:#a6e22e>chaos</span> <span style=color:#a6e22e>engineering</span> <span style=color:#a6e22e>requires</span> <span style=color:#a6e22e>careful</span> <span style=color:#a6e22e>consideration</span> <span style=color:#66d9ef>of</span> <span style=color:#a6e22e>blast</span> <span style=color:#a6e22e>radius</span> <span style=color:#a6e22e>and</span> <span style=color:#a6e22e>safety</span> <span style=color:#a6e22e>mechanisms</span>. <span style=color:#a6e22e>Starting</span> <span style=color:#66d9ef>with</span> <span style=color:#a6e22e>non</span><span style=color:#f92672>-</span><span style=color:#a6e22e>production</span> <span style=color:#a6e22e>environments</span> <span style=color:#a6e22e>allows</span> <span style=color:#a6e22e>teams</span> <span style=color:#a6e22e>to</span> <span style=color:#a6e22e>develop</span> <span style=color:#a6e22e>confidence</span> <span style=color:#66d9ef>in</span> <span style=color:#a6e22e>their</span> <span style=color:#a6e22e>chaos</span> <span style=color:#a6e22e>experiments</span> <span style=color:#a6e22e>before</span> <span style=color:#a6e22e>conducting</span> <span style=color:#a6e22e>them</span> <span style=color:#66d9ef>in</span> <span style=color:#a6e22e>production</span>. <span style=color:#a6e22e>Automated</span> <span style=color:#a6e22e>rollback</span> <span style=color:#a6e22e>mechanisms</span> <span style=color:#a6e22e>ensure</span> <span style=color:#a6e22e>that</span> <span style=color:#a6e22e>chaos</span> <span style=color:#a6e22e>experiments</span> <span style=color:#a6e22e>don</span><span style=color:#e6db74>&#39;t cause prolonged outages, while comprehensive monitoring provides visibility into system behavior during experiments. The goal is not to cause failures but to learn how systems respond to failure conditions and identify areas for improvement.
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>```typescript
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>// Chaos Engineering implementation using AWS Fault Injection Simulator
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>import { FISClient, StartExperimentCommand, StopExperimentCommand, GetExperimentCommand } from &#39;</span><span style=color:#66d9ef>@aws</span><span style=color:#f92672>-</span><span style=color:#a6e22e>sdk</span><span style=color:#f92672>/</span><span style=color:#a6e22e>client</span><span style=color:#f92672>-</span><span style=color:#a6e22e>fis</span><span style=color:#e6db74>&#39;;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>import { CloudWatchClient, PutMetricDataCommand } from &#39;</span><span style=color:#66d9ef>@aws</span><span style=color:#f92672>-</span><span style=color:#a6e22e>sdk</span><span style=color:#f92672>/</span><span style=color:#a6e22e>client</span><span style=color:#f92672>-</span><span style=color:#a6e22e>cloudwatch</span><span style=color:#e6db74>&#39;;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>import { SSMClient, GetParameterCommand } from &#39;</span><span style=color:#66d9ef>@aws</span><span style=color:#f92672>-</span><span style=color:#a6e22e>sdk</span><span style=color:#f92672>/</span><span style=color:#a6e22e>client</span><span style=color:#f92672>-</span><span style=color:#a6e22e>ssm</span><span style=color:#e6db74>&#39;;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>interface ChaosExperiment {
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  name: string;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  templateId: string;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  targetResources: string[];
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  duration: number;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  safeguards: {
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    maxErrorRate: number;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    maxLatency: number;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    rollbackActions: string[];
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  };
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>}
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>interface ExperimentResult {
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  experimentId: string;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  success: boolean;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  duration: number;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  metrics: {
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    errorRateBefore: number;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    errorRateAfter: number;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    latencyBefore: number;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    latencyAfter: number;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    recoveryTime: number;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  };
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  lessons: string[];
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>}
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>class ChaosEngineeringOrchestrator {
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  private fisClient: FISClient;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  private cloudWatchClient: CloudWatchClient;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  private ssmClient: SSMClient;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  constructor() {
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    this.fisClient = new FISClient({});
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    this.cloudWatchClient = new CloudWatchClient({});
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    this.ssmClient = new SSMClient({});
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  }
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  async runChaosExperiment(experiment: ChaosExperiment): Promise&lt;ExperimentResult&gt; {
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    console.log(`Starting chaos experiment: ${experiment.name}`);
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    // Collect baseline metrics
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    const baselineMetrics = await this.collectMetrics();
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    try {
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>      // Check if it&#39;</span><span style=color:#a6e22e>s</span> <span style=color:#a6e22e>safe</span> <span style=color:#a6e22e>to</span> <span style=color:#a6e22e>run</span> <span style=color:#a6e22e>experiment</span>
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>validateSafeguards</span>(<span style=color:#a6e22e>experiment</span>.<span style=color:#a6e22e>safeguards</span>);
+</span></span><span style=display:flex><span>      
+</span></span><span style=display:flex><span>      <span style=color:#75715e>// Start the chaos experiment
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>experimentId</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>startExperiment</span>(<span style=color:#a6e22e>experiment</span>.<span style=color:#a6e22e>templateId</span>);
+</span></span><span style=display:flex><span>      
+</span></span><span style=display:flex><span>      <span style=color:#75715e>// Monitor experiment progress
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>result</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>monitorExperiment</span>(
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>experimentId</span>, 
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>experiment</span>.<span style=color:#a6e22e>duration</span>, 
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>experiment</span>.<span style=color:#a6e22e>safeguards</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>baselineMetrics</span>
+</span></span><span style=display:flex><span>      );
+</span></span><span style=display:flex><span>      
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>result</span>;
+</span></span><span style=display:flex><span>    } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>error</span>(<span style=color:#e6db74>`Chaos experiment </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>experiment</span>.<span style=color:#a6e22e>name</span><span style=color:#e6db74>}</span><span style=color:#e6db74> failed:`</span>, <span style=color:#a6e22e>error</span>);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#a6e22e>error</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>startExperiment</span>(<span style=color:#a6e22e>templateId</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>string</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>response</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>fisClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>StartExperimentCommand</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>experimentTemplateId</span>: <span style=color:#66d9ef>templateId</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>tags</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;chaos-engineering&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;true&#39;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;environment&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;production&#39;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;automation&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;true&#39;</span>
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    }));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>response</span>.<span style=color:#a6e22e>experiment</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>id</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>&#39;Failed to start chaos experiment&#39;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>response</span>.<span style=color:#a6e22e>experiment</span>.<span style=color:#a6e22e>id</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>monitorExperiment</span>(
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>experimentId</span>: <span style=color:#66d9ef>string</span>, 
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>duration</span>: <span style=color:#66d9ef>number</span>, 
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>safeguards</span>: <span style=color:#66d9ef>ChaosExperiment</span>[<span style=color:#e6db74>&#39;safeguards&#39;</span>],
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>baseline</span>: <span style=color:#66d9ef>any</span>
+</span></span><span style=display:flex><span>  )<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>ExperimentResult</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>startTime</span> <span style=color:#f92672>=</span> Date.<span style=color:#a6e22e>now</span>();
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>endTime</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>startTime</span> <span style=color:#f92672>+</span> (<span style=color:#a6e22e>duration</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>1000</span>);
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>shouldStop</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>false</span>;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>monitoringInterval</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>30000</span>; <span style=color:#75715e>// Check every 30 seconds
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>while</span> (Date.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>&lt;</span> <span style=color:#a6e22e>endTime</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#f92672>!</span><span style=color:#a6e22e>shouldStop</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Promise</span>(<span style=color:#a6e22e>resolve</span> <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>setTimeout</span>(<span style=color:#a6e22e>resolve</span>, <span style=color:#a6e22e>monitoringInterval</span>));
+</span></span><span style=display:flex><span>      
+</span></span><span style=display:flex><span>      <span style=color:#75715e>// Check current metrics against safeguards
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>currentMetrics</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>collectMetrics</span>();
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>safeguardViolation</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>checkSafeguards</span>(<span style=color:#a6e22e>currentMetrics</span>, <span style=color:#a6e22e>safeguards</span>);
+</span></span><span style=display:flex><span>      
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>safeguardViolation</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>warn</span>(<span style=color:#e6db74>&#39;Safeguard violation detected, stopping experiment&#39;</span>);
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>stopExperiment</span>(<span style=color:#a6e22e>experimentId</span>);
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>shouldStop</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>;
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>      
+</span></span><span style=display:flex><span>      <span style=color:#75715e>// Log metrics for analysis
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>logMetrics</span>(<span style=color:#a6e22e>experimentId</span>, <span style=color:#a6e22e>currentMetrics</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Collect final metrics
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>finalMetrics</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>collectMetrics</span>();
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Wait for system to recover and measure recovery time
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>recoveryTime</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>measureRecoveryTime</span>(<span style=color:#a6e22e>baseline</span>);
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>experimentId</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>success</span><span style=color:#f92672>:</span> <span style=color:#f92672>!</span><span style=color:#a6e22e>shouldStop</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>duration</span>: <span style=color:#66d9ef>Date.now</span>() <span style=color:#f92672>-</span> <span style=color:#a6e22e>startTime</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>metrics</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>errorRateBefore</span>: <span style=color:#66d9ef>baseline.errorRate</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>errorRateAfter</span>: <span style=color:#66d9ef>finalMetrics.errorRate</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>latencyBefore</span>: <span style=color:#66d9ef>baseline.latency</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>latencyAfter</span>: <span style=color:#66d9ef>finalMetrics.latency</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>recoveryTime</span>
+</span></span><span style=display:flex><span>      },
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>lessons</span>: <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>extractLessons</span>(<span style=color:#a6e22e>experimentId</span>, <span style=color:#a6e22e>baseline</span>, <span style=color:#a6e22e>finalMetrics</span>)
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>stopExperiment</span>(<span style=color:#a6e22e>experimentId</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>fisClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>StopExperimentCommand</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>id</span>: <span style=color:#66d9ef>experimentId</span>
+</span></span><span style=display:flex><span>    }));
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>validateSafeguards</span>(<span style=color:#a6e22e>safeguards</span>: <span style=color:#66d9ef>ChaosExperiment</span>[<span style=color:#e6db74>&#39;safeguards&#39;</span>])<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>currentMetrics</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>collectMetrics</span>();
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>currentMetrics</span>.<span style=color:#a6e22e>errorRate</span> <span style=color:#f92672>&gt;</span> <span style=color:#a6e22e>safeguards</span>.<span style=color:#a6e22e>maxErrorRate</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>0.5</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>&#39;System already showing elevated error rates, experiment aborted&#39;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>currentMetrics</span>.<span style=color:#a6e22e>latency</span> <span style=color:#f92672>&gt;</span> <span style=color:#a6e22e>safeguards</span>.<span style=color:#a6e22e>maxLatency</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>0.8</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>&#39;System already showing elevated latency, experiment aborted&#39;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>checkSafeguards</span>(<span style=color:#a6e22e>metrics</span>: <span style=color:#66d9ef>any</span>, <span style=color:#a6e22e>safeguards</span>: <span style=color:#66d9ef>ChaosExperiment</span>[<span style=color:#e6db74>&#39;safeguards&#39;</span>])<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>boolean</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>metrics</span>.<span style=color:#a6e22e>errorRate</span> <span style=color:#f92672>&gt;</span> <span style=color:#a6e22e>safeguards</span>.<span style=color:#a6e22e>maxErrorRate</span> <span style=color:#f92672>||</span> 
+</span></span><span style=display:flex><span>           <span style=color:#a6e22e>metrics</span>.<span style=color:#a6e22e>latency</span> <span style=color:#f92672>&gt;</span> <span style=color:#a6e22e>safeguards</span>.<span style=color:#a6e22e>maxLatency</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>collectMetrics</span>()<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>any</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// This would collect real metrics from CloudWatch
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// Placeholder implementation
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>return</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>errorRate</span>: <span style=color:#66d9ef>Math.random</span>() <span style=color:#f92672>*</span> <span style=color:#ae81ff>5</span>, <span style=color:#75715e>// 0-5% error rate
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>latency</span>: <span style=color:#66d9ef>100</span> <span style=color:#f92672>+</span> Math.<span style=color:#a6e22e>random</span>() <span style=color:#f92672>*</span> <span style=color:#ae81ff>200</span>, <span style=color:#75715e>// 100-300ms latency
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>throughput</span>: <span style=color:#66d9ef>1000</span> <span style=color:#f92672>+</span> Math.<span style=color:#a6e22e>random</span>() <span style=color:#f92672>*</span> <span style=color:#ae81ff>500</span> <span style=color:#75715e>// 1000-1500 RPS
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    };
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>measureRecoveryTime</span>(<span style=color:#a6e22e>baseline</span>: <span style=color:#66d9ef>any</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>number</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>recoveryStart</span> <span style=color:#f92672>=</span> Date.<span style=color:#a6e22e>now</span>();
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>maxRecoveryTime</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>300000</span>; <span style=color:#75715e>// 5 minutes max
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>while</span> (Date.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>-</span> <span style=color:#a6e22e>recoveryStart</span> <span style=color:#f92672>&lt;</span> <span style=color:#a6e22e>maxRecoveryTime</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Promise</span>(<span style=color:#a6e22e>resolve</span> <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>setTimeout</span>(<span style=color:#a6e22e>resolve</span>, <span style=color:#ae81ff>10000</span>)); <span style=color:#75715e>// Check every 10 seconds
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>currentMetrics</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>collectMetrics</span>();
+</span></span><span style=display:flex><span>      
+</span></span><span style=display:flex><span>      <span style=color:#75715e>// Consider recovered when metrics are within 10% of baseline
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>if</span> (Math.<span style=color:#a6e22e>abs</span>(<span style=color:#a6e22e>currentMetrics</span>.<span style=color:#a6e22e>errorRate</span> <span style=color:#f92672>-</span> <span style=color:#a6e22e>baseline</span>.<span style=color:#a6e22e>errorRate</span>) <span style=color:#f92672>&lt;</span> <span style=color:#a6e22e>baseline</span>.<span style=color:#a6e22e>errorRate</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>0.1</span> <span style=color:#f92672>&amp;&amp;</span>
+</span></span><span style=display:flex><span>          Math.<span style=color:#a6e22e>abs</span>(<span style=color:#a6e22e>currentMetrics</span>.<span style=color:#a6e22e>latency</span> <span style=color:#f92672>-</span> <span style=color:#a6e22e>baseline</span>.<span style=color:#a6e22e>latency</span>) <span style=color:#f92672>&lt;</span> <span style=color:#a6e22e>baseline</span>.<span style=color:#a6e22e>latency</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>0.1</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> Date.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>-</span> <span style=color:#a6e22e>recoveryStart</span>;
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>maxRecoveryTime</span>; <span style=color:#75715e>// Recovery took longer than expected
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>logMetrics</span>(<span style=color:#a6e22e>experimentId</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>metrics</span>: <span style=color:#66d9ef>any</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>cloudWatchClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>PutMetricDataCommand</span>({
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>Namespace</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;ChaosEngineering&#39;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>MetricData</span><span style=color:#f92672>:</span> [
+</span></span><span style=display:flex><span>        {
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>MetricName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;ErrorRate&#39;</span>,
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>Value</span>: <span style=color:#66d9ef>metrics.errorRate</span>,
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>Unit</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Percent&#39;</span>,
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>Dimensions</span><span style=color:#f92672>:</span> [
+</span></span><span style=display:flex><span>            { <span style=color:#a6e22e>Name</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;ExperimentId&#39;</span>, <span style=color:#a6e22e>Value</span>: <span style=color:#66d9ef>experimentId</span> }
+</span></span><span style=display:flex><span>          ]
+</span></span><span style=display:flex><span>        },
+</span></span><span style=display:flex><span>        {
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>MetricName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Latency&#39;</span>,
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>Value</span>: <span style=color:#66d9ef>metrics.latency</span>,
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>Unit</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Milliseconds&#39;</span>,
+</span></span><span style=display:flex><span>          <span style=color:#a6e22e>Dimensions</span><span style=color:#f92672>:</span> [
+</span></span><span style=display:flex><span>            { <span style=color:#a6e22e>Name</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;ExperimentId&#39;</span>, <span style=color:#a6e22e>Value</span>: <span style=color:#66d9ef>experimentId</span> }
+</span></span><span style=display:flex><span>          ]
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>      ]
+</span></span><span style=display:flex><span>    }));
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>extractLessons</span>(<span style=color:#a6e22e>experimentId</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>baseline</span>: <span style=color:#66d9ef>any</span>, <span style=color:#a6e22e>final</span>: <span style=color:#66d9ef>any</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>string</span><span style=color:#960050;background-color:#1e0010>[]</span>&gt; {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>lessons</span>: <span style=color:#66d9ef>string</span>[] <span style=color:#f92672>=</span> [];
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>final</span>.<span style=color:#a6e22e>errorRate</span> <span style=color:#f92672>&gt;</span> <span style=color:#a6e22e>baseline</span>.<span style=color:#a6e22e>errorRate</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>2</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>lessons</span>.<span style=color:#a6e22e>push</span>(<span style=color:#e6db74>&#39;System shows poor error handling under stress&#39;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>final</span>.<span style=color:#a6e22e>latency</span> <span style=color:#f92672>&gt;</span> <span style=color:#a6e22e>baseline</span>.<span style=color:#a6e22e>latency</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>3</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>lessons</span>.<span style=color:#a6e22e>push</span>(<span style=color:#e6db74>&#39;Latency degrades significantly under failure conditions&#39;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// Add more analysis based on your specific metrics
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>lessons</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Automated chaos experiment runner
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>chaosExperimentHandler</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>async</span> (<span style=color:#a6e22e>event</span><span style=color:#f92672>:</span> { 
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>environment</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>experimentType</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>}) <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// Only run in non-production during business hours for safety
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>now</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> Date();
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>isBusinessHours</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>now</span>.<span style=color:#a6e22e>getHours</span>() <span style=color:#f92672>&gt;=</span> <span style=color:#ae81ff>9</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#a6e22e>now</span>.<span style=color:#a6e22e>getHours</span>() <span style=color:#f92672>&lt;=</span> <span style=color:#ae81ff>17</span>;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>isWeekday</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>now</span>.<span style=color:#a6e22e>getDay</span>() <span style=color:#f92672>&gt;=</span> <span style=color:#ae81ff>1</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#a6e22e>now</span>.<span style=color:#a6e22e>getDay</span>() <span style=color:#f92672>&lt;=</span> <span style=color:#ae81ff>5</span>;
+</span></span><span style=display:flex><span>  
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>environment</span> <span style=color:#f92672>===</span> <span style=color:#e6db74>&#39;production&#39;</span> <span style=color:#f92672>&amp;&amp;</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>isBusinessHours</span> <span style=color:#f92672>||</span> <span style=color:#f92672>!</span><span style=color:#a6e22e>isWeekday</span>)) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>statusCode</span>: <span style=color:#66d9ef>400</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>body</span>: <span style=color:#66d9ef>JSON.stringify</span>({
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>message</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Production chaos experiments only allowed during business hours&#39;</span>
+</span></span><span style=display:flex><span>      })
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>orchestrator</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>ChaosEngineeringOrchestrator</span>();
+</span></span><span style=display:flex><span>  
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>experiment</span>: <span style=color:#66d9ef>ChaosExperiment</span> <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>name</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>experimentType</span><span style=color:#e6db74>}</span><span style=color:#e6db74>-experiment`</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>templateId</span>: <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>getExperimentTemplate</span>(<span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>experimentType</span>),
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>targetResources</span>: <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>getTargetResources</span>(<span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>environment</span>),
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>duration</span>: <span style=color:#66d9ef>300</span>, <span style=color:#75715e>// 5 minutes
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>safeguards</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>maxErrorRate</span>: <span style=color:#66d9ef>10</span>, <span style=color:#75715e>// 10% error rate threshold
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>maxLatency</span>: <span style=color:#66d9ef>5000</span>, <span style=color:#75715e>// 5 second latency threshold
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>rollbackActions</span><span style=color:#f92672>:</span> [<span style=color:#e6db74>&#39;stop-experiment&#39;</span>, <span style=color:#e6db74>&#39;scale-up-resources&#39;</span>]
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  };
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>result</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>orchestrator</span>.<span style=color:#a6e22e>runChaosExperiment</span>(<span style=color:#a6e22e>experiment</span>);
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>statusCode</span>: <span style=color:#66d9ef>200</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>body</span>: <span style=color:#66d9ef>JSON.stringify</span>({
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>experimentId</span>: <span style=color:#66d9ef>result.experimentId</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>success</span>: <span style=color:#66d9ef>result.success</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>duration</span>: <span style=color:#66d9ef>result.duration</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>metrics</span>: <span style=color:#66d9ef>result.metrics</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>lessons</span>: <span style=color:#66d9ef>result.lessons</span>
+</span></span><span style=display:flex><span>      })
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>  } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>statusCode</span>: <span style=color:#66d9ef>500</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>body</span>: <span style=color:#66d9ef>JSON.stringify</span>({
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>error</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Chaos experiment failed&#39;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>message</span>: <span style=color:#66d9ef>error.message</span>
+</span></span><span style=display:flex><span>      })
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Helper functions
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>async</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>getExperimentTemplate</span>(<span style=color:#a6e22e>experimentType</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>string</span>&gt; {
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// Return appropriate FIS template ID based on experiment type
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>templates</span> <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#39;network-latency&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;EXT123456789&#39;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#39;instance-termination&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;EXT987654321&#39;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#39;database-failover&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;EXT456789123&#39;</span>
+</span></span><span style=display:flex><span>  };
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>templates</span>[<span style=color:#a6e22e>experimentType</span>] <span style=color:#f92672>||</span> <span style=color:#a6e22e>templates</span>[<span style=color:#e6db74>&#39;network-latency&#39;</span>];
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>async</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>getTargetResources</span>(<span style=color:#a6e22e>environment</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>string</span><span style=color:#960050;background-color:#1e0010>[]</span>&gt; {
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// Return resource ARNs for the specified environment
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>return</span> [<span style=color:#e6db74>`arn:aws:ec2:us-east-1:123456789012:instance/i-</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>environment</span><span style=color:#e6db74>}</span><span style=color:#e6db74>example`</span>];
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Observability forms the nervous system of resilient architectures, providing the information necessary for both automated and human responses to changing conditions. Traditional monitoring focused on known failure modes and predefined thresholds, but complex systems exhibit novel failure patterns that require exploratory investigation. AWS CloudWatch, X-Ray, and third-party observability platforms provide the telemetry foundation for understanding system behavior under both normal and stressed conditions.</p><p>Effective observability distinguishes between symptoms and causes, focusing on user experience metrics rather than just infrastructure health indicators. A resilient system might automatically failover to a backup database when the primary becomes unresponsive, maintaining user functionality while generating infrastructure alerts about the underlying problem. Service Level Objectives (SLOs) based on user experience provide meaningful targets for resilience engineering efforts, ensuring that technical improvements translate to business value.</p><p>The practice of game days and disaster recovery exercises validates resilience capabilities under controlled conditions. These exercises reveal gaps between theoretical disaster recovery plans and practical execution capabilities. AWS&rsquo;s multi-region architecture enables sophisticated disaster recovery strategies, but the effectiveness of these strategies depends on regular testing and refinement. Game days also provide opportunities for cross-team collaboration and knowledge sharing about system dependencies and recovery procedures.</p><p>Building organizational resilience requires recognizing that technical systems are operated by human teams with their own complex dynamics and failure modes. Blameless post-mortems encourage learning from incidents rather than punishment, creating psychological safety that enables honest discussion of system weaknesses. On-call rotation policies and escalation procedures ensure that the right expertise is available during critical incidents while preventing individual burnout that could compromise response effectiveness.</p><p>Documentation and runbooks provide institutional memory about system behavior and recovery procedures, but they must be regularly updated and tested to remain accurate. Automated runbooks using AWS Systems Manager or Lambda functions can encode operational knowledge in executable form, reducing the cognitive load on incident responders and ensuring consistent execution of recovery procedures. The key is balancing automation with human judgment, providing tools that augment rather than replace human decision-making during complex incidents.</p><p>Capacity planning for resilient systems must account for failure scenarios rather than just normal operating conditions. N+1 redundancy ensures that systems can handle individual component failures without service degradation. For critical systems, N+2 or even higher levels of redundancy may be appropriate, particularly when considering correlated failures that could affect multiple components simultaneously. AWS&rsquo;s availability zone architecture provides natural failure domains that help inform redundancy planning.</p><p>The economic aspects of resilience engineering involve balancing the costs of redundancy and over-provisioning against the potential business impact of outages. Cloud economics enable more cost-effective resilience strategies through on-demand resource allocation and managed service reliability. Reserved instances and savings plans can reduce the cost of baseline capacity while spot instances provide cost-effective burst capacity for handling load spikes. The key insight is that resilience is an investment that should be optimized based on business risk tolerance rather than minimized as a pure cost center.</p><p>Recovery time objectives (RTO) and recovery point objectives (RPO) provide quantitative targets for resilience engineering efforts. These metrics help prioritize investments in backup systems, data replication, and automated recovery procedures. AWS services like RDS Multi-AZ deployments and S3 Cross-Region Replication provide managed solutions for common resilience requirements, but applications must be designed to take advantage of these capabilities appropriately.</p><p>Security considerations in resilient systems recognize that security failures are another form of system failure that requires graceful handling. DDoS attacks, credential compromises, and data breaches should trigger automated responses that protect system integrity while maintaining essential functions. AWS Shield and WAF provide infrastructure-level protection, while application-level security measures should degrade gracefully rather than failing completely when under attack. The principle of defense in depth applies to resilience as well as security, with multiple layers of protection and recovery mechanisms.</p></div></article></main><aside class=blog-sidebar><div class=sidebar-widget><h3>Recent Posts</h3><ul class=recent-posts><li><a href=/posts/using-ai-in-software-engineering/>Harnessing AI in Software Engineering: Opportunities and Challenges</a>
+<span class=post-date>May 29, 2025</span></li><li><a href=/posts/aws-serverless-cost-optimization/>Cost Optimization Strategies for AWS Serverless Applications</a>
+<span class=post-date>Jun 17, 2023</span></li><li><a href=/posts/aws-sns-sqs-typescript/>Building Event-Driven Architectures with AWS SNS/SQS and TypeScript</a>
+<span class=post-date>May 21, 2023</span></li><li><a href=/posts/securing-aws-lambda/>Securing AWS Lambda Functions: Best Practices and Implementation Guide</a>
+<span class=post-date>Apr 7, 2023</span></li><li><a href=/posts/aws-step-functions-typescript/>Step Functions: Orchestrating AWS Lambda Workflows in TypeScript</a>
+<span class=post-date>Mar 5, 2023</span></li></ul></div><div class=sidebar-widget><h3>Categories</h3><ul class=categories><li><a href=/categories/architecture>architecture (1)</a></li><li><a href=/categories/architecture-and-design>architecture and design (7)</a></li><li><a href=/categories/artificial-intelligence>artificial intelligence (1)</a></li><li><a href=/categories/cloud-computing>cloud computing (11)</a></li><li><a href=/categories/code-quality>code quality (1)</a></li><li><a href=/categories/cost-optimization>cost optimization (1)</a></li><li><a href=/categories/data-engineering>data engineering (2)</a></li><li><a href=/categories/database>database (1)</a></li><li><a href=/categories/debugging-and-troubleshooting>debugging and troubleshooting (1)</a></li><li><a href=/categories/development-tools>development tools (2)</a></li><li><a href=/categories/development-tutorials>development tutorials (1)</a></li><li><a href=/categories/microservices>microservices (1)</a></li><li><a href=/categories/performance>performance (1)</a></li><li><a href=/categories/quality-assurance>quality assurance (1)</a></li><li><a href=/categories/security>security (1)</a></li><li><a href=/categories/serverless>serverless (1)</a></li><li><a href=/categories/software-development>software development (8)</a></li><li><a href=/categories/technical-debt>technical debt (1)</a></li><li><a href=/categories/testing>testing (2)</a></li><li><a href=/categories/version-control>version control (1)</a></li></ul></div><div class=sidebar-widget><h3>Post Series</h3><ul class=recent-posts><li><a href=/posts/real-time-processing-architectures/>Cloud Architecture Patterns: Real-time Processing Architectures</a>
+<span class=post-date>Apr 11, 2021</span><div class=series-meta><a href=/series/cloud-architecture-patterns/ class=series-link>View all 7 posts in series →</a></div></li><li><a href=/posts/technical-debt-management-growing-codebases/>Modern Development Practices: Technical Debt Management in Growing Codebases: Strategies for Sustainable Development</a>
+<span class=post-date>Dec 19, 2021</span><div class=series-meta><a href=/series/modern-development-practices/ class=series-link>View all 7 posts in series →</a></div></li></ul></div><div class=sidebar-widget><h3>Tags</h3><div class=tag-cloud><a href=/tags/ai class=tag-cloud-item style=font-size:1rem>ai
+</a><a href=/tags/api-design class=tag-cloud-item style=font-size:1rem>api design
+</a><a href=/tags/architecture class=tag-cloud-item style=font-size:1rem>architecture
+</a><a href=/tags/athena class=tag-cloud-item style=font-size:1rem>athena
+</a><a href=/tags/automation class=tag-cloud-item style=font-size:1rem>automation
+</a><a href=/tags/aws class=tag-cloud-item style=font-size:2rem>aws
+</a><a href=/tags/best-practices class=tag-cloud-item style=font-size:1rem>best practices
+</a><a href=/tags/chaos-engineering class=tag-cloud-item style=font-size:1rem>chaos engineering
+</a><a href=/tags/ci/cd class=tag-cloud-item style=font-size:1rem>ci/cd
+</a><a href=/tags/code-quality class=tag-cloud-item style=font-size:1rem>code quality
+</a><a href=/tags/communication-patterns class=tag-cloud-item style=font-size:1rem>communication patterns
+</a><a href=/tags/cost-optimization class=tag-cloud-item style=font-size:1rem>cost optimization
+</a><a href=/tags/cqrs class=tag-cloud-item style=font-size:1rem>cqrs
+</a><a href=/tags/data-architecture class=tag-cloud-item style=font-size:1rem>data architecture
+</a><a href=/tags/data-lake class=tag-cloud-item style=font-size:1rem>data lake
+</a><a href=/tags/data-modeling class=tag-cloud-item style=font-size:1rem>data modeling
+</a><a href=/tags/database-design class=tag-cloud-item style=font-size:1rem>database design
+</a><a href=/tags/debugging class=tag-cloud-item style=font-size:1rem>debugging
+</a><a href=/tags/developer-tips class=tag-cloud-item style=font-size:1rem>developer tips
+</a><a href=/tags/development class=tag-cloud-item style=font-size:2rem>development
+</a><a href=/tags/distributed-systems class=tag-cloud-item style=font-size:1rem>distributed systems
+</a><a href=/tags/dynamodb class=tag-cloud-item style=font-size:1rem>dynamodb
+</a><a href=/tags/enterprise-architecture class=tag-cloud-item style=font-size:1rem>enterprise architecture
+</a><a href=/tags/event-sourcing class=tag-cloud-item style=font-size:1rem>event sourcing
+</a><a href=/tags/event-driven-architecture class=tag-cloud-item style=font-size:1rem>event-driven architecture
+</a><a href=/tags/eventbridge class=tag-cloud-item style=font-size:1rem>eventbridge
+</a><a href=/tags/fault-tolerance class=tag-cloud-item style=font-size:1rem>fault tolerance
+</a><a href=/tags/glue class=tag-cloud-item style=font-size:1rem>glue
+</a><a href=/tags/graphql class=tag-cloud-item style=font-size:1rem>graphql
+</a><a href=/tags/kinesis class=tag-cloud-item style=font-size:1rem>kinesis
+</a><a href=/tags/lambda class=tag-cloud-item style=font-size:1rem>lambda
+</a><a href=/tags/load-testing class=tag-cloud-item style=font-size:1rem>load testing
+</a><a href=/tags/metrics class=tag-cloud-item style=font-size:1rem>metrics
+</a><a href=/tags/microservices class=tag-cloud-item style=font-size:1rem>microservices
+</a><a href=/tags/monitoring class=tag-cloud-item style=font-size:1rem>monitoring
+</a><a href=/tags/multi-account class=tag-cloud-item style=font-size:1rem>multi-account
+</a><a href=/tags/nosql class=tag-cloud-item style=font-size:1rem>nosql
+</a><a href=/tags/patterns class=tag-cloud-item style=font-size:1rem>patterns
+</a><a href=/tags/performance-testing class=tag-cloud-item style=font-size:1rem>performance testing
+</a><a href=/tags/productivity class=tag-cloud-item style=font-size:1rem>productivity
+</a><a href=/tags/real-time class=tag-cloud-item style=font-size:1rem>real-time
+</a><a href=/tags/refactoring class=tag-cloud-item style=font-size:1rem>refactoring
+</a><a href=/tags/reliability class=tag-cloud-item style=font-size:1rem>reliability
+</a><a href=/tags/resilience class=tag-cloud-item style=font-size:1rem>resilience
+</a><a href=/tags/rest class=tag-cloud-item style=font-size:1rem>rest
+</a><a href=/tags/s3 class=tag-cloud-item style=font-size:1rem>s3
+</a><a href=/tags/security class=tag-cloud-item style=font-size:1rem>security
+</a><a href=/tags/serverless class=tag-cloud-item style=font-size:1rem>serverless
+</a><a href=/tags/software-engineering class=tag-cloud-item style=font-size:1rem>software engineering
+</a><a href=/tags/standards class=tag-cloud-item style=font-size:1rem>standards
+</a><a href=/tags/stream-processing class=tag-cloud-item style=font-size:1rem>stream processing
+</a><a href=/tags/tdd class=tag-cloud-item style=font-size:1rem>tdd
+</a><a href=/tags/technical-debt class=tag-cloud-item style=font-size:1rem>technical debt
+</a><a href=/tags/testing class=tag-cloud-item style=font-size:1rem>testing
+</a><a href=/tags/typescript class=tag-cloud-item style=font-size:2rem>typescript</a></div></div><div class=sidebar-widget><h3>Subscribe</h3><div class=subscribe-links><a href=/index.xml class=rss-link><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 019 9"/><path d="M4 4a16 16 0 0116 16"/><circle cx="5" cy="19" r="1"/></svg>
+RSS Feed</a></div></div><div class=sidebar-widget><h3>Archives</h3><ul class=archive-list></ul></div><div class="sidebar-widget npm-packages"><h3>My NPM Packages</h3><div id=npm-list></div></div></aside></div></div><footer class=site-footer><div class=container><p>&copy; 2025 Scott Obert</p></div></footer></body></html>
