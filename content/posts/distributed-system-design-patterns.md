@@ -1,12 +1,63 @@
 ---
-title: "Distributed System Design Patterns"
+title: "Distributed System Design Patterns in AWS"
 date: 2021-02-07T09:00:00-05:00
-categories: ["Cloud Computing", "Architecture and Design"]
 tags: ["AWS", "Distributed Systems", "Microservices", "Patterns", "Resilience"]
 series: "Cloud Architecture Patterns"
 ---
 
 Distributed systems present unique challenges that require thoughtful application of proven design patterns to achieve reliability, scalability, and maintainability. Unlike monolithic applications where components communicate through in-process method calls, distributed systems must handle network partitions, variable latency, and partial failures as fundamental aspects of their operation. The patterns that emerge from these constraints form the foundation of robust cloud architectures, particularly when implemented using AWS's managed services ecosystem.
+
+{{< plantuml id="circuit-breaker" >}}
+@startuml Circuit Breaker Pattern
+!define AWSPuml https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v14.0/dist
+!include AWSPuml/AWSCommon.puml
+!include AWSPuml/Compute/Lambda.puml
+!include AWSPuml/Database/DynamoDBTable.puml
+!include AWSPuml/ApplicationIntegration/APIGateway.puml
+!include AWSPuml/ApplicationIntegration/SimpleQueueServiceQueue.puml
+!include AWSPuml/ApplicationIntegration/SimpleNotificationServiceTopic.puml
+
+skinparam BackgroundColor transparent
+skinparam componentStyle rectangle
+skinparam defaultTextAlignment center
+
+package "Circuit Breaker Pattern Implementation" {
+  component "API Gateway" as api #LightBlue
+  component "Lambda Function" as lambda #LightBlue
+  component "Circuit Breaker State" as state #Orange
+  database "DynamoDB" as dynamodb #LightGreen
+  component "External Service" as external #Pink
+  queue "Fallback Queue" as fallbackQueue #LightYellow
+  component "SNS Notification" as notification #LightCyan
+}
+
+note right of state
+States:
+
+- Closed: Normal operation
+- Open: Failing fast
+- Half-Open: Testing recovery
+end note
+
+api --> lambda : 1. Client Request
+lambda --> state : 2. Check circuit state
+state --> dynamodb : 3. Read/Update state
+state -> external : 4a. If Closed/Half-Open: Call service
+state --> fallbackQueue : 4b. If Open: Use fallback
+external --> state : 5. Update success/failure count
+state --> notification : 6. Circuit state change notification
+
+note bottom of lambda
+Tracks:
+
+- Failure count
+- Error threshold
+- Reset timeout
+- Last failure timestamp
+end note
+
+@enduml
+{{< /plantuml >}}
 
 The Circuit Breaker pattern addresses one of the most common failure modes in distributed systems: cascading failures caused by unhealthy dependencies. When a downstream service becomes unresponsive, continuing to send requests not only wastes resources but can propagate the failure upstream. A circuit breaker monitors failure rates and response times, automatically switching to an open state when thresholds are exceeded. AWS Application Load Balancer's health checking mechanisms provide a managed implementation of this pattern, automatically removing unhealthy targets from rotation and gradually reintroducing them as they recover.
 
@@ -138,6 +189,86 @@ export const handler = async (event: any) => {
 
 The Bulkhead pattern isolates system resources to prevent failures in one area from affecting others. In cloud architectures, this manifests as separate execution environments, data stores, and network paths for different system components. AWS accounts provide natural bulkheads, isolating blast radius at the infrastructure level. Within a single account, separate VPCs, subnets, and security groups create network-level isolation. At the application level, separate Lambda function sets, DynamoDB tables, and SQS queues ensure that high-traffic or failure-prone operations don't impact critical system functions.
 
+{{< plantuml id="bulkhead-pattern" >}}
+@startuml Bulkhead Pattern
+!define AWSPuml "https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v14.0/dist"
+!include AWSPuml/AWSCommon.puml
+!include AWSPuml/Compute/Lambda.puml
+!include AWSPuml/NetworkingContentDelivery/VPC.puml
+!include AWSPuml/SecurityIdentityCompliance/WAF.puml
+!include AWSPuml/General/Traditionalserver.puml
+!include AWSPuml/Database/DynamoDBTable.puml
+!include AWSPuml/ApplicationIntegration/SimpleQueueServiceQueue.puml
+
+skinparam BackgroundColor transparent
+skinparam defaultTextAlignment center
+
+package "API Layer" {
+  [API Gateway Rate Limiter] as api
+}
+
+package "Critical Services" {
+  [Payment Processing] as payment #LightGreen
+  [User Authentication] as auth #LightGreen
+  database "User Data" as userDb #LightGreen
+  queue "Critical Events Queue" as criticalQueue
+  note right of payment
+  Dedicated resources
+  Higher provisioned capacity
+  Lower concurrency limits
+  end note
+}
+
+package "Standard Services" {
+  [Product Catalog] as catalog #Yellow
+  [Order History] as orderHistory #Yellow
+  database "Product Data" as productDb #Yellow
+  queue "Standard Events Queue" as standardQueue
+}
+
+package "Non-critical Services" {
+  [Analytics] as analytics #LightSalmon
+  [Recommendation Engine] as recommendations #LightSalmon
+  database "Analytics Data" as analyticsDb #LightSalmon
+  queue "Batch Processing Queue" as batchQueue
+  note right of analytics
+  Auto-scaling resources
+  Lower priority
+  Can be throttled under load
+  end note
+}
+
+api -down-> payment : Rate limited
+api -down-> auth : Rate limited
+api -down-> catalog
+api -down-> orderHistory
+api -down-> analytics : Lower priority
+api -down-> recommendations : Lower priority
+
+payment -down-> userDb
+auth -down-> userDb
+payment -down-> criticalQueue
+auth -down-> criticalQueue
+
+catalog -down-> productDb
+orderHistory -down-> productDb
+catalog -down-> standardQueue
+orderHistory -down-> standardQueue
+
+analytics -down-> analyticsDb
+recommendations -down-> analyticsDb
+analytics -down-> batchQueue
+recommendations -down-> batchQueue
+
+note bottom of api
+<b>Bulkhead Pattern:</b>
+Isolates components to contain failures
+and prioritizes resource allocation
+end note
+
+@enduml
+{{< /plantuml >}}
+
 Resource isolation extends beyond just compute and storage to include operational concerns like monitoring, alerting, and deployment pipelines. Separate CloudWatch log groups and metric namespaces prevent noisy components from obscuring critical signals. Independent deployment pipelines ensure that updates to experimental features don't risk core system stability. The economic aspect of bulkheads in AWS reflects the ability to apply different cost optimization strategies to different system components, using spot instances for batch processing while maintaining reserved capacity for latency-sensitive operations.
 
 The Saga pattern coordinates long-running business processes that span multiple services without requiring distributed transactions. Traditional two-phase commit protocols don't scale well in cloud environments due to their blocking nature and assumption of reliable, low-latency communication. Sagas break complex operations into smaller, compensatable steps, using either choreography or orchestration to coordinate the overall process. AWS Step Functions provides a managed orchestration engine that handles state management, error handling, and retry logic for saga implementations.
@@ -145,6 +276,97 @@ The Saga pattern coordinates long-running business processes that span multiple 
 Choreographed sagas rely on event-driven communication, where each service publishes events about its activities and subscribes to events relevant to its responsibilities. EventBridge facilitates this pattern by providing reliable event delivery and content-based routing. The distributed nature of choreographed sagas makes them resilient to individual service failures but can make the overall process flow difficult to understand and debug. Orchestrated sagas centralize the coordination logic, making the process more explicit but creating a potential single point of failure in the orchestrator.
 
 Compensation logic in saga implementations must be carefully designed to handle partial failures and maintain business invariants. Not all operations can be truly reversed, particularly those involving external systems or real-world effects. Semantic compensation often involves recording the need for human intervention or implementing business policies that account for the complexity of distributed rollback scenarios. The stateful nature of saga coordination requires durable storage that survives individual service failures, making DynamoDB or RDS appropriate choices for maintaining saga state.
+
+{{< plantuml id="saga-pattern" >}}
+@startuml Saga Pattern
+!define AWSPuml "https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v14.0/dist"
+!include AWSPuml/AWSCommon.puml
+!include AWSPuml/ApplicationIntegration/StepFunctions.puml
+!include AWSPuml/Compute/Lambda.puml
+!include AWSPuml/Database/DynamoDBTable.puml
+
+skinparam BackgroundColor transparent
+skinparam defaultTextAlignment center
+skinparam sequenceArrowThickness 2
+skinparam sequenceGroupBorderThickness 2
+
+box "Order Processing Saga" #LightBlue
+participant "Step Functions\nOrchestrator" as sfn
+participant "Payment\nService" as payment
+participant "Inventory\nService" as inventory
+participant "Shipping\nService" as shipping
+database "DynamoDB\nSaga State" as db
+end box
+
+note over sfn, db
+<b>Orchestrated Saga Pattern</b>
+Each transaction has a corresponding compensation
+end note
+
+sfn -> sfn : Start Order Saga
+sfn -> payment : Reserve Payment
+activate payment
+payment -> payment : Process Payment
+payment -> db : Record Payment Reserved
+payment -> sfn : Payment Confirmation
+deactivate payment
+
+alt Success Path
+sfn -> inventory : Reserve Inventory
+activate inventory
+inventory -> inventory : Check Stock
+inventory -> db : Record Inventory Reserved
+inventory -> sfn : Inventory Reserved
+deactivate inventory
+
+sfn -> shipping : Create Shipping Order
+activate shipping
+shipping -> shipping : Schedule Delivery
+shipping -> db : Record Shipping Created
+shipping -> sfn : Shipping Confirmed
+deactivate shipping
+
+sfn -> sfn : Order Confirmed
+else Failure at Inventory Step
+sfn -> inventory : Reserve Inventory
+activate inventory
+inventory -> inventory : Check Stock
+inventory -> sfn : Insufficient Stock
+deactivate inventory
+
+sfn -> payment : Compensation: Release Payment
+activate payment
+payment -> payment : Refund Payment
+payment -> db : Record Payment Released
+payment -> sfn : Payment Released
+deactivate payment
+
+sfn -> sfn : Order Failed
+else Failure at Shipping Step
+sfn -> shipping : Create Shipping Order
+activate shipping
+shipping -> shipping : Schedule Delivery
+shipping -> sfn : Delivery Unavailable
+deactivate shipping
+
+sfn -> inventory : Compensation: Release Inventory
+activate inventory
+inventory -> inventory : Return Items to Stock
+inventory -> db : Record Inventory Released
+inventory -> sfn : Inventory Released
+deactivate inventory
+
+sfn -> payment : Compensation: Release Payment
+activate payment
+payment -> payment : Refund Payment
+payment -> db : Record Payment Released
+payment -> sfn : Payment Released
+deactivate payment
+
+sfn -> sfn : Order Failed
+end
+@enduml
+{{< /plantuml >}}
 
 ```typescript
 // Saga pattern implementation using AWS Step Functions and Lambda
@@ -298,192 +520,106 @@ Event sourcing and event-driven architectures support strangler fig migrations b
 
 The Scatter-Gather pattern distributes requests across multiple services and aggregates responses, commonly used for search scenarios or when combining data from multiple sources. Lambda's concurrent execution model aligns well with this pattern, allowing multiple requests to be processed simultaneously without thread management complexity. The challenge lies in handling variable response times and partial failures while maintaining acceptable user experience. Implementing timeouts and fallback values ensures that slow or failed requests don't block the overall response.
 
+{{< plantuml id="scatter-gather-pattern" >}}
+@startuml Scatter-Gather Pattern
+!define AWSPuml "https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v14.0/dist"
+!include AWSPuml/AWSCommon.puml
+!include AWSPuml/Compute/Lambda.puml
+!include AWSPuml/ApplicationIntegration/APIGateway.puml
+!include AWSPuml/Database/DynamoDB.puml
+!include AWSPuml/Storage/SimpleStorageService.puml
+!include AWSPuml/MachineLearning/ElasticInference.puml
+!include AWSPuml/ApplicationIntegration/EventBridge.puml
+!include AWSPuml/ManagementGovernance/CloudWatch.puml
+
+skinparam BackgroundColor transparent
+skinparam defaultTextAlignment center
+skinparam sequenceArrowThickness 2
+skinparam sequenceGroupBorderThickness 2
+
+actor "Client" as client
+participant "API Gateway" as api
+participant "Aggregator\nLambda" as aggregator
+participant "Product Search\nService" as products
+participant "User History\nService" as history
+participant "Recommendations\nService" as recommendations
+participant "External API\nService" as external
+collections "Results\nCollector" as results
+
+api -> aggregator : Search Request
+activate aggregator
+
+note right of aggregator
+<b>Scatter Phase:</b>
+Send parallel requests with timeouts
+end note
+
+par
+aggregator -> products : Query Products
+activate products
+else
+aggregator -> history : Query User History
+activate history
+else
+aggregator -> recommendations : Get Recommendations
+activate recommendations
+else
+aggregator -> external : External API Call
+activate external
+end
+
+products --> aggregator : Product Results (200ms)
+deactivate products
+
+history --> aggregator : History Results (150ms)
+deactivate history
+
+recommendations --> aggregator : Recommendation Results (300ms)
+deactivate recommendations
+
+alt Successful case
+external --> aggregator : External API Results (180ms)
+deactivate external
+else Timeout/Failure case
+aggregator -> aggregator : Timeout after 400ms
+note right of aggregator
+External service too slow
+Use fallback results
+end note
+end
+
+note right of aggregator
+<b>Gather Phase:</b>
+Combine results, handle missing data
+end note
+
+loop For each result set
+aggregator -> results : Add to Combined Results
+activate results
+results -> results : Sort by Relevance
+results -> results : Remove Duplicates
+results -> aggregator : Processed Results
+deactivate results
+end
+
+aggregator -> api : Aggregated Response
+deactivate aggregator
+
+api -> client : Search Results
+
+note bottom of aggregator
+Handles:
+
+- Service failures
+- Timeouts
+- Partial results
+- Priority merging
+end note
+
+@enduml
+{{< /plantuml >}}
+
 DynamoDB's parallel scan capabilities provide infrastructure-level support for scatter-gather patterns when querying large datasets. By distributing scan operations across multiple segments and aggregating results, applications can achieve higher throughput than sequential scanning would allow. The eventual consistency model of DynamoDB requires careful consideration of read consistency requirements in scatter-gather scenarios.
-
-```typescript
-// Scatter-Gather pattern implementation for parallel service calls
-import { Lambda } from '@aws-sdk/client-lambda';
-
-interface ServiceResponse<T> {
-  serviceId: string;
-  data?: T;
-  error?: string;
-  responseTime: number;
-}
-
-interface SearchResult {
-  results: any[];
-  source: string;
-  relevanceScore: number;
-}
-
-class ScatterGatherProcessor {
-  private lambda: Lambda;
-  private timeout: number;
-
-  constructor(timeout = 5000) {
-    this.lambda = new Lambda({});
-    this.timeout = timeout;
-  }
-
-  async searchAcrossServices(query: string): Promise<{
-    results: SearchResult[];
-    totalResponseTime: number;
-    successfulServices: number;
-    failedServices: string[];
-  }> {
-    const startTime = Date.now();
-    const services = [
-      { id: 'product-search', functionName: 'productSearchFunction' },
-      { id: 'user-search', functionName: 'userSearchFunction' },
-      { id: 'content-search', functionName: 'contentSearchFunction' },
-      { id: 'external-search', functionName: 'externalSearchFunction' }
-    ];
-
-    // Scatter: Send requests to all services concurrently
-    const promises = services.map(service => 
-      this.callServiceWithTimeout(service.functionName, { query }, service.id)
-    );
-
-    // Gather: Wait for all responses (or timeouts)
-    const responses = await Promise.allSettled(promises);
-    
-    const results: SearchResult[] = [];
-    const failedServices: string[] = [];
-    let successfulServices = 0;
-
-    responses.forEach((response, index) => {
-      if (response.status === 'fulfilled' && response.value.data) {
-        results.push(...response.value.data);
-        successfulServices++;
-      } else {
-        failedServices.push(services[index].id);
-        console.error(`Service ${services[index].id} failed:`, 
-          response.status === 'rejected' ? response.reason : response.value.error
-        );
-      }
-    });
-
-    // Sort results by relevance score
-    results.sort((a, b) => b.relevanceScore - a.relevanceScore);
-
-    return {
-      results: results.slice(0, 50), // Limit results
-      totalResponseTime: Date.now() - startTime,
-      successfulServices,
-      failedServices
-    };
-  }
-
-  private async callServiceWithTimeout<T>(
-    functionName: string, 
-    payload: any, 
-    serviceId: string
-  ): Promise<ServiceResponse<T>> {
-    const startTime = Date.now();
-    
-    try {
-      const response = await Promise.race([
-        this.lambda.invoke({
-          FunctionName: functionName,
-          Payload: JSON.stringify(payload)
-        }),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout')), this.timeout)
-        )
-      ]);
-
-      const result = JSON.parse(response.Payload?.toString() || '{}');
-      
-      return {
-        serviceId,
-        data: result.body ? JSON.parse(result.body) : result,
-        responseTime: Date.now() - startTime
-      };
-    } catch (error) {
-      return {
-        serviceId,
-        error: error.message,
-        responseTime: Date.now() - startTime
-      };
-    }
-  }
-
-  // Parallel DynamoDB scan implementation
-  async parallelScanTable(
-    tableName: string, 
-    totalSegments = 4
-  ): Promise<{ items: any[]; scannedCount: number }> {
-    const promises = [];
-    
-    // Create scan operations for each segment
-    for (let segment = 0; segment < totalSegments; segment++) {
-      promises.push(this.scanTableSegment(tableName, segment, totalSegments));
-    }
-
-    // Execute all scans in parallel
-    const results = await Promise.allSettled(promises);
-    
-    let allItems: any[] = [];
-    let totalScannedCount = 0;
-
-    results.forEach((result, index) => {
-      if (result.status === 'fulfilled') {
-        allItems = allItems.concat(result.value.items);
-        totalScannedCount += result.value.scannedCount;
-      } else {
-        console.error(`Segment ${index} scan failed:`, result.reason);
-      }
-    });
-
-    return {
-      items: allItems,
-      scannedCount: totalScannedCount
-    };
-  }
-
-  private async scanTableSegment(
-    tableName: string, 
-    segment: number, 
-    totalSegments: number
-  ) {
-    // This would use DynamoDB client to scan a specific segment
-    // Implementation depends on your DynamoDB client setup
-    return {
-      items: [], // Placeholder
-      scannedCount: 0
-    };
-  }
-}
-
-// Lambda handler for search aggregation
-export const searchHandler = async (event: { query: string }) => {
-  const processor = new ScatterGatherProcessor(3000); // 3 second timeout
-  
-  try {
-    const searchResults = await processor.searchAcrossServices(event.query);
-    
-    return {
-      statusCode: 200,
-      body: JSON.stringify({
-        query: event.query,
-        results: searchResults.results,
-        metadata: {
-          totalResponseTime: searchResults.totalResponseTime,
-          successfulServices: searchResults.successfulServices,
-          failedServices: searchResults.failedServices,
-          resultCount: searchResults.results.length
-        }
-      })
-    };
-  } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'Search aggregation failed' })
-    };
-  }
-};
-```
 
 Observability in distributed systems requires correlation of activities across service boundaries, typically through distributed tracing and correlation identifiers. AWS X-Ray provides managed distributed tracing that automatically captures service maps and latency distributions. Implementing correlation IDs that flow through request chains enables log correlation across services, making it possible to understand complex distributed operations. CloudWatch Insights queries can correlate logs across multiple services using these correlation identifiers, providing end-to-end visibility into distributed operations.
 

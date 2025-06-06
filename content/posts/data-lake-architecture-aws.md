@@ -8,6 +8,129 @@ series: "Cloud Architecture Patterns"
 
 Data lake architectures represent a fundamental departure from traditional data warehousing approaches, embracing schema-on-read principles and polyglot storage strategies that accommodate the velocity, variety, and volume characteristics of modern data ecosystems. Unlike data warehouses that require upfront schema definition and ETL processes to conform data to predefined structures, data lakes preserve raw data in its native format while providing flexible analysis capabilities that adapt to evolving analytical requirements. AWS provides a comprehensive suite of services that enable sophisticated data lake implementations while managing the operational complexity traditionally associated with big data platforms.
 
+{{< plantuml id="data-lake-architecture" >}}
+@startuml
+!theme aws-orange
+title AWS Data Lake Architecture
+
+package "Data Sources" {
+  [On-premises Data] as OnPrem
+  [IoT Devices] as IoT
+  [SaaS Applications] as SaaS
+  [User Analytics] as UA
+  [Business Systems] as BS
+}
+
+package "Ingestion Layer" {
+  [Kinesis Data Streams] as KDS
+  [Kinesis Data Firehose] as KDF
+  [Amazon MSK] as MSK
+  [AWS Transfer Family] as ATF
+  [AWS DataSync] as DataSync
+  [AWS DMS] as DMS
+}
+
+package "Storage Layer" {
+  folder "S3 Raw Zone (Landing)" as RawZone {
+    [CSV/JSON/Parquet/etc.]
+  }
+  
+  folder "S3 Processed Zone" as ProcessedZone {
+    [Partitioned Parquet/ORC]
+  }
+  
+  folder "S3 Curated Zone (Consumption)" as CuratedZone {
+    [Optimized Analytics Datasets]
+  }
+}
+
+package "Processing Layer" {
+  [AWS Glue ETL] as GlueETL
+  [AWS Lambda] as Lambda
+  [EMR] as EMR
+  [AWS Glue DataBrew] as DataBrew
+}
+
+package "Metadata & Governance" {
+  [AWS Glue Data Catalog] as GlueCatalog
+  [AWS Lake Formation] as LakeFormation
+}
+
+package "Analytics Layer" {
+  [Amazon Athena] as Athena
+  [Amazon Redshift Spectrum] as RedshiftSpectrum
+  [Amazon QuickSight] as QuickSight
+  [Amazon EMR with Spark/Hive] as EMRAnalytics
+  [SageMaker] as SM
+}
+
+OnPrem --> DataSync
+OnPrem --> DMS
+SaaS --> KDF
+IoT --> KDS
+UA --> KDS
+BS --> ATF
+BS --> MSK
+
+DataSync --> RawZone
+DMS --> RawZone
+KDF --> RawZone
+KDS --> Lambda
+Lambda --> RawZone
+ATF --> RawZone
+MSK --> RawZone
+
+RawZone --> GlueETL
+RawZone --> Lambda
+RawZone --> EMR
+RawZone --> DataBrew
+
+GlueETL --> ProcessedZone
+Lambda --> ProcessedZone
+EMR --> ProcessedZone
+DataBrew --> ProcessedZone
+
+ProcessedZone --> GlueETL
+GlueETL --> CuratedZone
+
+RawZone ..> GlueCatalog
+ProcessedZone ..> GlueCatalog
+CuratedZone ..> GlueCatalog
+
+GlueCatalog --> LakeFormation
+
+LakeFormation --> Athena
+LakeFormation --> RedshiftSpectrum
+LakeFormation --> QuickSight
+LakeFormation --> EMRAnalytics
+LakeFormation --> SM
+
+note right of RawZone
+  * Raw data in original format
+  * Immutable historical archive
+  * Optimized for write operations
+end note
+
+note right of ProcessedZone
+  * Cleansed and transformed data
+  * Optimized columnar formats
+  * Partitioned for performance
+end note
+
+note right of CuratedZone
+  * Business-ready datasets
+  * Domain-specific views
+  * Aggregated and enriched data
+end note
+
+note right of LakeFormation
+  * Centralized access control
+  * Fine-grained permissions
+  * Data lineage tracking
+end note
+@enduml
+{{< /plantuml >}}
+
 The conceptual foundation of data lakes rests on the principle of storing data in its most granular, unprocessed form while providing multiple access patterns and analytical interfaces. This approach recognizes that data value often emerges through unexpected correlations and analytical approaches that weren't anticipated during initial collection. By preserving complete fidelity of source data, data lakes enable retrospective analysis using new techniques and tools as they become available, avoiding the irreversible information loss that occurs in traditional ETL pipelines.
 
 Amazon S3 serves as the foundational storage layer for most AWS data lake architectures, providing virtually unlimited capacity with multiple storage classes optimized for different access patterns and cost profiles. The object storage model aligns naturally with data lake principles by supporting flexible schemas and enabling direct access from multiple analytical tools without requiring data movement. S3's lifecycle management capabilities automatically transition data between storage classes based on access patterns, optimizing costs while maintaining availability for active analysis workloads.

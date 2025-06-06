@@ -15,6 +15,64 @@ series: "Cloud Architecture Patterns"
 
 Event sourcing fundamentally changes how applications handle state management by storing every state change as an immutable event rather than maintaining current state snapshots. This architectural pattern becomes particularly powerful when implemented on AWS, where managed services provide the scalability and durability required for enterprise-grade event sourcing systems. Understanding how to leverage AWS services effectively for event sourcing can transform application architectures from brittle state-dependent systems into resilient, audit-friendly, and highly scalable solutions.
 
+{{< plantuml id="event-sourcing-aws" >}}
+@startuml
+!theme aws-orange
+title Event Sourcing Architecture on AWS
+
+actor Client
+participant "API Gateway" as API
+participant "Command Handler\n(Lambda)" as CommandHandler
+database "Event Store\n(DynamoDB)" as EventStore
+queue "DynamoDB Stream" as Stream
+participant "Projection Builder\n(Lambda)" as Projector
+database "Read Model\n(DynamoDB)" as ReadModel
+queue "EventBridge" as EventBridge
+collections "Event Consumers" as Consumers
+
+Client -> API: Command
+activate API
+API -> CommandHandler: Process Command
+activate CommandHandler
+
+CommandHandler -> CommandHandler: Validate Command
+CommandHandler -> EventStore: Append Event(s)
+note right: Events are the source of truth
+
+EventStore -> Stream: Trigger Stream
+Stream -> Projector: Process Event
+activate Projector
+Projector -> ReadModel: Update Projection
+deactivate Projector
+
+CommandHandler -> EventBridge: Publish Domain Event
+EventBridge -> Consumers: Fan Out to Subscribers
+
+CommandHandler --> API: Command Result
+deactivate CommandHandler
+API --> Client: Response
+deactivate API
+
+Client -> API: Query
+activate API
+API -> ReadModel: Read Projection
+API --> Client: Query Result
+deactivate API
+
+note right of EventStore
+  * Immutable event log
+  * Versioned by aggregate
+  * Optimistic concurrency
+end note
+
+note right of ReadModel
+  * Denormalized for queries
+  * Eventually consistent
+  * Purpose-built views
+end note
+@enduml
+{{< /plantuml >}}
+
 ## The Foundation of Event Sourcing Architecture
 
 Traditional applications typically store only the current state of entities, losing the rich history of how that state evolved over time. Event sourcing inverts this approach by treating events as the source of truth, with current state derived by replaying events from the beginning of time. This shift provides several compelling advantages: complete audit trails emerge naturally, temporal queries become possible, and debugging complex state transitions becomes significantly easier.

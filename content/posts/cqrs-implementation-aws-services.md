@@ -8,6 +8,72 @@ series: "Cloud Architecture Patterns"
 
 Command Query Responsibility Segregation represents a fundamental shift in how we think about data persistence and retrieval in distributed systems. Rather than treating reads and writes as symmetric operations against a single data model, CQRS acknowledges the inherent differences between these operations and optimizes each path independently. In the context of AWS services, this pattern becomes particularly powerful when we leverage the managed services ecosystem to handle the complexity of maintaining separate command and query models.
 
+{{< plantuml id="cqrs-aws-architecture" >}}
+@startuml
+!theme aws-orange
+title CQRS Implementation with AWS Services
+
+actor Client
+
+package "Command Side" {
+  [API Gateway] as CommandAPI
+  [Lambda\nCommand Handler] as CommandHandler
+  [DynamoDB\nWrite Model] as CommandDB
+  [EventBridge] as EventBus
+}
+
+package "Event Processing" {
+  [Lambda\nEvent Processor] as EventProcessor
+  [DynamoDB Stream] as DynamoStream
+  [SQS Queue] as Queue
+}
+
+package "Query Side" {
+  [API Gateway] as QueryAPI
+  [Lambda\nQuery Service] as QueryService
+  [ElasticSearch] as QueryDB1
+  [DynamoDB\nGSIs] as QueryDB2
+}
+
+Client --> CommandAPI : HTTP POST/PUT/DELETE
+Client --> QueryAPI : HTTP GET
+
+CommandAPI --> CommandHandler
+CommandHandler --> CommandDB : Create/Update
+CommandDB --> DynamoStream : Change events
+DynamoStream --> EventProcessor
+CommandHandler --> EventBus : Domain events
+
+EventProcessor --> QueryDB1 : Update read model
+EventProcessor --> QueryDB2 : Update read model
+EventBus --> Queue : Fan out
+Queue --> EventProcessor : Process events
+
+QueryAPI --> QueryService
+QueryService --> QueryDB1 : Query optimized view
+QueryService --> QueryDB2 : Query by access patterns
+
+note right of CommandDB
+  Optimized for writes:
+  - Primary entity table
+  - Consistency boundaries
+  - Conditional writes
+end note
+
+note right of QueryDB1
+  Optimized for complex searches:
+  - Full-text search
+  - Faceting and aggregation
+end note
+
+note right of QueryDB2
+  Optimized for specific queries:
+  - GSIs for access patterns
+  - Denormalized models
+end note
+@enduml
+{{< /plantuml >}}
+
 The traditional approach of using a single database for both commands and queries often leads to compromises that satisfy neither use case optimally. Write operations typically require strong consistency, transactional guarantees, and normalized data structures that maintain referential integrity. Read operations, conversely, benefit from denormalized views, eventual consistency models, and optimized indexes that support complex query patterns. These conflicting requirements become more pronounced as systems scale, leading to performance bottlenecks and architectural complexity.
 
 AWS DynamoDB serves as an excellent foundation for implementing the command side of CQRS architectures. Its single-table design philosophy aligns naturally with aggregate-oriented command models, where each business entity maintains its own consistency boundary. When designing command handlers, we focus on capturing the intent of business operations rather than optimizing for query flexibility. A customer registration command might store minimal data required for the business logic, using DynamoDB's conditional writes to ensure data integrity without the overhead of complex relational constraints.

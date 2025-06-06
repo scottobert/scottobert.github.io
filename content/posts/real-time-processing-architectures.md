@@ -8,6 +8,115 @@ series: "Cloud Architecture Patterns"
 
 Real-time processing architectures address the fundamental challenge of extracting actionable insights from continuously flowing data streams while maintaining low latency and high throughput requirements. Unlike batch processing systems that operate on static datasets with relaxed timing constraints, real-time systems must process events as they arrive, often within milliseconds or seconds of generation. This temporal sensitivity introduces unique design considerations around event ordering, backpressure handling, and state management that distinguish real-time architectures from their batch-oriented counterparts.
 
+{{< plantuml id="real-time-processing" >}}
+@startuml
+!theme aws-orange
+title Real-time Stream Processing Architecture
+
+package "Data Sources" {
+  [Web Applications] as WebApps
+  [Mobile Devices] as Mobile
+  [IoT Sensors] as IoT
+  [Transaction Systems] as Transactions
+  [Logs & Metrics] as Logs
+}
+
+package "Ingestion Layer" {
+  [Kinesis Data Streams] as KinesisStream
+  [MSK (Kafka)] as MSK
+  [IoT Core] as IoTCore
+}
+
+package "Processing Layer" {
+  package "Stream Processing" {
+    [Kinesis Data Analytics\n(Apache Flink)] as KDA
+    [Lambda Consumer] as Lambda
+    [Self-managed Kafka Streams] as KafkaStreams
+    [EMR Streaming] as EMR
+  }
+  
+  database "State Storage" {
+    [ElastiCache] as ElastiCache
+    [DynamoDB] as DynamoDB
+  }
+}
+
+package "Serving Layer" {
+  [DynamoDB Tables] as DynamoTables
+  [OpenSearch Service] as OpenSearch
+  [Timestream] as Timestream
+  [S3 (time-partitioned)] as S3
+}
+
+package "Consumption Layer" {
+  [Real-time Dashboards] as Dashboards
+  [Alerts & Notifications] as Alerts
+  [API Gateway] as API
+  [EventBridge Rules] as EventRules
+}
+
+WebApps --> KinesisStream
+Mobile --> KinesisStream
+IoT --> IoTCore
+Transactions --> MSK
+Logs --> KinesisStream
+
+IoTCore --> KinesisStream
+
+KinesisStream --> KDA
+KinesisStream --> Lambda
+MSK --> KafkaStreams
+MSK --> KDA
+KinesisStream --> EMR
+
+KDA <--> ElastiCache : Stateful processing
+KDA <--> DynamoDB : Checkpointing
+Lambda <--> DynamoDB : State lookups
+KafkaStreams <--> ElastiCache : Windowed aggregations
+
+KDA --> DynamoTables : Real-time aggregations
+KDA --> OpenSearch : Searchable metrics
+KDA --> Timestream : Time series data
+Lambda --> DynamoTables : Enriched events
+Lambda --> S3 : Archival storage
+KafkaStreams --> DynamoTables : Processed events
+EMR --> S3 : Windowed results
+
+DynamoTables --> API
+OpenSearch --> Dashboards
+Timestream --> Dashboards
+DynamoTables --> Alerts
+OpenSearch --> EventRules
+DynamoTables --> EventRules
+
+note right of KinesisStream
+  * Ordered within partitions
+  * Millisecond latency
+  * Optimized for high throughput
+end note
+
+note right of KDA
+  * Stateful stream processing
+  * Windowed aggregations
+  * Exactly-once semantics
+  * Sub-second processing
+end note
+
+note right of Lambda
+  * Event-driven processing
+  * Simple transformations
+  * Fan-out pattern
+  * At-least-once delivery
+end note
+
+note bottom of DynamoDB
+  * Low-latency lookups
+  * Transaction support
+  * Time-to-live for state
+end note
+@enduml
+{{< /plantuml >}}
+
 The evolution from traditional batch processing to real-time streaming reflects the changing nature of modern business requirements where delayed insights often lose their value. Financial trading systems require microsecond response times to capitalize on market opportunities. Fraud detection systems must identify suspicious patterns before transactions complete. Recommendation engines need to incorporate user behavior in real-time to maximize engagement. These use cases share the common requirement that data processing latency directly impacts business value, making architectural decisions about streaming infrastructure critical to organizational success.
 
 AWS Kinesis Data Streams provides the foundational infrastructure for real-time data ingestion, offering managed scaling and durability guarantees that simplify the operational overhead of stream processing systems. The shard-based partitioning model enables horizontal scaling by distributing records across multiple shards based on partition keys, allowing different parts of the data stream to be processed independently. Understanding the relationship between partition key selection and shard distribution becomes critical for achieving balanced throughput and avoiding hot sharding scenarios that can bottleneck entire processing pipelines.

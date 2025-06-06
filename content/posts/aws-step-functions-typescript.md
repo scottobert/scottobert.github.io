@@ -21,6 +21,54 @@ While individual Lambda functions excel at discrete tasks, real-world applicatio
 
 Before we begin, you'll need to prepare your development environment. Make sure you have the AWS SAM CLI installed for local development and testing. You should have a TypeScript development environment set up and the AWS CLI configured with your credentials. Additionally, you should be familiar with AWS Lambda concepts—if you need a refresher, refer to our previous post on AWS Lambda with TypeScript for the fundamentals.
 
+## Order Processing Workflow Architecture
+
+The diagram below illustrates the order processing workflow we'll implement using AWS Step Functions. This visual representation helps clarify the sequence of operations and decision points in our serverless workflow:
+
+{{< plantuml id="step-functions-workflow" >}}
+@startuml
+!theme aws-orange
+title Order Processing Workflow with Step Functions
+
+start
+:Order Placed;
+
+partition "Payment Processing" {
+  :Validate Payment Information;
+  if (Payment Valid?) then (yes)
+    :Reserve Payment;
+  else (no)
+    :Notify Customer;
+    stop
+  endif
+}
+
+partition "Inventory Management" {
+  :Check Inventory;
+  if (Items Available?) then (yes)
+    :Reserve Inventory;
+  else (no)
+    :Compensate Payment;
+    :Notify Out of Stock;
+    stop
+  endif
+}
+
+partition "Order Fulfillment" {
+  :Create Shipment;
+  
+  fork
+    :Send Order Confirmation;
+  fork again
+    :Update Analytics;
+  end fork
+}
+
+:Complete Order;
+stop
+@enduml
+{{< /plantuml >}}
+
 ## Creating a Basic Workflow
 
 Let's create a practical example: an order processing system that demonstrates common patterns in distributed systems.

@@ -1,4 +1,9 @@
-<img id="plantuml-{{ .Get "id" }}" class="plantuml-diagram"/>
+<div class="plantuml-container">
+  <img id="plantuml-{{ .Get "id" }}" class="plantuml-diagram"/>
+  <a id="plantuml-link-{{ .Get "id" }}" href="#" target="_blank" class="plantuml-link" title="Open diagram in new window">
+    <span class="plantuml-link-icon">🔍</span>
+  </a>
+</div>
 <script src="/js/rawdeflate.js"></script>
 <script>
   // Based on https://plantuml.com/code-javascript-asynchronous
@@ -61,9 +66,17 @@
     deflater = new Worker('/js/rawdeflate.js');
     deflater.onmessage = done_deflating;
   }
+
   function done_deflating(e) {
     const img = document.getElementById("plantuml-{{ .Get "id" }}");
-    img.src = "http://www.plantuml.com/plantuml/img/"+encode64(e.data);
+    const imgUrl = "https://www.plantuml.com/plantuml/img/"+encode64(e.data);
+    img.src = imgUrl;
+    
+    // Update the link href with the image URL
+    const link = document.getElementById("plantuml-link-{{ .Get "id" }}");
+    if (link) {
+      link.href = imgUrl;
+    }
   }
 
   function compress(s) {
