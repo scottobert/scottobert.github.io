@@ -4,6 +4,39 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ block "title" . }}{{ .Site.Title }}{{ end }}</title>
+  
+  <!-- SEO and Pagination Meta Tags -->
+  {{ if .IsPage }}
+    <meta name="description" content="{{ with .Description }}{{ . }}{{ else }}{{ .Summary | truncate 160 }}{{ end }}">
+  {{ else }}
+    <meta name="description" content="{{ with .Site.Params.description }}{{ . }}{{ else }}{{ .Site.Title }} - Software Engineering Blog{{ end }}">
+  {{ end }}
+    <!-- Canonical URL -->
+  <link rel="canonical" href="{{ .Permalink }}">
+    <!-- Pagination Links -->
+  {{ if or .IsHome (and (ne .Kind "page") (ne .Kind "section")) }}
+    {{ with .Paginator }}
+      {{ if .HasPrev }}
+        <link rel="prev" href="{{ .Prev.URL }}">
+      {{ end }}
+      {{ if .HasNext }}
+        <link rel="next" href="{{ .Next.URL }}">
+      {{ end }}
+    {{ end }}
+  {{ end }}
+  
+  <!-- Open Graph Tags -->
+  <meta property="og:title" content="{{ if .IsPage }}{{ .Title }}{{ else }}{{ .Site.Title }}{{ end }}">
+  <meta property="og:description" content="{{ with .Description }}{{ . }}{{ else }}{{ .Summary | truncate 160 }}{{ end }}">
+  <meta property="og:type" content="{{ if .IsPage }}article{{ else }}website{{ end }}">
+  <meta property="og:url" content="{{ .Permalink }}">
+  <meta property="og:site_name" content="{{ .Site.Title }}">
+  
+  <!-- Twitter Card Tags -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="{{ if .IsPage }}{{ .Title }}{{ else }}{{ .Site.Title }}{{ end }}">
+  <meta name="twitter:description" content="{{ with .Description }}{{ . }}{{ else }}{{ .Summary | truncate 160 }}{{ end }}">
+  
   <link rel="stylesheet" href="/css/style.css">
   <script src="/js/npm-packages.js" defer></script>
   <script defer src="https://cloud.umami.is/script.js" data-website-id="e2461896-021d-422a-b83f-624a8819309b"></script>

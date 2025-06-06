@@ -1,0 +1,124 @@
+{{ $paginator := .Paginator }}
+{{ if gt $paginator.TotalPages 1 }}
+<nav class="pagination" role="navigation" aria-label="Pagination Navigation">
+  <div class="pagination-info">    <span class="pagination-stats" role="status" aria-live="polite">
+      Showing {{ add (mul (sub $paginator.PageNumber 1) $paginator.PagerSize) 1 }} to 
+      {{ if lt (mul $paginator.PageNumber $paginator.PagerSize) $paginator.TotalNumberOfElements }}
+        {{ mul $paginator.PageNumber $paginator.PagerSize }}
+      {{ else }}
+        {{ $paginator.TotalNumberOfElements }}
+      {{ end }} 
+      of {{ $paginator.TotalNumberOfElements }} posts
+    </span>
+  </div>
+  
+  <ul class="pagination-list">
+    {{ if $paginator.HasPrev }}
+      <li class="pagination-item">
+        <a href="{{ $paginator.First.URL }}" class="pagination-link" aria-label="Go to first page" rel="prev">
+          <span aria-hidden="true">«</span>
+          <span class="sr-only">First</span>
+        </a>
+      </li>
+      <li class="pagination-item">
+        <a href="{{ $paginator.Prev.URL }}" class="pagination-link" aria-label="Go to previous page" rel="prev">
+          <span aria-hidden="true">‹</span>
+          <span class="sr-only">Previous</span>
+        </a>
+      </li>
+    {{ else }}
+      <li class="pagination-item disabled">
+        <span class="pagination-link" aria-label="First page (unavailable)">
+          <span aria-hidden="true">«</span>
+          <span class="sr-only">First</span>
+        </span>
+      </li>
+      <li class="pagination-item disabled">
+        <span class="pagination-link" aria-label="Previous page (unavailable)">
+          <span aria-hidden="true">‹</span>
+          <span class="sr-only">Previous</span>
+        </span>
+      </li>
+    {{ end }}
+
+    {{ $startPage := 1 }}
+    {{ $endPage := $paginator.TotalPages }}
+    {{ $currentPage := $paginator.PageNumber }}
+    
+    {{ if gt $paginator.TotalPages 7 }}
+      {{ if le $currentPage 4 }}
+        {{ $endPage = 5 }}
+      {{ else if ge $currentPage (sub $paginator.TotalPages 3) }}
+        {{ $startPage = sub $paginator.TotalPages 4 }}
+      {{ else }}
+        {{ $startPage = sub $currentPage 2 }}
+        {{ $endPage = add $currentPage 2 }}
+      {{ end }}
+    {{ end }}
+
+    {{ if gt $startPage 1 }}
+      <li class="pagination-item">
+        <a href="{{ (index $paginator.Pagers 0).URL }}" class="pagination-link" aria-label="Go to page 1">1</a>
+      </li>
+      {{ if gt $startPage 2 }}
+        <li class="pagination-item">
+          <span class="pagination-ellipsis" aria-hidden="true">…</span>
+        </li>
+      {{ end }}
+    {{ end }}
+
+    {{ range $paginator.Pagers }}
+      {{ if and (ge .PageNumber $startPage) (le .PageNumber $endPage) }}
+        {{ if eq .PageNumber $currentPage }}
+          <li class="pagination-item">
+            <span class="pagination-link current" aria-current="page" aria-label="Current page, page {{ .PageNumber }}">{{ .PageNumber }}</span>
+          </li>
+        {{ else }}
+          <li class="pagination-item">
+            <a href="{{ .URL }}" class="pagination-link" aria-label="Go to page {{ .PageNumber }}">{{ .PageNumber }}</a>
+          </li>
+        {{ end }}
+      {{ end }}
+    {{ end }}
+
+    {{ if lt $endPage $paginator.TotalPages }}
+      {{ if lt $endPage (sub $paginator.TotalPages 1) }}
+        <li class="pagination-item">
+          <span class="pagination-ellipsis" aria-hidden="true">…</span>
+        </li>
+      {{ end }}
+      <li class="pagination-item">
+        <a href="{{ (index $paginator.Pagers (sub $paginator.TotalPages 1)).URL }}" class="pagination-link" aria-label="Go to page {{ $paginator.TotalPages }}">{{ $paginator.TotalPages }}</a>
+      </li>
+    {{ end }}
+
+    {{ if $paginator.HasNext }}
+      <li class="pagination-item">
+        <a href="{{ $paginator.Next.URL }}" class="pagination-link" aria-label="Go to next page" rel="next">
+          <span aria-hidden="true">›</span>
+          <span class="sr-only">Next</span>
+        </a>
+      </li>
+      <li class="pagination-item">
+        <a href="{{ $paginator.Last.URL }}" class="pagination-link" aria-label="Go to last page" rel="next">
+          <span aria-hidden="true">»</span>
+          <span class="sr-only">Last</span>
+        </a>
+      </li>
+    {{ else }}
+      <li class="pagination-item disabled">
+        <span class="pagination-link" aria-label="Next page (unavailable)">
+          <span aria-hidden="true">›</span>
+          <span class="sr-only">Next</span>
+        </span>
+      </li>
+      <li class="pagination-item disabled">
+        <span class="pagination-link" aria-label="Last page (unavailable)">
+          <span aria-hidden="true">»</span>
+          <span class="sr-only">Last</span>
+        </span>
+      </li>
+    {{ end }}
+  </ul>
+</nav>
+{{ end }}

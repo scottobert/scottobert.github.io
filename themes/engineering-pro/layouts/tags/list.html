@@ -1,18 +1,24 @@
 {{ define "title" }}
   {{ if .Paginator }}
     {{ if gt .Paginator.PageNumber 1 }}
-      {{ .Title }} - Page {{ .Paginator.PageNumber }} | {{ .Site.Title }}
+      Posts tagged "{{ .Title }}" - Page {{ .Paginator.PageNumber }} | {{ .Site.Title }}
     {{ else }}
-      {{ .Title }} | {{ .Site.Title }}
+      Posts tagged "{{ .Title }}" | {{ .Site.Title }}
     {{ end }}
   {{ else }}
-    {{ .Title }} | {{ .Site.Title }}
+    Posts tagged "{{ .Title }}" | {{ .Site.Title }}
   {{ end }}
 {{ end }}
 
 {{ define "main" }}
-<section class="post-list">
-  <h1>{{ .Title }}</h1>
+<section class="post-list taxonomy-list">
+  <div class="taxonomy-header">
+    <h1>{{ .Title }}</h1>
+    <p class="taxonomy-description">
+      {{ $postCount := len .Pages }}
+      {{ $postCount }} {{ if eq $postCount 1 }}post{{ else }}posts{{ end }} tagged with <strong>{{ .Title }}</strong>
+    </p>
+  </div>
   
   {{ $paginator := .Paginate (.Pages.ByDate.Reverse) }}
   
@@ -25,11 +31,16 @@
             <time datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">
               {{ .Date.Format "January 2, 2006" }}
             </time>
-            {{ with .Params.tags }}
-            <div class="tags">
+            {{ with .Params.categories }}
+            <div class="categories">
               {{ range . }}
-                <a href="/tags/{{ . | urlize }}" class="tag">{{ . }}</a>
+                <a href="/categories/{{ . | urlize }}" class="category">{{ . }}</a>
               {{ end }}
+            </div>
+            {{ end }}
+            {{ if .Params.series }}
+            <div class="series-link">
+              <a href="/series/{{ .Params.series | urlize }}">{{ .Params.series }} Series</a>
             </div>
             {{ end }}
           </div>
@@ -47,7 +58,12 @@
       </article>
     {{ end }}
   </div>
+
   <!-- Pagination -->
   {{ partial "pagination.html" . }}
+
+  <div class="taxonomy-navigation">
+    <a href="/tags/" class="back-link">← All Tags</a>
+  </div>
 </section>
 {{ end }}

@@ -1,16 +1,28 @@
+{{ define "title" }}
+  {{ if .Paginator }}
+    {{ if gt .Paginator.PageNumber 1 }}
+      {{ .Title }} Series - Page {{ .Paginator.PageNumber }} | {{ .Site.Title }}
+    {{ else }}
+      {{ .Title }} Series | {{ .Site.Title }}
+    {{ end }}
+  {{ else }}
+    {{ .Title }} Series | {{ .Site.Title }}
+  {{ end }}
+{{ end }}
+
 {{ define "main" }}
 <div class="container">
   <div class="content-wrapper">
-    <main class="main-content">
-      <div class="series-header">
+    <main class="main-content">      <div class="series-header">
         <h1>{{ .Title }} Series</h1>
+        {{ $paginator := .Paginate (.Pages.ByDate) }}
         <p class="series-description">
           All posts in the <strong>{{ .Title }}</strong> series ({{ len .Pages }} {{ if eq (len .Pages) 1 }}post{{ else }}posts{{ end }})
         </p>
       </div>
 
       <div class="posts">
-        {{ range .Pages.ByDate }}
+        {{ range $paginator.Pages }}
         <article class="post-summary">
           <header class="post-header">
             <h2 class="post-title">
@@ -40,6 +52,9 @@
         </article>
         {{ end }}
       </div>
+
+      <!-- Pagination -->
+      {{ partial "pagination.html" . }}
 
       <div class="series-navigation">
         <a href="/" class="back-link">← Back to Home</a>

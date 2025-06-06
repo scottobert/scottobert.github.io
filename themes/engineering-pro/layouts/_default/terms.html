@@ -1,0 +1,39 @@
+{{ define "main" }}
+<section class="taxonomy-terms">
+  <div class="taxonomy-header">
+    <h1>{{ .Title }}</h1>
+    <p class="taxonomy-description">
+      Browse all {{ lower .Title }} and explore related posts.
+    </p>
+  </div>
+
+  <div class="terms-grid">
+    {{ range .Data.Terms.ByCount }}
+    <div class="term-card">
+      <h3 class="term-name">
+        <a href="{{ .Page.RelPermalink }}">{{ .Page.Title }}</a>
+      </h3>
+      <div class="term-meta">
+        <span class="post-count">{{ .Count }} {{ if eq .Count 1 }}post{{ else }}posts{{ end }}</span>
+      </div>
+      
+      <!-- Show preview of latest posts -->
+      {{ $posts := first 3 (.Pages.ByDate.Reverse) }}
+      {{ if $posts }}
+      <div class="term-preview">
+        <h4>Latest posts:</h4>
+        <ul class="preview-posts">
+          {{ range $posts }}
+          <li>
+            <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+            <time>{{ .Date.Format "Jan 2006" }}</time>
+          </li>
+          {{ end }}
+        </ul>
+      </div>
+      {{ end }}
+    </div>
+    {{ end }}
+  </div>
+</section>
+{{ end }}

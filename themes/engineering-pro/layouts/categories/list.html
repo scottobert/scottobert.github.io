@@ -1,18 +1,24 @@
 {{ define "title" }}
   {{ if .Paginator }}
     {{ if gt .Paginator.PageNumber 1 }}
-      {{ .Title }} - Page {{ .Paginator.PageNumber }} | {{ .Site.Title }}
+      {{ .Title }} Category - Page {{ .Paginator.PageNumber }} | {{ .Site.Title }}
     {{ else }}
-      {{ .Title }} | {{ .Site.Title }}
+      {{ .Title }} Category | {{ .Site.Title }}
     {{ end }}
   {{ else }}
-    {{ .Title }} | {{ .Site.Title }}
+    {{ .Title }} Category | {{ .Site.Title }}
   {{ end }}
 {{ end }}
 
 {{ define "main" }}
-<section class="post-list">
-  <h1>{{ .Title }}</h1>
+<section class="post-list taxonomy-list">
+  <div class="taxonomy-header">
+    <h1>{{ .Title }}</h1>
+    <p class="taxonomy-description">
+      {{ $postCount := len .Pages }}
+      {{ $postCount }} {{ if eq $postCount 1 }}post{{ else }}posts{{ end }} in the <strong>{{ .Title }}</strong> category
+    </p>
+  </div>
   
   {{ $paginator := .Paginate (.Pages.ByDate.Reverse) }}
   
@@ -32,6 +38,11 @@
               {{ end }}
             </div>
             {{ end }}
+            {{ if .Params.series }}
+            <div class="series-link">
+              <a href="/series/{{ .Params.series | urlize }}">{{ .Params.series }} Series</a>
+            </div>
+            {{ end }}
           </div>
         </header>
         <div class="summary">
@@ -47,7 +58,12 @@
       </article>
     {{ end }}
   </div>
+
   <!-- Pagination -->
   {{ partial "pagination.html" . }}
+
+  <div class="taxonomy-navigation">
+    <a href="/categories/" class="back-link">← All Categories</a>
+  </div>
 </section>
 {{ end }}
