@@ -1260,6 +1260,255 @@ a:focus, button:focus {
 .post img:hover {
   box-shadow: 0 5px 15px rgba(0,0,0,0.12);
 }
+/* Focus visible improvements */
+.pagination-link:focus-visible {
+  outline: 2px solid #0d2440;
+  outline-offset: 2px;
+}
+
+.pagination-link:focus {
+  outline: none;
+}
+/* Pagination Styles */
+.pagination {
+  margin: 3rem 0 2rem 0;
+  text-align: center;
+  contain: layout style;
+}
+
+.pagination-info {
+  margin-bottom: 1rem;
+}
+
+.pagination-stats {
+  color: #666;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.pagination-list {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  gap: 0.25rem;
+  will-change: auto;
+}
+
+.pagination-item {
+  margin: 0;
+}
+
+.pagination-link {
+  display: inline-block;
+  padding: 0.75rem 1rem;
+  color: #0d2440;
+  text-decoration: none;
+  border: 1px solid #dde5ed;
+  border-radius: 4px;
+  background: #ffffff;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  min-width: 44px;
+  text-align: center;
+  box-sizing: border-box;
+  will-change: transform, box-shadow;
+}
+
+.pagination-link:hover {
+  background: #f7f9fa;
+  border-color: #0d2440;
+  color: #0d2440;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.pagination-link.current {
+  background: #0d2440;
+  color: #ffffff;
+  border-color: #0d2440;
+  font-weight: 600;
+  cursor: default;
+}
+
+.pagination-link.current:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.pagination-item.disabled .pagination-link {
+  color: #ccc;
+  cursor: not-allowed;
+  background: #f8f9fa;
+  border-color: #e9ecef;
+}
+
+.pagination-item.disabled .pagination-link:hover {
+  background: #f8f9fa;
+  border-color: #e9ecef;
+  color: #ccc;
+  transform: none;
+  box-shadow: none;
+}
+
+.pagination-ellipsis {
+  display: inline-block;
+  padding: 0.75rem 0.5rem;
+  color: #666;
+  font-weight: bold;
+}
+
+/* Responsive pagination */
+@media (max-width: 768px) {
+  .pagination-list {
+    gap: 0.1rem;
+  }
+  
+  .pagination-link {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+    min-width: 36px;
+  }
+  
+  .pagination-info {
+    font-size: 0.8rem;
+  }
+  
+  .pagination-stats {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .pagination-list {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+  
+  .pagination-link {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
+    min-width: 32px;
+  }
+}
+
+/* Taxonomy List Pages */
+.taxonomy-list .taxonomy-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.taxonomy-list .taxonomy-description {
+  color: #666;
+  font-size: 1rem;
+  margin-top: 0.5rem;
+}
+
+.taxonomy-navigation {
+  text-align: center;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.back-link {
+  color: #0d2440;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border: 1px solid #dde5ed;
+  border-radius: 4px;
+  background: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.back-link:hover {
+  background: #f7f9fa;
+  border-color: #0d2440;
+  transform: translateX(-2px);
+}
+
+.categories {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.category {
+  background: #e8f4f8;
+  color: #0d2440;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border: 1px solid #b8dae8;
+  transition: all 0.2s ease;
+}
+
+.category:hover {
+  background: #0d2440;
+  color: #ffffff;
+  border-color: #0d2440;
+}
+
+.series-link {
+  margin-top: 0.25rem;
+}
+
+.series-link a {
+  background: #f0f8e8;
+  color: #2d5a0d;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border: 1px solid #c8e8b8;
+  transition: all 0.2s ease;
+}
+
+.series-link a:hover {
+  background: #2d5a0d;
+  color: #ffffff;
+  border-color: #2d5a0d;
+}
+
+/* Performance optimizations */
+.pagination {
+  contain: layout style;
+}
+
+.pagination-list {
+  will-change: auto;
+}
+
+.pagination-link {
+  will-change: transform, box-shadow;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .pagination-link {
+    transition: none;
+  }
+  
+  .pagination-link:hover {
+    transform: none;
+  }
+  
+  .post-summary {
+    transition: none;
+  }
+  
+  .post-summary:hover {
+    transform: none;
+  }
+}
 
 /* Responsive adjustments for npm packages */
 @media (max-width: 768px) {
