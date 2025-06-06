@@ -13,19 +13,6 @@
     </ul>
   </div>
   
-  <div class="sidebar-widget">
-    <h3>Categories</h3>
-    <ul class="categories">
-      {{ range $name, $taxonomy := .Site.Taxonomies.categories }}
-      <li>
-        <a href="{{ "/categories/" | relLangURL }}{{ $name | urlize }}">
-          {{ $name }} ({{ .Count }})
-        </a>
-      </li>
-      {{ end }}
-    </ul>
-  </div>
-
   <!-- Post Series Widget -->
   {{ $seriesPosts := where .Site.RegularPages "Params.series" "!=" nil }}
   {{ $seriesMap := dict }}
@@ -57,6 +44,19 @@
     </ul>
   </div>
   {{ end }}
+  
+  <div class="sidebar-widget">
+    <h3>Categories</h3>
+    <ul class="categories">
+      {{ range $name, $taxonomy := .Site.Taxonomies.categories }}
+      <li>
+        <a href="{{ "/categories/" | relLangURL }}{{ $name | urlize }}">
+          {{ $name }} ({{ .Count }})
+        </a>
+      </li>
+      {{ end }}
+    </ul>
+  </div>
 
   <div class="sidebar-widget">
     <h3>Tags</h3>
@@ -83,19 +83,6 @@
         RSS Feed
       </a>
     </div>
-  </div>
-
-  <div class="sidebar-widget">
-    <h3>Archives</h3>
-    <ul class="archive-list">
-      {{ range $name, $items := .Site.Taxonomies.archives }}
-      <li>
-        <a href="{{ "/archives/" | relLangURL }}{{ $name | urlize }}">
-          {{ $name }} ({{ .Count }})
-        </a>
-      </li>
-      {{ end }}
-    </ul>
   </div>
 
   <div class="sidebar-widget npm-packages">

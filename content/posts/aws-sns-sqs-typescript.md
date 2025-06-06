@@ -9,6 +9,7 @@ tags:
 - Serverless
 - Development
 - Architecture
+series: "AWS and Typescript"
 ---
 
 Event-driven architectures are fundamental to building scalable, loosely coupled systems in the cloud. In this post, we'll explore how to use AWS SNS (Simple Notification Service) and SQS (Simple Queue Service) with TypeScript to create robust event-driven applications.

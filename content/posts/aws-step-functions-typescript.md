@@ -9,6 +9,7 @@ tags:
 - Serverless
 - Development
 - Architecture
+series: "AWS and Typescript"
 ---
 
 Building on our previous exploration of AWS Lambda with TypeScript, let's dive into how Step Functions can orchestrate complex workflows across multiple Lambda functions. Step Functions provide a reliable way to coordinate distributed components and handle long-running processes in your serverless applications.

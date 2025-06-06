@@ -8,6 +8,7 @@ tags:
 - AWS
 - Serverless
 - TypeScript
+series: "AWS and Typescript"
 ---
 
 Welcome to the world of AWS Serverless! In this blog post, we will be discussing how to deploy an AWS Lambda function written in TypeScript using the AWS SAM CLI.
