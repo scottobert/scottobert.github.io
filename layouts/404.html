@@ -1,0 +1,61 @@
+{{ define "title" }}
+  Page Not Found | {{ .Site.Title }}
+{{ end }}
+
+{{ define "main" }}
+<section class="error-page">
+  <div class="error-content">
+    <div class="error-icon">
+      <svg width="120" height="120" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="9" stroke="#0d2440" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 2"/>
+        <path d="M9 9l6 6m0-6l-6 6" stroke="#0d2440" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    
+    <div class="error-text">
+      <h1 class="error-title">404</h1>
+      <h2 class="error-subtitle">{{ with .Site.Language.Params.missingContentMessage }}{{ . }}{{ else }}Page not found{{ end }}</h2>
+      <p class="error-description">
+        The page you're looking for doesn't exist or has been moved. 
+        Let's get you back on track with some helpful options below.
+      </p>
+    </div>
+
+    <div class="error-actions">
+      <a href="/" class="primary-button">
+        {{ with .Site.Language.Params.missingBackButtonLabel }}{{ . }}{{ else }}← Back to Home{{ end }}
+      </a>
+      <a href="/posts/" class="secondary-button">Browse Blog Posts</a>
+    </div>
+
+    <div class="helpful-links">
+      <h3>Popular Content</h3>
+      <div class="links-grid">
+        <div class="link-group">
+          <h4>Recent Posts</h4>
+          <ul>
+            {{ range first 3 (where .Site.RegularPages "Type" "posts") }}
+            <li>
+              <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+              <span class="post-date">{{ .Date.Format "Jan 2, 2006" }}</span>
+            </li>
+            {{ end }}
+          </ul>
+        </div>
+        
+        <div class="link-group">
+          <h4>Categories</h4>
+          <ul>
+            {{ range first 5 .Site.Taxonomies.categories.ByCount }}
+            <li>
+              <a href="{{ "/categories/" | relLangURL }}{{ .Name | urlize }}">{{ .Name }}</a>
+              <span class="count">({{ .Count }})</span>
+            </li>
+            {{ end }}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{{ end }}

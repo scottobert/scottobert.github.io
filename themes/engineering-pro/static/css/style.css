@@ -1549,3 +1549,362 @@ a:focus, button:focus {
 .site-footer a:hover::before {
   width: 100%;
 }
+
+/* Custom 404 Error Page Styles */
+.error-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.error-content {
+  background: #fff url('data:image/svg+xml,%3Csvg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M0 0h4v4H0V0zm8 0h4v4H8V0zm8 0h4v4h-4V0zm8 0h4v4h-4V0zM0 8h4v4H0V8zm8 0h4v4H8V8zm8 0h4v4h-4V8zm8 0h4v4h-4V8zM0 16h4v4H0v-4zm8 0h4v4H8v-4zm8 0h4v4h-4v-4zm8 0h4v4h-4v-4zM0 24h4v4H0v-4zm8 0h4v4H8v-4zm8 0h4v4h-4v-4zm8 0h4v4h-4v-4z" fill="%23f5f8fa" fill-opacity="0.3" fill-rule="evenodd"/%3E%3C/svg%3E');
+  border-radius: 8px;
+  padding: 3rem 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 2px solid #e5ecf2;
+}
+
+.error-icon {
+  margin-bottom: 2rem;
+  opacity: 0.8;
+}
+
+.error-icon svg {
+  width: 120px;
+  height: 120px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 0.4; }
+}
+
+.error-text {
+  margin-bottom: 3rem;
+}
+
+.error-title {
+  font-size: 4rem;
+  font-weight: bold;
+  color: #0d2440;
+  margin: 0 0 1rem 0;
+  font-family: 'Fira Mono', 'Consolas', 'Liberation Mono', monospace;
+  letter-spacing: -2px;
+}
+
+.error-subtitle {
+  font-size: 1.5rem;
+  color: #2c3e50;
+  margin: 0 0 1rem 0;
+  font-weight: 600;
+}
+
+.error-description {
+  font-size: 1.1rem;
+  color: #6c757d;
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.error-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 3rem;
+  flex-wrap: wrap;
+}
+
+.primary-button, .secondary-button {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.primary-button {
+  background-color: #0d2440;
+  color: #fff;
+  border-color: #0d2440;
+}
+
+.primary-button:hover {
+  background-color: #1a3952;
+  border-color: #1a3952;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(13, 36, 64, 0.2);
+}
+
+.secondary-button {
+  background-color: #f0f5fa;
+  color: #0d2440;
+  border-color: #cad6e1;
+}
+
+.secondary-button:hover {
+  background-color: #e4eaf2;
+  border-color: #b6c7d4;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.helpful-links {
+  text-align: left;
+  margin-bottom: 2rem;
+  padding: 2rem;
+  background: #f9fbfd;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.helpful-links h3 {
+  color: #0d2440;
+  margin: 0 0 1.5rem 0;
+  text-align: center;
+  font-size: 1.3rem;
+}
+
+.links-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+}
+
+.link-group h4 {
+  color: #2c3e50;
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e4eaf2;
+  position: relative;
+}
+
+.link-group h4::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 40px;
+  height: 2px;
+  background-color: #0d2440;
+}
+
+.link-group ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.link-group li {
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #edf2f7;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.link-group li:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.link-group a {
+  color: #007acc;
+  text-decoration: none;
+  font-size: 0.95rem;
+  flex: 1;
+}
+
+.link-group a:hover {
+  color: #005999;
+  text-decoration: underline;
+}
+
+.post-date, .count {
+  color: #6c757d;
+  font-size: 0.85rem;
+  margin-left: 0.5rem;
+}
+
+.search-suggestion {
+  text-align: center;
+  padding: 2rem;
+  background: #f0f5fa;
+  border-radius: 6px;
+  border: 1px solid #e4eaf2;
+}
+
+.search-suggestion p {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.search-box {
+  display: flex;
+  max-width: 400px;
+  margin: 0 auto 1rem auto;
+  gap: 0.5rem;
+}
+
+.search-box input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 2px solid #cad6e1;
+  border-radius: 6px;
+  font-size: 1rem;
+  background: #fff;
+  transition: border-color 0.2s ease;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: #0d2440;
+  box-shadow: 0 0 0 3px rgba(13, 36, 64, 0.1);
+}
+
+.search-box button {
+  padding: 0.75rem;
+  background-color: #0d2440;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-box button:hover {
+  background-color: #1a3952;
+}
+
+.search-box button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(13, 36, 64, 0.2);
+}
+
+#search-results {
+  margin-top: 1rem;
+}
+
+.search-message {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+  text-align: left;
+}
+
+.search-message p {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.search-message ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.search-message li {
+  margin-bottom: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f8f9fa;
+}
+
+.search-message li:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.search-message a {
+  color: #007acc;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.search-message a:hover {
+  color: #005999;
+  text-decoration: underline;
+}
+
+/* Responsive Design for 404 Page */
+@media (max-width: 768px) {
+  .error-page {
+    padding: 1rem;
+  }
+  
+  .error-content {
+    padding: 2rem 1rem;
+  }
+  
+  .error-title {
+    font-size: 3rem;
+  }
+  
+  .error-subtitle {
+    font-size: 1.25rem;
+  }
+  
+  .error-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .primary-button, .secondary-button {
+    width: 100%;
+    max-width: 300px;
+    text-align: center;
+  }
+  
+  .links-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .helpful-links {
+    padding: 1.5rem 1rem;
+  }
+  
+  .search-suggestion {
+    padding: 1.5rem 1rem;
+  }
+  
+  .search-box {
+    flex-direction: column;
+    max-width: none;
+  }
+  
+  .search-box input {
+    margin-bottom: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .error-title {
+    font-size: 2.5rem;
+  }
+  
+  .error-subtitle {
+    font-size: 1.1rem;
+  }
+  
+  .error-description {
+    font-size: 1rem;
+  }
+  
+  .error-icon svg {
+    width: 80px;
+    height: 80px;
+  }
+}
