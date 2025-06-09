@@ -22,5 +22,9 @@
     "terminal.integrated.cwd": "${workspaceFolder}",
     "hugo.server.renderToDisk": false,
     "hugo.server.buildDrafts": true,
-    "hugo.server.buildFuture": true
+    "hugo.server.buildFuture": true,
+    "sonarlint.connectedMode.project": {
+        "connectionId": "scottobert",
+        "projectKey": "scottobert_scottobert.github.io"
+    }
 }
