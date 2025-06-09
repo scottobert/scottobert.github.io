@@ -323,7 +323,7 @@ body {
 .post-summary h2 a {
   color: #2c3e50;
   text-decoration: none;
-  font-family: 'Fira Mono', 'Consolas', 'Liberation Mono', monospace;
+  font-family: 'Segoe UI', 'Liberation Sans', Arial, sans-serif;
 }
 
 .post-summary h2 a:hover {
@@ -905,6 +905,10 @@ body {
 }
 
 @media (max-width: 768px) {
+  .container {
+    padding: 1.5rem 1rem;
+  }
+  
   .content-layout {
     grid-template-columns: 1fr;
   }
@@ -919,6 +923,10 @@ body {
 }
 
 @media (max-width: 576px) {
+  .container {
+    padding: 1rem 0.75rem;
+  }
+  
   .npm-packages-container #npm-list {
     grid-template-columns: 1fr;
     gap: 1rem;
@@ -926,6 +934,12 @@ body {
   
   .npm-packages-container .npm-package {
     padding: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container, .post, .post-summary {
+    padding: 0.75rem 0.5rem;
   }
 }
 
@@ -1088,7 +1102,7 @@ body {
   background-color: #f0f5fa;
   padding: 0.2rem 0.4rem;
   border-radius: 3px;
-  font-family: 'Fira Mono', 'Consolas', 'Liberation Mono', monospace;
+  font-family: 'Segoe UI', 'Liberation Sans', Arial, sans-serif;
   font-size: 0.9em;
   color: #0d2440;
   border: 1px solid #e4eaf2;
@@ -1591,7 +1605,7 @@ a:focus, button:focus {
   font-weight: bold;
   color: #0d2440;
   margin: 0 0 1rem 0;
-  font-family: 'Fira Mono', 'Consolas', 'Liberation Mono', monospace;
+  font-family: 'Segoe UI', 'Liberation Sans', Arial, sans-serif;
   letter-spacing: -2px;
 }
 
