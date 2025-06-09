@@ -59,6 +59,20 @@ theme = 'engineering-pro'
   # can be overridden in a page's front-matter
   # TocTitle = "Table of Contents" # default
 
+  # Giscus commenting system configuration
+  [params.giscus]
+    enable = true
+    repo = "scottobert/scottobert.github.io"
+    repoId = "R_kgDOHRSG6A" # You'll need to get this from giscus.app
+    category = "General"
+    categoryId = "DIC_kwDOHRSG6M4CrQaA" # You'll need to get this from giscus.app
+    mapping = "pathname"
+    reactionsEnabled = "1"
+    emitMetadata = "1"
+    inputPosition = "top"
+    theme = "preferred_color_scheme"
+    lang = "en"
+    loading = "lazy"
 
 [params.twitter]
   # set Twitter handles for Twitter cards
