@@ -1,6 +1,218 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Home on Scott Obert</title><link>https://scottobert.com/</link><description>Recent content in Home on Scott Obert</description><generator>Hugo</generator><language>en</language><copyright>&amp;copy;2022 Scott Obert</copyright><lastBuildDate>Wed, 11 Jun 2025 10:00:00 -0700</lastBuildDate><atom:link href="https://scottobert.com/index.xml" rel="self" type="application/rss+xml"/><item><title>Reverting Git Commits Safely: Undoing Changes Without Losing History</title><link>https://scottobert.com/posts/reverting-git-commits-safely/</link><pubDate>Wed, 11 Jun 2025 10:00:00 -0700</pubDate><guid>https://scottobert.com/posts/reverting-git-commits-safely/</guid><description>&lt;p>When working on complex projects, you&amp;rsquo;ll inevitably encounter situations where you need to undo changes from a specific commit that&amp;rsquo;s buried several commits back in your history. Recently, I faced this exact scenario when commit &lt;code>1d814e5&lt;/code> needed to be reverted from our development branch, but it wasn&amp;rsquo;t the most recent commit. This post explores the safest and most effective ways to handle this situation.&lt;/p>
 &lt;h2 id="the-challenge">The Challenge&lt;/h2>
-&lt;p>Looking at a typical git reflog, you might see something like this:&lt;/p></description></item><item><title>Real-time Data Synchronization: Using DynamoDB Streams and Lambda to Keep OpenSearch Indexes Current</title><link>https://scottobert.com/posts/dynamodb-streams-opensearch-sync/</link><pubDate>Fri, 06 Jun 2025 09:00:00 -0500</pubDate><guid>https://scottobert.com/posts/dynamodb-streams-opensearch-sync/</guid><description>&lt;p>Building modern applications often requires the ability to perform full-text searches with fuzzy matching capabilities on data that&amp;rsquo;s primarily stored in NoSQL databases like DynamoDB. While DynamoDB excels at fast key-based lookups and can handle massive scale, it lacks the sophisticated search capabilities that applications need for features like autocomplete, typo-tolerant search, and complex text analysis. OpenSearch (the open-source fork of Elasticsearch) provides these advanced search capabilities, but keeping it synchronized with your primary data store presents unique challenges.&lt;/p></description></item><item><title>Harnessing AI in Software Engineering: Opportunities and Challenges</title><link>https://scottobert.com/posts/using-ai-in-software-engineering/</link><pubDate>Thu, 29 May 2025 00:00:00 +0000</pubDate><guid>https://scottobert.com/posts/using-ai-in-software-engineering/</guid><description>&lt;h2 id="introduction">Introduction&lt;/h2>
+&lt;p>Looking at a typical git reflog, you might see something like this:&lt;/p></description></item><item><title>Real-time Data Synchronization: Using DynamoDB Streams and Lambda to Keep OpenSearch Indexes Current</title><link>https://scottobert.com/posts/dynamodb-streams-opensearch-sync/</link><pubDate>Fri, 06 Jun 2025 09:00:00 -0500</pubDate><guid>https://scottobert.com/posts/dynamodb-streams-opensearch-sync/</guid><description>&lt;p>Building modern applications often requires the ability to perform full-text searches with fuzzy matching capabilities on data that&amp;rsquo;s primarily stored in NoSQL databases like DynamoDB. While DynamoDB excels at fast key-based lookups and can handle massive scale, it lacks the sophisticated search capabilities that applications need for features like autocomplete, typo-tolerant search, and complex text analysis. OpenSearch (the open-source fork of Elasticsearch) provides these advanced search capabilities, but keeping it synchronized with your primary data store presents unique challenges.&lt;/p></description></item><item><title>Photo Gallery</title><link>https://scottobert.com/album/</link><pubDate>Sat, 31 May 2025 00:00:00 +0000</pubDate><guid>https://scottobert.com/album/</guid><description>&lt;p>Welcome to my photo gallery. Here you&amp;rsquo;ll find a collection of my favorite photographs, primarily featuring landscapes and natural wonders from various locations across the United States. From the dramatic arches of Utah to the serene waterfalls of the Pacific Northwest, each image captures a unique moment in time and place.&lt;/p>
+&lt;div class="image-gallery">
+ 
+ 
+ 
+ 
+ 
+ &lt;div class="gallery-item">
+ &lt;a href="https://scottobert.com/album/Arches%20Morning-0866.jpg" class="lightbox-image">
+ &lt;img src="https://scottobert.com/album/Arches%20Morning-0866.jpg" alt="Arches Morning-0866" title="Arches Morning-0866">
+ &lt;span class="image-caption">Arches Morning-0866&lt;/span>
+ &lt;/a>
+ &lt;/div>
+ 
+ 
+ 
+ &lt;div class="gallery-item">
+ &lt;a href="https://scottobert.com/album/Arches-0979.jpg" class="lightbox-image">
+ &lt;img src="https://scottobert.com/album/Arches-0979.jpg" alt="Arches-0979" title="Arches-0979">
+ &lt;span class="image-caption">Arches-0979&lt;/span>
+ &lt;/a>
+ &lt;/div>
+ 
+ 
+ 
+ &lt;div class="gallery-item">
+ &lt;a href="https://scottobert.com/album/Arches-1149.jpg" class="lightbox-image">
+ &lt;img src="https://scottobert.com/album/Arches-1149.jpg" alt="Arches-1149" title="Arches-1149">
+ &lt;span class="image-caption">Arches-1149&lt;/span>
+ &lt;/a>
+ &lt;/div>
+ 
+ 
+ 
+ &lt;div class="gallery-item">
+ &lt;a href="https://scottobert.com/album/IMG_1821-1823.jpg" class="lightbox-image">
+ &lt;img src="https://scottobert.com/album/IMG_1821-1823.jpg" alt="IMG_1821-1823" title="IMG_1821-1823">
+ &lt;span class="image-caption">IMG_1821-1823&lt;/span>
+ &lt;/a>
+ &lt;/div>
+ 
+ 
+ 
+ &lt;div class="gallery-item">
+ &lt;a href="https://scottobert.com/album/IMG_2328.jpg" class="lightbox-image">
+ &lt;img src="https://scottobert.com/album/IMG_2328.jpg" alt="IMG_2328" title="IMG_2328">
+ &lt;span class="image-caption">IMG_2328&lt;/span>
+ &lt;/a>
+ &lt;/div>
+ 
+ 
+ 
+ &lt;div class="gallery-item">
+ &lt;a href="https://scottobert.com/album/IMG_2329.jpg" class="lightbox-image">
+ &lt;img src="https://scottobert.com/album/IMG_2329.jpg" alt="IMG_2329" title="IMG_2329">
+ &lt;span class="image-caption">IMG_2329&lt;/span>
+ &lt;/a>
+ &lt;/div>
+ 
+ 
+ 
+ &lt;div class="gallery-item">
+ &lt;a href="https://scottobert.com/album/IMG_2412.jpg" class="lightbox-image">
+ &lt;img src="https://scottobert.com/album/IMG_2412.jpg" alt="IMG_2412" title="IMG_2412">
+ &lt;span class="image-caption">IMG_2412&lt;/span>
+ &lt;/a>
+ &lt;/div>
+ 
+ 
+ 
+ &lt;div class="gallery-item">
+ &lt;a href="https://scottobert.com/album/IMG_2414_DxO_raw.jpg" class="lightbox-image">
+ &lt;img src="https://scottobert.com/album/IMG_2414_DxO_raw.jpg" alt="IMG_2414_DxO_raw" title="IMG_2414_DxO_raw">
+ &lt;span class="image-caption">IMG_2414_DxO_raw&lt;/span>
+ &lt;/a>
+ &lt;/div>
+ 
+ 
+ 
+ &lt;div class="gallery-item">
+ &lt;a href="https://scottobert.com/album/IMG_2854a.jpg" class="lightbox-image">
+ &lt;img src="https://scottobert.com/album/IMG_2854a.jpg" alt="IMG_2854a" title="IMG_2854a">
+ &lt;span class="image-caption">IMG_2854a&lt;/span>
+ &lt;/a>
+ &lt;/div>
+ 
+ 
+ 
+ &lt;div class="gallery-item">
+ &lt;a href="https://scottobert.com/album/IMG_3002.jpg" class="lightbox-image">
+ &lt;img src="https://scottobert.com/album/IMG_3002.jpg" alt="IMG_3002" title="IMG_3002">
+ &lt;span class="image-caption">IMG_3002&lt;/span>
+ &lt;/a>
+ &lt;/div>
+ 
+ 
+ 
+ &lt;div class="gallery-item">
+ &lt;a href="https://scottobert.com/album/IMG_3022_tonemapped.jpg" class="lightbox-image">
+ &lt;img src="https://scottobert.com/album/IMG_3022_tonemapped.jpg" alt="IMG_3022_tonemapped" title="IMG_3022_tonemapped">
+ &lt;span class="image-caption">IMG_3022_tonemapped&lt;/span>
+ &lt;/a>
+ &lt;/div>
+ 
+ 
+ 
+ &lt;div class="gallery-item">
+ &lt;a href="https://scottobert.com/album/IMG_3046.jpg" class="lightbox-image">
+ &lt;img src="https://scottobert.com/album/IMG_3046.jpg" alt="IMG_3046" title="IMG_3046">
+ &lt;span class="image-caption">IMG_3046&lt;/span>
+ &lt;/a>
+ &lt;/div>
+ 
+ 
+ 
+ &lt;div class="gallery-item">
+ &lt;a href="https://scottobert.com/album/IMG_3079_tonemapped.jpg" class="lightbox-image">
+ &lt;img src="https://scottobert.com/album/IMG_3079_tonemapped.jpg" alt="IMG_3079_tonemapped" title="IMG_3079_tonemapped">
+ &lt;span class="image-caption">IMG_3079_tonemapped&lt;/span>
+ &lt;/a>
+ &lt;/div>
+ 
+ 
+ 
+ &lt;div class="gallery-item">
+ &lt;a href="https://scottobert.com/album/IMG_3101wp2.jpg" class="lightbox-image">
+ &lt;img src="https://scottobert.com/album/IMG_3101wp2.jpg" alt="IMG_3101wp2" title="IMG_3101wp2">
+ &lt;span class="image-caption">IMG_3101wp2&lt;/span>
+ &lt;/a>
+ &lt;/div>
+ 
+ 
+ 
+ &lt;div class="gallery-item">
+ &lt;a href="https://scottobert.com/album/IMG_3523.jpg" class="lightbox-image">
+ &lt;img src="https://scottobert.com/album/IMG_3523.jpg" alt="IMG_3523" title="IMG_3523">
+ &lt;span class="image-caption">IMG_3523&lt;/span>
+ &lt;/a>
+ &lt;/div>
+ 
+ 
+ 
+ &lt;div class="gallery-item">
+ &lt;a href="https://scottobert.com/album/IMG_3562_3_4_5_tonemapped.jpg" class="lightbox-image">
+ &lt;img src="https://scottobert.com/album/IMG_3562_3_4_5_tonemapped.jpg" alt="IMG_3562_3_4_5_tonemapped" title="IMG_3562_3_4_5_tonemapped">
+ &lt;span class="image-caption">IMG_3562_3_4_5_tonemapped&lt;/span>
+ &lt;/a>
+ &lt;/div>
+ 
+ 
+ 
+ &lt;div class="gallery-item">
+ &lt;a href="https://scottobert.com/album/IMG_7202.jpg" class="lightbox-image">
+ &lt;img src="https://scottobert.com/album/IMG_7202.jpg" alt="IMG_7202" title="IMG_7202">
+ &lt;span class="image-caption">IMG_7202&lt;/span>
+ &lt;/a>
+ &lt;/div>
+ 
+ 
+ 
+ &lt;div class="gallery-item">
+ &lt;a href="https://scottobert.com/album/IMG_7237.jpg" class="lightbox-image">
+ &lt;img src="https://scottobert.com/album/IMG_7237.jpg" alt="IMG_7237" title="IMG_7237">
+ &lt;span class="image-caption">IMG_7237&lt;/span>
+ &lt;/a>
+ &lt;/div>
+ 
+ 
+ 
+ &lt;div class="gallery-item">
+ &lt;a href="https://scottobert.com/album/Missouri%20River-5631-Edit.jpg" class="lightbox-image">
+ &lt;img src="https://scottobert.com/album/Missouri%20River-5631-Edit.jpg" alt="Missouri River-5631-Edit" title="Missouri River-5631-Edit">
+ &lt;span class="image-caption">Missouri River-5631-Edit&lt;/span>
+ &lt;/a>
+ &lt;/div>
+ 
+ 
+ 
+ &lt;div class="gallery-item">
+ &lt;a href="https://scottobert.com/album/Northern%20Lights-1370.jpg" class="lightbox-image">
+ &lt;img src="https://scottobert.com/album/Northern%20Lights-1370.jpg" alt="Northern Lights-1370" title="Northern Lights-1370">
+ &lt;span class="image-caption">Northern Lights-1370&lt;/span>
+ &lt;/a>
+ &lt;/div>
+ 
+ 
+ 
+ &lt;div class="gallery-item">
+ &lt;a href="https://scottobert.com/album/Salish%20Lodge%20-%20Snoqualmie%20Falls.jpg" class="lightbox-image">
+ &lt;img src="https://scottobert.com/album/Salish%20Lodge%20-%20Snoqualmie%20Falls.jpg" alt="Salish Lodge - Snoqualmie Falls" title="Salish Lodge - Snoqualmie Falls">
+ &lt;span class="image-caption">Salish Lodge - Snoqualmie Falls&lt;/span>
+ &lt;/a>
+ &lt;/div>
+ 
+ 
+ 
+ &lt;div class="gallery-item">
+ &lt;a href="https://scottobert.com/album/Shoshone%20Falls-1179-HDR.jpg" class="lightbox-image">
+ &lt;img src="https://scottobert.com/album/Shoshone%20Falls-1179-HDR.jpg" alt="Shoshone Falls-1179-HDR" title="Shoshone Falls-1179-HDR">
+ &lt;span class="image-caption">Shoshone Falls-1179-HDR&lt;/span>
+ &lt;/a>
+ &lt;/div>
+ 
+ 
+ 
+ &lt;div class="gallery-item">
+ &lt;a href="https://scottobert.com/album/Sunset-0864.jpg" class="lightbox-image">
+ &lt;img src="https://scottobert.com/album/Sunset-0864.jpg" alt="Sunset-0864" title="Sunset-0864">
+ &lt;span class="image-caption">Sunset-0864&lt;/span>
+ &lt;/a>
+ &lt;/div>
+ 
+&lt;/div></description></item><item><title>Harnessing AI in Software Engineering: Opportunities and Challenges</title><link>https://scottobert.com/posts/using-ai-in-software-engineering/</link><pubDate>Thu, 29 May 2025 00:00:00 +0000</pubDate><guid>https://scottobert.com/posts/using-ai-in-software-engineering/</guid><description>&lt;h2 id="introduction">Introduction&lt;/h2>
 &lt;p>Artificial Intelligence (AI) is rapidly reshaping the landscape of software engineering. From automating repetitive tasks to enhancing code quality and enabling smarter decision-making, AI-powered tools are becoming essential in the modern developer&amp;rsquo;s toolkit.&lt;/p>
 &lt;h2 id="key-applications-of-ai-in-software-engineering">Key Applications of AI in Software Engineering&lt;/h2>
 &lt;h3 id="1-code-generation-and-completion">1. Code Generation and Completion&lt;/h3>
