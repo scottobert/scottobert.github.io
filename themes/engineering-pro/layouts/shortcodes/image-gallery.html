@@ -1,0 +1,14 @@
+<div class="image-gallery">
+  {{ $galleryDir := .Get "gallery_dir" }}
+  {{ $files := readDir (print "static" $galleryDir) }}
+  {{ range $files }}
+    {{ $title := index (split .Name ".") 0 }}
+    {{ $imagePath := printf "%s/%s" $galleryDir .Name }}
+    <div class="gallery-item">
+      <a href="{{ $imagePath }}" class="lightbox-image">
+        <img src="{{ $imagePath }}" alt="{{ $title }}" title="{{ $title }}">
+        <span class="image-caption">{{ $title }}</span>
+      </a>
+    </div>
+  {{ end }}
+</div>
