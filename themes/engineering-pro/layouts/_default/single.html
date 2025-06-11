@@ -8,5 +8,14 @@
   <div class="post-content">
     {{ .Content }}
   </div>
+  
+  <!-- Social sharing buttons -->
+  {{- if not .Params.disableSharing -}}
+    {{ partial "social-share.html" . }}
+  {{- end -}}
+  
+  {{- if not .Params.disableComments -}}
+    {{ partial "comments.html" . }}
+  {{- end -}}
 </article>
 {{ end }}

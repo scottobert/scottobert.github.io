@@ -2,15 +2,32 @@
 <article class="post">
   <h1>{{ .Title }}</h1>
   <div class="post-meta">
-    <span>{{ .Date.Format "Jan 2, 2006" }}</span>
-    {{ with .Params.tags }}<span> | Tags: {{ delimit . ", " }}</span>{{ end }}
+    <div class="post-meta-left">
+      <span>{{ .Date.Format "Jan 2, 2006" }}</span>
+      {{ with .Params.tags }}<span> | Tags: {{ delimit . ", " }}</span>{{ end }}
+    </div>
+    {{- if not .Params.disableSharing -}}
+      <div class="post-meta-right">
+        {{ partial "quick-social-share.html" . }}
+      </div>
+    {{- end -}}
   </div>
   <div class="post-content">
     {{ .Content }}
   </div>
   
+  <!-- Social sharing buttons -->
+  {{- if not .Params.disableSharing -}}
+    {{ partial "social-share.html" . }}
+  {{- end -}}
+  
   {{- if not .Params.disableComments -}}
     {{ partial "comments.html" . }}
   {{- end -}}
 </article>
+
+<!-- Floating social share widget -->
+{{- if not .Params.disableSharing -}}
+  {{ partial "floating-social-share.html" . }}
+{{- end -}}
 {{ end }}
