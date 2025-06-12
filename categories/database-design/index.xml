@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Database Design on Scott Obert</title><link>https://scottobert.com/categories/database-design/</link><description>Recent content in Database Design on Scott Obert</description><generator>Hugo</generator><language>en</language><copyright>&amp;copy;2022 Scott Obert</copyright><lastBuildDate>Sun, 02 Jul 2023 10:00:00 -0700</lastBuildDate><atom:link href="https://scottobert.com/categories/database-design/index.xml" rel="self" type="application/rss+xml"/><item><title>DynamoDB with TypeScript: Type-Safe NoSQL Operations</title><link>https://scottobert.com/posts/dynamodb-typescript/</link><pubDate>Sun, 02 Jul 2023 10:00:00 -0700</pubDate><guid>https://scottobert.com/posts/dynamodb-typescript/</guid><description>&lt;p>Working with NoSQL databases like DynamoDB can be challenging when it comes to maintaining type safety and data consistency. In this post, we&amp;rsquo;ll explore how to build robust, type-safe DynamoDB operations using TypeScript, covering everything from basic CRUD operations to advanced patterns like single-table design and transaction handling.&lt;/p>
+&lt;div class="plantuml-container">
+ &lt;img id="plantuml-dynamodb-single-table" class="plantuml-diagram"/>
+ &lt;a id="plantuml-link-dynamodb-single-table" href="#" target="_blank" class="plantuml-link" title="Open diagram in new window">
+ &lt;span class="plantuml-link-icon">🔍&lt;/span>
+ &lt;/a>
+&lt;/div>
+&lt;script src="https://scottobert.com/js/rawdeflate.js">&lt;/script>
+&lt;script>
+ 
+
+ function encode64(data) {
+ r = "";
+ for (i=0; i&lt;data.length; i+=3) {
+ if (i+2==data.length) {
+ r +=append3bytes(data.charCodeAt(i), data.charCodeAt(i+1), 0);
+ } else if (i+1==data.length) {
+ r += append3bytes(data.charCodeAt(i), 0, 0);
+ } else {
+ r += append3bytes(data.charCodeAt(i), data.charCodeAt(i+1),
+ data.charCodeAt(i+2));
+ }
+ }
+ return r;
+ }
+
+ function append3bytes(b1, b2, b3) {
+ c1 = b1 >> 2;
+ c2 = ((b1 &amp; 0x3) &lt;&lt; 4) | (b2 >> 4);
+ c3 = ((b2 &amp; 0xF) &lt;&lt; 2) | (b3 >> 6);
+ c4 = b3 &amp; 0x3F;
+ r = "";
+ r += encode6bit(c1 &amp; 0x3F);
+ r += encode6bit(c2 &amp; 0x3F);
+ r += encode6bit(c3 &amp; 0x3F);
+ r += encode6bit(c4 &amp; 0x3F);
+ return r;
+ }
+
+ function encode6bit(b) {
+ if (b &lt; 10) {
+ return String.fromCharCode(48 + b);
+ }
+ b -= 10;
+ if (b &lt; 26) {
+ return String.fromCharCode(65 + b);
+ }
+ b -= 26;
+ if (b &lt; 26) {
+ return String.fromCharCode(97 + b);
+ }
+ b -= 26;
+ if (b == 0) {
+ return '-';
+ }
+ if (b == 1) {
+ return '_';
+ }
+ return '?';
+ }
+
+ var deflater = window.SharedWorker &amp;&amp; new SharedWorker('/js/rawdeflate.js');
+ if (deflater) {
+ deflater.port.addEventListener('message', done_deflating, false);
+ deflater.port.start();
+ } else if (window.Worker) {
+ deflater = new Worker('/js/rawdeflate.js');
+ deflater.onmessage = done_deflating;
+ }
+
+ function done_deflating(e) {
+ const img = document.getElementById("plantuml-dynamodb-single-table");
+ const imgUrl = "https://www.plantuml.com/plantuml/img/"+encode64(e.data);
+ img.src = imgUrl;
+ 
+ 
+ const link = document.getElementById("plantuml-link-dynamodb-single-table");
+ if (link) {
+ link.href = imgUrl;
+ }
+ }
+
+ function compress(s) {
+ 
+ s = unescape(encodeURIComponent(s));
+ 
+ if (deflater) {
+ if (deflater.port &amp;&amp; deflater.port.postMessage) {
+ deflater.port.postMessage(s);
+ } else {
+ deflater.postMessage(s);
+ }
+ } else {
+ setTimeout(function() {
+ done_deflating({ data: deflate(s) });
+ }, 100);
+ }
+ }
+
+ compress("\n@startuml DynamoDB Single Table Design\n!define RECTANGLE class\n\npackage \u0022Single Table Design\u0022 {\n database \u0022DynamoDB Table\u0022 as table {\n rectangle \u0022Partition Key (PK)\u0022 as pk\n rectangle \u0022Sort Key (SK)\u0022 as sk\n rectangle \u0022GSI1PK\u0022 as gsi1pk\n rectangle \u0022GSI1SK\u0022 as gsi1sk\n }\n \n rectangle \u0022User Entity\u0022 as user {\n rectangle \u0022PK: USER#123\u0022 as user_pk\n rectangle \u0022SK: USER#123\u0022 as user_sk\n rectangle \u0022GSI1PK: EMAIL#user_at_domain.com\u0022 as user_gsi1pk\n rectangle \u0022Data: name, email, dept\u0022 as user_data\n }\n \n rectangle \u0022Order Entity\u0022 as order {\n rectangle \u0022PK: ORDER#456\u0022 as order_pk\n rectangle \u0022SK: ORDER#456\u0022 as order_sk\n rectangle \u0022GSI1PK: USER#123\u0022 as order_gsi1pk\n rectangle \u0022GSI1SK: ORDER#2023-07-02\u0022 as order_gsi1sk\n rectangle \u0022Data: items, total, status\u0022 as order_data\n }\n \n rectangle \u0022Product Entity\u0022 as product {\n rectangle \u0022PK: PRODUCT#789\u0022 as product_pk\n rectangle \u0022SK: PRODUCT#789\u0022 as product_sk\n rectangle \u0022GSI1PK: CATEGORY#electronics\u0022 as product_gsi1pk\n rectangle \u0022Data: name, price, stock\u0022 as product_data\n }\n}\n\ntable --\u003e user : Store\ntable --\u003e order : Store\ntable --\u003e product : Store\n\nnote right of table\n • Single table for all entities\n • Composite keys for relationships\n • GSI for access patterns\n • Type-safe operations\nend note\n\nnote bottom of user\n Access Patterns:\n • Get user by ID: PK = USER#id\n • Get user by email: GSI1PK = EMAIL#email\nend note\n\nnote bottom of order\n Access Patterns:\n • Get order by ID: PK = ORDER#id\n • Get orders by user: GSI1PK = USER#id\nend note\n@enduml\n")
+&lt;/script>
+&lt;h2 id="why-type-safety-matters-with-dynamodb">Why Type Safety Matters with DynamoDB&lt;/h2>
+&lt;p>DynamoDB&amp;rsquo;s flexible schema brings both opportunities and challenges:&lt;/p></description></item></channel></rss>

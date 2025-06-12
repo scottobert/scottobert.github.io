@@ -1,2 +1,104 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>API Development on Scott Obert</title><link>https://scottobert.com/categories/api-development/</link><description>Recent content in API Development on Scott Obert</description><generator>Hugo</generator><language>en</language><copyright>&amp;copy;2022 Scott Obert</copyright><lastBuildDate>Sat, 17 Aug 2019 10:00:00 -0700</lastBuildDate><atom:link href="https://scottobert.com/categories/api-development/index.xml" rel="self" type="application/rss+xml"/><item><title>API Security Best Practices for Cloud-Native Applications</title><link>https://scottobert.com/posts/api-security-best-practices/</link><pubDate>Sat, 17 Aug 2019 10:00:00 -0700</pubDate><guid>https://scottobert.com/posts/api-security-best-practices/</guid><description>&lt;p>Application Programming Interfaces (APIs) have become the fundamental building blocks of cloud-native applications, enabling microservices to communicate and external systems to integrate with internal services. However, this increased connectivity and exposure also creates significant security challenges that must be addressed through comprehensive API security strategies. Modern cloud-native applications often expose dozens or hundreds of APIs, each representing a potential attack vector that requires careful security consideration.&lt;/p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>API Development on Scott Obert</title><link>https://scottobert.com/categories/api-development/</link><description>Recent content in API Development on Scott Obert</description><generator>Hugo</generator><language>en</language><copyright>&amp;copy;2022 Scott Obert</copyright><lastBuildDate>Sun, 11 Jun 2023 10:00:00 -0700</lastBuildDate><atom:link href="https://scottobert.com/categories/api-development/index.xml" rel="self" type="application/rss+xml"/><item><title>Building Type-Safe APIs with AWS API Gateway and TypeScript</title><link>https://scottobert.com/posts/aws-api-gateway-typescript/</link><pubDate>Sun, 11 Jun 2023 10:00:00 -0700</pubDate><guid>https://scottobert.com/posts/aws-api-gateway-typescript/</guid><description>&lt;p>Building robust APIs requires more than just handling HTTP requests—it demands type safety, proper validation, and clear documentation. In this post, we&amp;rsquo;ll explore how to build production-ready APIs using AWS API Gateway with TypeScript, ensuring type safety from request to response while maintaining excellent developer experience.&lt;/p>
+&lt;div class="plantuml-container">
+ &lt;img id="plantuml-api-gateway-architecture" class="plantuml-diagram"/>
+ &lt;a id="plantuml-link-api-gateway-architecture" href="#" target="_blank" class="plantuml-link" title="Open diagram in new window">
+ &lt;span class="plantuml-link-icon">🔍&lt;/span>
+ &lt;/a>
+&lt;/div>
+&lt;script src="https://scottobert.com/js/rawdeflate.js">&lt;/script>
+&lt;script>
+ 
+
+ function encode64(data) {
+ r = "";
+ for (i=0; i&lt;data.length; i+=3) {
+ if (i+2==data.length) {
+ r +=append3bytes(data.charCodeAt(i), data.charCodeAt(i+1), 0);
+ } else if (i+1==data.length) {
+ r += append3bytes(data.charCodeAt(i), 0, 0);
+ } else {
+ r += append3bytes(data.charCodeAt(i), data.charCodeAt(i+1),
+ data.charCodeAt(i+2));
+ }
+ }
+ return r;
+ }
+
+ function append3bytes(b1, b2, b3) {
+ c1 = b1 >> 2;
+ c2 = ((b1 &amp; 0x3) &lt;&lt; 4) | (b2 >> 4);
+ c3 = ((b2 &amp; 0xF) &lt;&lt; 2) | (b3 >> 6);
+ c4 = b3 &amp; 0x3F;
+ r = "";
+ r += encode6bit(c1 &amp; 0x3F);
+ r += encode6bit(c2 &amp; 0x3F);
+ r += encode6bit(c3 &amp; 0x3F);
+ r += encode6bit(c4 &amp; 0x3F);
+ return r;
+ }
+
+ function encode6bit(b) {
+ if (b &lt; 10) {
+ return String.fromCharCode(48 + b);
+ }
+ b -= 10;
+ if (b &lt; 26) {
+ return String.fromCharCode(65 + b);
+ }
+ b -= 26;
+ if (b &lt; 26) {
+ return String.fromCharCode(97 + b);
+ }
+ b -= 26;
+ if (b == 0) {
+ return '-';
+ }
+ if (b == 1) {
+ return '_';
+ }
+ return '?';
+ }
+
+ var deflater = window.SharedWorker &amp;&amp; new SharedWorker('/js/rawdeflate.js');
+ if (deflater) {
+ deflater.port.addEventListener('message', done_deflating, false);
+ deflater.port.start();
+ } else if (window.Worker) {
+ deflater = new Worker('/js/rawdeflate.js');
+ deflater.onmessage = done_deflating;
+ }
+
+ function done_deflating(e) {
+ const img = document.getElementById("plantuml-api-gateway-architecture");
+ const imgUrl = "https://www.plantuml.com/plantuml/img/"+encode64(e.data);
+ img.src = imgUrl;
+ 
+ 
+ const link = document.getElementById("plantuml-link-api-gateway-architecture");
+ if (link) {
+ link.href = imgUrl;
+ }
+ }
+
+ function compress(s) {
+ 
+ s = unescape(encodeURIComponent(s));
+ 
+ if (deflater) {
+ if (deflater.port &amp;&amp; deflater.port.postMessage) {
+ deflater.port.postMessage(s);
+ } else {
+ deflater.postMessage(s);
+ }
+ } else {
+ setTimeout(function() {
+ done_deflating({ data: deflate(s) });
+ }, 100);
+ }
+ }
+
+ compress("\n@startuml API Gateway Architecture\n!define RECTANGLE class\n\ncloud \u0022Client Applications\u0022 as clients\npackage \u0022AWS Cloud\u0022 {\n rectangle \u0022API Gateway\u0022 as apigw {\n rectangle \u0022REST API\u0022 as restapi\n rectangle \u0022Request Validation\u0022 as validation\n rectangle \u0022CORS\u0022 as cors\n }\n \n package \u0022Lambda Functions\u0022 {\n rectangle \u0022Create User\u0022 as create\n rectangle \u0022Get User\u0022 as get\n rectangle \u0022Update User\u0022 as update\n rectangle \u0022Delete User\u0022 as delete\n }\n \n database \u0022DynamoDB\u0022 as dynamo {\n rectangle \u0022Users Table\u0022 as table\n }\n}\n\nclients --\u003e restapi : HTTPS Requests\nrestapi --\u003e validation : Validate Schema\nvalidation --\u003e cors : Apply CORS\ncors --\u003e create : POST \/users\ncors --\u003e get : GET \/users\/{id}\ncors --\u003e update : PUT \/users\/{id}\ncors --\u003e delete : DELETE \/users\/{id}\n\ncreate --\u003e table : Store User\nget --\u003e table : Retrieve User\nupdate --\u003e table : Update User\ndelete --\u003e table : Remove User\n\nnote right of validation\n • Request validation\n • Type checking\n • Schema enforcement\nend note\n\nnote right of table\n • Primary Key: id\n • Attributes: name, email,\n department, timestamps\nend note\n@enduml\n")
+&lt;/script>
+&lt;h2 id="why-type-safe-apis-matter">Why Type-Safe APIs Matter&lt;/h2>
+&lt;p>Type safety in API development provides several critical advantages:&lt;/p></description></item><item><title>API Security Best Practices for Cloud-Native Applications</title><link>https://scottobert.com/posts/api-security-best-practices/</link><pubDate>Sat, 17 Aug 2019 10:00:00 -0700</pubDate><guid>https://scottobert.com/posts/api-security-best-practices/</guid><description>&lt;p>Application Programming Interfaces (APIs) have become the fundamental building blocks of cloud-native applications, enabling microservices to communicate and external systems to integrate with internal services. However, this increased connectivity and exposure also creates significant security challenges that must be addressed through comprehensive API security strategies. Modern cloud-native applications often expose dozens or hundreds of APIs, each representing a potential attack vector that requires careful security consideration.&lt;/p>
 &lt;p>The security of APIs in cloud-native environments is particularly complex because these interfaces must balance accessibility with protection, enabling legitimate users and services to interact efficiently while preventing unauthorized access and malicious activities. This challenge is compounded by the dynamic nature of cloud-native deployments, where API endpoints may be created, modified, or destroyed frequently as applications scale and evolve.&lt;/p></description></item></channel></rss>

@@ -1,3 +1,105 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>DynamoDB on Scott Obert</title><link>https://scottobert.com/tags/dynamodb/</link><description>Recent content in DynamoDB on Scott Obert</description><generator>Hugo</generator><language>en</language><copyright>&amp;copy;2022 Scott Obert</copyright><lastBuildDate>Fri, 06 Jun 2025 09:00:00 -0500</lastBuildDate><atom:link href="https://scottobert.com/tags/dynamodb/index.xml" rel="self" type="application/rss+xml"/><item><title>Real-time Data Synchronization: Using DynamoDB Streams and Lambda to Keep OpenSearch Indexes Current</title><link>https://scottobert.com/posts/dynamodb-streams-opensearch-sync/</link><pubDate>Fri, 06 Jun 2025 09:00:00 -0500</pubDate><guid>https://scottobert.com/posts/dynamodb-streams-opensearch-sync/</guid><description>&lt;p>Building modern applications often requires the ability to perform full-text searches with fuzzy matching capabilities on data that&amp;rsquo;s primarily stored in NoSQL databases like DynamoDB. While DynamoDB excels at fast key-based lookups and can handle massive scale, it lacks the sophisticated search capabilities that applications need for features like autocomplete, typo-tolerant search, and complex text analysis. OpenSearch (the open-source fork of Elasticsearch) provides these advanced search capabilities, but keeping it synchronized with your primary data store presents unique challenges.&lt;/p></description></item><item><title>Database Design for Serverless Applications: NoSQL Patterns and Data Modeling</title><link>https://scottobert.com/posts/database-design-serverless-applications/</link><pubDate>Sun, 07 Nov 2021 00:00:00 +0000</pubDate><guid>https://scottobert.com/posts/database-design-serverless-applications/</guid><description>&lt;h2 id="introduction">Introduction&lt;/h2>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>DynamoDB on Scott Obert</title><link>https://scottobert.com/tags/dynamodb/</link><description>Recent content in DynamoDB on Scott Obert</description><generator>Hugo</generator><language>en</language><copyright>&amp;copy;2022 Scott Obert</copyright><lastBuildDate>Fri, 06 Jun 2025 09:00:00 -0500</lastBuildDate><atom:link href="https://scottobert.com/tags/dynamodb/index.xml" rel="self" type="application/rss+xml"/><item><title>Real-time Data Synchronization: Using DynamoDB Streams and Lambda to Keep OpenSearch Indexes Current</title><link>https://scottobert.com/posts/dynamodb-streams-opensearch-sync/</link><pubDate>Fri, 06 Jun 2025 09:00:00 -0500</pubDate><guid>https://scottobert.com/posts/dynamodb-streams-opensearch-sync/</guid><description>&lt;p>Building modern applications often requires the ability to perform full-text searches with fuzzy matching capabilities on data that&amp;rsquo;s primarily stored in NoSQL databases like DynamoDB. While DynamoDB excels at fast key-based lookups and can handle massive scale, it lacks the sophisticated search capabilities that applications need for features like autocomplete, typo-tolerant search, and complex text analysis. OpenSearch (the open-source fork of Elasticsearch) provides these advanced search capabilities, but keeping it synchronized with your primary data store presents unique challenges.&lt;/p></description></item><item><title>DynamoDB with TypeScript: Type-Safe NoSQL Operations</title><link>https://scottobert.com/posts/dynamodb-typescript/</link><pubDate>Sun, 02 Jul 2023 10:00:00 -0700</pubDate><guid>https://scottobert.com/posts/dynamodb-typescript/</guid><description>&lt;p>Working with NoSQL databases like DynamoDB can be challenging when it comes to maintaining type safety and data consistency. In this post, we&amp;rsquo;ll explore how to build robust, type-safe DynamoDB operations using TypeScript, covering everything from basic CRUD operations to advanced patterns like single-table design and transaction handling.&lt;/p>
+&lt;div class="plantuml-container">
+ &lt;img id="plantuml-dynamodb-single-table" class="plantuml-diagram"/>
+ &lt;a id="plantuml-link-dynamodb-single-table" href="#" target="_blank" class="plantuml-link" title="Open diagram in new window">
+ &lt;span class="plantuml-link-icon">🔍&lt;/span>
+ &lt;/a>
+&lt;/div>
+&lt;script src="https://scottobert.com/js/rawdeflate.js">&lt;/script>
+&lt;script>
+ 
+
+ function encode64(data) {
+ r = "";
+ for (i=0; i&lt;data.length; i+=3) {
+ if (i+2==data.length) {
+ r +=append3bytes(data.charCodeAt(i), data.charCodeAt(i+1), 0);
+ } else if (i+1==data.length) {
+ r += append3bytes(data.charCodeAt(i), 0, 0);
+ } else {
+ r += append3bytes(data.charCodeAt(i), data.charCodeAt(i+1),
+ data.charCodeAt(i+2));
+ }
+ }
+ return r;
+ }
+
+ function append3bytes(b1, b2, b3) {
+ c1 = b1 >> 2;
+ c2 = ((b1 &amp; 0x3) &lt;&lt; 4) | (b2 >> 4);
+ c3 = ((b2 &amp; 0xF) &lt;&lt; 2) | (b3 >> 6);
+ c4 = b3 &amp; 0x3F;
+ r = "";
+ r += encode6bit(c1 &amp; 0x3F);
+ r += encode6bit(c2 &amp; 0x3F);
+ r += encode6bit(c3 &amp; 0x3F);
+ r += encode6bit(c4 &amp; 0x3F);
+ return r;
+ }
+
+ function encode6bit(b) {
+ if (b &lt; 10) {
+ return String.fromCharCode(48 + b);
+ }
+ b -= 10;
+ if (b &lt; 26) {
+ return String.fromCharCode(65 + b);
+ }
+ b -= 26;
+ if (b &lt; 26) {
+ return String.fromCharCode(97 + b);
+ }
+ b -= 26;
+ if (b == 0) {
+ return '-';
+ }
+ if (b == 1) {
+ return '_';
+ }
+ return '?';
+ }
+
+ var deflater = window.SharedWorker &amp;&amp; new SharedWorker('/js/rawdeflate.js');
+ if (deflater) {
+ deflater.port.addEventListener('message', done_deflating, false);
+ deflater.port.start();
+ } else if (window.Worker) {
+ deflater = new Worker('/js/rawdeflate.js');
+ deflater.onmessage = done_deflating;
+ }
+
+ function done_deflating(e) {
+ const img = document.getElementById("plantuml-dynamodb-single-table");
+ const imgUrl = "https://www.plantuml.com/plantuml/img/"+encode64(e.data);
+ img.src = imgUrl;
+ 
+ 
+ const link = document.getElementById("plantuml-link-dynamodb-single-table");
+ if (link) {
+ link.href = imgUrl;
+ }
+ }
+
+ function compress(s) {
+ 
+ s = unescape(encodeURIComponent(s));
+ 
+ if (deflater) {
+ if (deflater.port &amp;&amp; deflater.port.postMessage) {
+ deflater.port.postMessage(s);
+ } else {
+ deflater.postMessage(s);
+ }
+ } else {
+ setTimeout(function() {
+ done_deflating({ data: deflate(s) });
+ }, 100);
+ }
+ }
+
+ compress("\n@startuml DynamoDB Single Table Design\n!define RECTANGLE class\n\npackage \u0022Single Table Design\u0022 {\n database \u0022DynamoDB Table\u0022 as table {\n rectangle \u0022Partition Key (PK)\u0022 as pk\n rectangle \u0022Sort Key (SK)\u0022 as sk\n rectangle \u0022GSI1PK\u0022 as gsi1pk\n rectangle \u0022GSI1SK\u0022 as gsi1sk\n }\n \n rectangle \u0022User Entity\u0022 as user {\n rectangle \u0022PK: USER#123\u0022 as user_pk\n rectangle \u0022SK: USER#123\u0022 as user_sk\n rectangle \u0022GSI1PK: EMAIL#user_at_domain.com\u0022 as user_gsi1pk\n rectangle \u0022Data: name, email, dept\u0022 as user_data\n }\n \n rectangle \u0022Order Entity\u0022 as order {\n rectangle \u0022PK: ORDER#456\u0022 as order_pk\n rectangle \u0022SK: ORDER#456\u0022 as order_sk\n rectangle \u0022GSI1PK: USER#123\u0022 as order_gsi1pk\n rectangle \u0022GSI1SK: ORDER#2023-07-02\u0022 as order_gsi1sk\n rectangle \u0022Data: items, total, status\u0022 as order_data\n }\n \n rectangle \u0022Product Entity\u0022 as product {\n rectangle \u0022PK: PRODUCT#789\u0022 as product_pk\n rectangle \u0022SK: PRODUCT#789\u0022 as product_sk\n rectangle \u0022GSI1PK: CATEGORY#electronics\u0022 as product_gsi1pk\n rectangle \u0022Data: name, price, stock\u0022 as product_data\n }\n}\n\ntable --\u003e user : Store\ntable --\u003e order : Store\ntable --\u003e product : Store\n\nnote right of table\n • Single table for all entities\n • Composite keys for relationships\n • GSI for access patterns\n • Type-safe operations\nend note\n\nnote bottom of user\n Access Patterns:\n • Get user by ID: PK = USER#id\n • Get user by email: GSI1PK = EMAIL#email\nend note\n\nnote bottom of order\n Access Patterns:\n • Get order by ID: PK = ORDER#id\n • Get orders by user: GSI1PK = USER#id\nend note\n@enduml\n")
+&lt;/script>
+&lt;h2 id="why-type-safety-matters-with-dynamodb">Why Type Safety Matters with DynamoDB&lt;/h2>
+&lt;p>DynamoDB&amp;rsquo;s flexible schema brings both opportunities and challenges:&lt;/p></description></item><item><title>Database Design for Serverless Applications: NoSQL Patterns and Data Modeling</title><link>https://scottobert.com/posts/database-design-serverless-applications/</link><pubDate>Sun, 07 Nov 2021 00:00:00 +0000</pubDate><guid>https://scottobert.com/posts/database-design-serverless-applications/</guid><description>&lt;h2 id="introduction">Introduction&lt;/h2>
 &lt;p>In our Modern Development Practices series, we&amp;rsquo;ve covered test-driven development, code quality gates, API design patterns, and microservices communication. Today, we&amp;rsquo;re diving into database design for serverless applications – a critical aspect that can make or break your application&amp;rsquo;s performance, scalability, and cost-effectiveness.&lt;/p>
 &lt;p>Serverless applications demand a different approach to data storage. Traditional relational database patterns often don&amp;rsquo;t align with the ephemeral, stateless nature of serverless functions. Instead, we need to embrace NoSQL patterns, denormalization strategies, and event-driven data synchronization.&lt;/p></description></item><item><title>CQRS Implementation with AWS Services</title><link>https://scottobert.com/posts/cqrs-implementation-aws-services/</link><pubDate>Sun, 17 Jan 2021 09:00:00 -0500</pubDate><guid>https://scottobert.com/posts/cqrs-implementation-aws-services/</guid><description>&lt;p>Command Query Responsibility Segregation represents a fundamental shift in how we think about data persistence and retrieval in distributed systems. Rather than treating reads and writes as symmetric operations against a single data model, CQRS acknowledges the inherent differences between these operations and optimizes each path independently. In the context of AWS services, this pattern becomes particularly powerful when we leverage the managed services ecosystem to handle the complexity of maintaining separate command and query models.&lt;/p></description></item><item><title>Event Sourcing Patterns in AWS</title><link>https://scottobert.com/posts/event-sourcing-patterns-aws/</link><pubDate>Sun, 27 Dec 2020 11:00:00 -0700</pubDate><guid>https://scottobert.com/posts/event-sourcing-patterns-aws/</guid><description>&lt;p>Event sourcing fundamentally changes how applications handle state management by storing every state change as an immutable event rather than maintaining current state snapshots. This architectural pattern becomes particularly powerful when implemented on AWS, where managed services provide the scalability and durability required for enterprise-grade event sourcing systems. Understanding how to leverage AWS services effectively for event sourcing can transform application architectures from brittle state-dependent systems into resilient, audit-friendly, and highly scalable solutions.&lt;/p></description></item></channel></rss>

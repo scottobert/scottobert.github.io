@@ -4,18 +4,327 @@
 &lt;p>Artificial Intelligence (AI) is rapidly reshaping the landscape of software engineering. From automating repetitive tasks to enhancing code quality and enabling smarter decision-making, AI-powered tools are becoming essential in the modern developer&amp;rsquo;s toolkit.&lt;/p>
 &lt;h2 id="key-applications-of-ai-in-software-engineering">Key Applications of AI in Software Engineering&lt;/h2>
 &lt;h3 id="1-code-generation-and-completion">1. Code Generation and Completion&lt;/h3>
-&lt;p>AI-powered code assistants, such as GitHub Copilot, can suggest code snippets, complete functions, and even generate entire modules based on natural language prompts. This accelerates development and reduces boilerplate coding.&lt;/p></description></item><item><title>Cost Optimization Strategies for AWS Serverless Applications</title><link>https://scottobert.com/posts/aws-serverless-cost-optimization/</link><pubDate>Sat, 17 Jun 2023 00:00:00 +0000</pubDate><guid>https://scottobert.com/posts/aws-serverless-cost-optimization/</guid><description>&lt;h2 id="introduction">Introduction&lt;/h2>
+&lt;p>AI-powered code assistants, such as GitHub Copilot, can suggest code snippets, complete functions, and even generate entire modules based on natural language prompts. This accelerates development and reduces boilerplate coding.&lt;/p></description></item><item><title>Real-time Applications with AWS WebSockets and TypeScript</title><link>https://scottobert.com/posts/aws-websockets-typescript/</link><pubDate>Sun, 13 Aug 2023 10:00:00 -0700</pubDate><guid>https://scottobert.com/posts/aws-websockets-typescript/</guid><description>&lt;p>Modern applications increasingly demand real-time capabilities—from live chat systems and collaborative editing to real-time dashboards and gaming. In this final post of our AWS and TypeScript series, we&amp;rsquo;ll explore how to build scalable real-time applications using AWS API Gateway WebSocket APIs, Lambda functions, and TypeScript to create robust, type-safe real-time communication systems.&lt;/p>
+&lt;div class="plantuml-container">
+ &lt;img id="plantuml-websocket-architecture" class="plantuml-diagram"/>
+ &lt;a id="plantuml-link-websocket-architecture" href="#" target="_blank" class="plantuml-link" title="Open diagram in new window">
+ &lt;span class="plantuml-link-icon">🔍&lt;/span>
+ &lt;/a>
+&lt;/div>
+&lt;script src="https://scottobert.com/js/rawdeflate.js">&lt;/script>
+&lt;script>
+ 
+
+ function encode64(data) {
+ r = "";
+ for (i=0; i&lt;data.length; i+=3) {
+ if (i+2==data.length) {
+ r +=append3bytes(data.charCodeAt(i), data.charCodeAt(i+1), 0);
+ } else if (i+1==data.length) {
+ r += append3bytes(data.charCodeAt(i), 0, 0);
+ } else {
+ r += append3bytes(data.charCodeAt(i), data.charCodeAt(i+1),
+ data.charCodeAt(i+2));
+ }
+ }
+ return r;
+ }
+
+ function append3bytes(b1, b2, b3) {
+ c1 = b1 >> 2;
+ c2 = ((b1 &amp; 0x3) &lt;&lt; 4) | (b2 >> 4);
+ c3 = ((b2 &amp; 0xF) &lt;&lt; 2) | (b3 >> 6);
+ c4 = b3 &amp; 0x3F;
+ r = "";
+ r += encode6bit(c1 &amp; 0x3F);
+ r += encode6bit(c2 &amp; 0x3F);
+ r += encode6bit(c3 &amp; 0x3F);
+ r += encode6bit(c4 &amp; 0x3F);
+ return r;
+ }
+
+ function encode6bit(b) {
+ if (b &lt; 10) {
+ return String.fromCharCode(48 + b);
+ }
+ b -= 10;
+ if (b &lt; 26) {
+ return String.fromCharCode(65 + b);
+ }
+ b -= 26;
+ if (b &lt; 26) {
+ return String.fromCharCode(97 + b);
+ }
+ b -= 26;
+ if (b == 0) {
+ return '-';
+ }
+ if (b == 1) {
+ return '_';
+ }
+ return '?';
+ }
+
+ var deflater = window.SharedWorker &amp;&amp; new SharedWorker('/js/rawdeflate.js');
+ if (deflater) {
+ deflater.port.addEventListener('message', done_deflating, false);
+ deflater.port.start();
+ } else if (window.Worker) {
+ deflater = new Worker('/js/rawdeflate.js');
+ deflater.onmessage = done_deflating;
+ }
+
+ function done_deflating(e) {
+ const img = document.getElementById("plantuml-websocket-architecture");
+ const imgUrl = "https://www.plantuml.com/plantuml/img/"+encode64(e.data);
+ img.src = imgUrl;
+ 
+ 
+ const link = document.getElementById("plantuml-link-websocket-architecture");
+ if (link) {
+ link.href = imgUrl;
+ }
+ }
+
+ function compress(s) {
+ 
+ s = unescape(encodeURIComponent(s));
+ 
+ if (deflater) {
+ if (deflater.port &amp;&amp; deflater.port.postMessage) {
+ deflater.port.postMessage(s);
+ } else {
+ deflater.postMessage(s);
+ }
+ } else {
+ setTimeout(function() {
+ done_deflating({ data: deflate(s) });
+ }, 100);
+ }
+ }
+
+ compress("\n@startuml WebSocket Architecture\n!define RECTANGLE class\n\ncloud \u0022Client Applications\u0022 as clients\npackage \u0022AWS Cloud\u0022 {\n rectangle \u0022API Gateway WebSocket\u0022 as apigw {\n rectangle \u0022Connect Route\u0022 as connect\n rectangle \u0022Disconnect Route\u0022 as disconnect\n rectangle \u0022Message Routes\u0022 as routes\n }\n \n package \u0022Lambda Functions\u0022 {\n rectangle \u0022Connection Handler\u0022 as conn_handler\n rectangle \u0022Message Handler\u0022 as msg_handler\n rectangle \u0022Room Manager\u0022 as room_handler\n rectangle \u0022Broadcast Service\u0022 as broadcast\n }\n \n database \u0022DynamoDB\u0022 as dynamo {\n rectangle \u0022Connections Table\u0022 as conn_table\n rectangle \u0022Messages Table\u0022 as msg_table\n rectangle \u0022Rooms Table\u0022 as room_table\n }\n \n rectangle \u0022API Gateway Management API\u0022 as mgmt_api\n}\n\nclients \u003c--\u003e connect : WebSocket Connection\nclients \u003c--\u003e disconnect : WebSocket Disconnection\nclients \u003c--\u003e routes : Real-time Messages\n\nconnect --\u003e conn_handler : $connect\ndisconnect --\u003e conn_handler : $disconnect\nroutes --\u003e msg_handler : Custom Routes\nroutes --\u003e room_handler : Room Operations\n\nconn_handler --\u003e conn_table : Store Connection\nmsg_handler --\u003e msg_table : Store Message\nroom_handler --\u003e room_table : Manage Rooms\n\nbroadcast --\u003e mgmt_api : Send to Connections\nmgmt_api --\u003e clients : Real-time Updates\n\nnote right of apigw\n • Persistent connections\n • Bidirectional communication • Auto-scaling\n • Route-based message handling\nend note\n\nnote right of dynamo\n • Connection state storage\n • Message persistence\n • Room membership\n • TTL for cleanup\nend note\n@enduml\n")
+&lt;/script>
+&lt;h2 id="understanding-websocket-apis-with-aws">Understanding WebSocket APIs with AWS&lt;/h2>
+&lt;p>AWS API Gateway WebSocket APIs provide a fully managed service for building real-time, bidirectional communication applications. Key advantages include:&lt;/p></description></item><item><title>AWS CDK Infrastructure as Code with TypeScript</title><link>https://scottobert.com/posts/aws-cdk-typescript/</link><pubDate>Sun, 23 Jul 2023 10:00:00 -0700</pubDate><guid>https://scottobert.com/posts/aws-cdk-typescript/</guid><description>&lt;p>Managing cloud infrastructure through code brings numerous advantages over manual configuration, including version control, reproducibility, and automated deployment pipelines. In this post, we&amp;rsquo;ll explore how to use AWS CDK (Cloud Development Kit) with TypeScript to create, manage, and deploy serverless applications with infrastructure that&amp;rsquo;s as maintainable and type-safe as your application code.&lt;/p>
+&lt;h2 id="why-cdk-with-typescript">Why CDK with TypeScript?&lt;/h2>
+&lt;p>AWS CDK offers a compelling alternative to traditional infrastructure tools by allowing you to define cloud resources using familiar programming languages. When combined with TypeScript, CDK provides compile-time type checking, intelligent code completion, and the ability to create reusable, composable infrastructure components.&lt;/p></description></item><item><title>DynamoDB with TypeScript: Type-Safe NoSQL Operations</title><link>https://scottobert.com/posts/dynamodb-typescript/</link><pubDate>Sun, 02 Jul 2023 10:00:00 -0700</pubDate><guid>https://scottobert.com/posts/dynamodb-typescript/</guid><description>&lt;p>Working with NoSQL databases like DynamoDB can be challenging when it comes to maintaining type safety and data consistency. In this post, we&amp;rsquo;ll explore how to build robust, type-safe DynamoDB operations using TypeScript, covering everything from basic CRUD operations to advanced patterns like single-table design and transaction handling.&lt;/p>
+&lt;div class="plantuml-container">
+ &lt;img id="plantuml-dynamodb-single-table" class="plantuml-diagram"/>
+ &lt;a id="plantuml-link-dynamodb-single-table" href="#" target="_blank" class="plantuml-link" title="Open diagram in new window">
+ &lt;span class="plantuml-link-icon">🔍&lt;/span>
+ &lt;/a>
+&lt;/div>
+&lt;script src="https://scottobert.com/js/rawdeflate.js">&lt;/script>
+&lt;script>
+ 
+
+ function encode64(data) {
+ r = "";
+ for (i=0; i&lt;data.length; i+=3) {
+ if (i+2==data.length) {
+ r +=append3bytes(data.charCodeAt(i), data.charCodeAt(i+1), 0);
+ } else if (i+1==data.length) {
+ r += append3bytes(data.charCodeAt(i), 0, 0);
+ } else {
+ r += append3bytes(data.charCodeAt(i), data.charCodeAt(i+1),
+ data.charCodeAt(i+2));
+ }
+ }
+ return r;
+ }
+
+ function append3bytes(b1, b2, b3) {
+ c1 = b1 >> 2;
+ c2 = ((b1 &amp; 0x3) &lt;&lt; 4) | (b2 >> 4);
+ c3 = ((b2 &amp; 0xF) &lt;&lt; 2) | (b3 >> 6);
+ c4 = b3 &amp; 0x3F;
+ r = "";
+ r += encode6bit(c1 &amp; 0x3F);
+ r += encode6bit(c2 &amp; 0x3F);
+ r += encode6bit(c3 &amp; 0x3F);
+ r += encode6bit(c4 &amp; 0x3F);
+ return r;
+ }
+
+ function encode6bit(b) {
+ if (b &lt; 10) {
+ return String.fromCharCode(48 + b);
+ }
+ b -= 10;
+ if (b &lt; 26) {
+ return String.fromCharCode(65 + b);
+ }
+ b -= 26;
+ if (b &lt; 26) {
+ return String.fromCharCode(97 + b);
+ }
+ b -= 26;
+ if (b == 0) {
+ return '-';
+ }
+ if (b == 1) {
+ return '_';
+ }
+ return '?';
+ }
+
+ var deflater = window.SharedWorker &amp;&amp; new SharedWorker('/js/rawdeflate.js');
+ if (deflater) {
+ deflater.port.addEventListener('message', done_deflating, false);
+ deflater.port.start();
+ } else if (window.Worker) {
+ deflater = new Worker('/js/rawdeflate.js');
+ deflater.onmessage = done_deflating;
+ }
+
+ function done_deflating(e) {
+ const img = document.getElementById("plantuml-dynamodb-single-table");
+ const imgUrl = "https://www.plantuml.com/plantuml/img/"+encode64(e.data);
+ img.src = imgUrl;
+ 
+ 
+ const link = document.getElementById("plantuml-link-dynamodb-single-table");
+ if (link) {
+ link.href = imgUrl;
+ }
+ }
+
+ function compress(s) {
+ 
+ s = unescape(encodeURIComponent(s));
+ 
+ if (deflater) {
+ if (deflater.port &amp;&amp; deflater.port.postMessage) {
+ deflater.port.postMessage(s);
+ } else {
+ deflater.postMessage(s);
+ }
+ } else {
+ setTimeout(function() {
+ done_deflating({ data: deflate(s) });
+ }, 100);
+ }
+ }
+
+ compress("\n@startuml DynamoDB Single Table Design\n!define RECTANGLE class\n\npackage \u0022Single Table Design\u0022 {\n database \u0022DynamoDB Table\u0022 as table {\n rectangle \u0022Partition Key (PK)\u0022 as pk\n rectangle \u0022Sort Key (SK)\u0022 as sk\n rectangle \u0022GSI1PK\u0022 as gsi1pk\n rectangle \u0022GSI1SK\u0022 as gsi1sk\n }\n \n rectangle \u0022User Entity\u0022 as user {\n rectangle \u0022PK: USER#123\u0022 as user_pk\n rectangle \u0022SK: USER#123\u0022 as user_sk\n rectangle \u0022GSI1PK: EMAIL#user_at_domain.com\u0022 as user_gsi1pk\n rectangle \u0022Data: name, email, dept\u0022 as user_data\n }\n \n rectangle \u0022Order Entity\u0022 as order {\n rectangle \u0022PK: ORDER#456\u0022 as order_pk\n rectangle \u0022SK: ORDER#456\u0022 as order_sk\n rectangle \u0022GSI1PK: USER#123\u0022 as order_gsi1pk\n rectangle \u0022GSI1SK: ORDER#2023-07-02\u0022 as order_gsi1sk\n rectangle \u0022Data: items, total, status\u0022 as order_data\n }\n \n rectangle \u0022Product Entity\u0022 as product {\n rectangle \u0022PK: PRODUCT#789\u0022 as product_pk\n rectangle \u0022SK: PRODUCT#789\u0022 as product_sk\n rectangle \u0022GSI1PK: CATEGORY#electronics\u0022 as product_gsi1pk\n rectangle \u0022Data: name, price, stock\u0022 as product_data\n }\n}\n\ntable --\u003e user : Store\ntable --\u003e order : Store\ntable --\u003e product : Store\n\nnote right of table\n • Single table for all entities\n • Composite keys for relationships\n • GSI for access patterns\n • Type-safe operations\nend note\n\nnote bottom of user\n Access Patterns:\n • Get user by ID: PK = USER#id\n • Get user by email: GSI1PK = EMAIL#email\nend note\n\nnote bottom of order\n Access Patterns:\n • Get order by ID: PK = ORDER#id\n • Get orders by user: GSI1PK = USER#id\nend note\n@enduml\n")
+&lt;/script>
+&lt;h2 id="why-type-safety-matters-with-dynamodb">Why Type Safety Matters with DynamoDB&lt;/h2>
+&lt;p>DynamoDB&amp;rsquo;s flexible schema brings both opportunities and challenges:&lt;/p></description></item><item><title>Cost Optimization Strategies for AWS Serverless Applications</title><link>https://scottobert.com/posts/aws-serverless-cost-optimization/</link><pubDate>Sat, 17 Jun 2023 00:00:00 +0000</pubDate><guid>https://scottobert.com/posts/aws-serverless-cost-optimization/</guid><description>&lt;h2 id="introduction">Introduction&lt;/h2>
 &lt;p>While serverless architectures can significantly reduce operational costs, they require thoughtful design and configuration to maximize cost efficiency. This guide explores practical strategies for optimizing costs in AWS serverless applications, based on real-world experience and proven patterns.&lt;/p>
 &lt;h2 id="lambda-function-optimization">Lambda Function Optimization&lt;/h2>
 &lt;h3 id="memory-and-duration-trade-offs">Memory and Duration Trade-offs&lt;/h3>
-&lt;p>The relationship between Lambda memory allocation and execution duration isn&amp;rsquo;t always intuitive. Higher memory allocations often lead to faster execution times, potentially reducing overall costs. When right-sizing memory for your functions, start with the minimum required memory of 128MB and gradually increase while monitoring performance. In many cases, doubling the memory from 128MB to 256MB can cut execution time in half, resulting in lower overall costs despite the higher memory price.&lt;/p></description></item><item><title>Building Event-Driven Architectures with AWS SNS/SQS and TypeScript</title><link>https://scottobert.com/posts/aws-sns-sqs-typescript/</link><pubDate>Sun, 21 May 2023 11:00:00 -0700</pubDate><guid>https://scottobert.com/posts/aws-sns-sqs-typescript/</guid><description>&lt;p>Event-driven architectures are fundamental to building scalable, loosely coupled systems in the cloud. In this post, we&amp;rsquo;ll explore how to use AWS SNS (Simple Notification Service) and SQS (Simple Queue Service) with TypeScript to create robust event-driven applications.&lt;/p>
-&lt;h2 id="why-event-driven-architecture">Why Event-Driven Architecture?&lt;/h2>
-&lt;p>Event-driven architectures bring numerous advantages to modern cloud applications. At their core, they enable loose coupling between services, allowing components to evolve independently without affecting the entire system. This architectural approach naturally leads to improved scalability and resilience, as services can scale independently based on their specific load patterns. When traffic spikes occur, the system can better handle the increased load by buffering messages and processing them at an appropriate pace. The architecture also simplifies error handling and retry logic through built-in messaging capabilities, while the overall system becomes more maintainable due to clear boundaries between components.&lt;/p></description></item><item><title>Securing AWS Lambda Functions: Best Practices and Implementation Guide</title><link>https://scottobert.com/posts/securing-aws-lambda/</link><pubDate>Fri, 07 Apr 2023 13:00:00 -0700</pubDate><guid>https://scottobert.com/posts/securing-aws-lambda/</guid><description>&lt;p>Following our exploration of AWS Lambda with TypeScript and Step Functions, it&amp;rsquo;s crucial to understand how to properly secure your serverless applications. Security in serverless architectures requires a different approach from traditional applications, as the infrastructure is managed by AWS while you maintain responsibility for securing your application logic and data.&lt;/p>
+&lt;p>The relationship between Lambda memory allocation and execution duration isn&amp;rsquo;t always intuitive. Higher memory allocations often lead to faster execution times, potentially reducing overall costs. When right-sizing memory for your functions, start with the minimum required memory of 128MB and gradually increase while monitoring performance. In many cases, doubling the memory from 128MB to 256MB can cut execution time in half, resulting in lower overall costs despite the higher memory price.&lt;/p></description></item><item><title>Building Type-Safe APIs with AWS API Gateway and TypeScript</title><link>https://scottobert.com/posts/aws-api-gateway-typescript/</link><pubDate>Sun, 11 Jun 2023 10:00:00 -0700</pubDate><guid>https://scottobert.com/posts/aws-api-gateway-typescript/</guid><description>&lt;p>Building robust APIs requires more than just handling HTTP requests—it demands type safety, proper validation, and clear documentation. In this post, we&amp;rsquo;ll explore how to build production-ready APIs using AWS API Gateway with TypeScript, ensuring type safety from request to response while maintaining excellent developer experience.&lt;/p>
+&lt;div class="plantuml-container">
+ &lt;img id="plantuml-api-gateway-architecture" class="plantuml-diagram"/>
+ &lt;a id="plantuml-link-api-gateway-architecture" href="#" target="_blank" class="plantuml-link" title="Open diagram in new window">
+ &lt;span class="plantuml-link-icon">🔍&lt;/span>
+ &lt;/a>
+&lt;/div>
+&lt;script src="https://scottobert.com/js/rawdeflate.js">&lt;/script>
+&lt;script>
+ 
+
+ function encode64(data) {
+ r = "";
+ for (i=0; i&lt;data.length; i+=3) {
+ if (i+2==data.length) {
+ r +=append3bytes(data.charCodeAt(i), data.charCodeAt(i+1), 0);
+ } else if (i+1==data.length) {
+ r += append3bytes(data.charCodeAt(i), 0, 0);
+ } else {
+ r += append3bytes(data.charCodeAt(i), data.charCodeAt(i+1),
+ data.charCodeAt(i+2));
+ }
+ }
+ return r;
+ }
+
+ function append3bytes(b1, b2, b3) {
+ c1 = b1 >> 2;
+ c2 = ((b1 &amp; 0x3) &lt;&lt; 4) | (b2 >> 4);
+ c3 = ((b2 &amp; 0xF) &lt;&lt; 2) | (b3 >> 6);
+ c4 = b3 &amp; 0x3F;
+ r = "";
+ r += encode6bit(c1 &amp; 0x3F);
+ r += encode6bit(c2 &amp; 0x3F);
+ r += encode6bit(c3 &amp; 0x3F);
+ r += encode6bit(c4 &amp; 0x3F);
+ return r;
+ }
+
+ function encode6bit(b) {
+ if (b &lt; 10) {
+ return String.fromCharCode(48 + b);
+ }
+ b -= 10;
+ if (b &lt; 26) {
+ return String.fromCharCode(65 + b);
+ }
+ b -= 26;
+ if (b &lt; 26) {
+ return String.fromCharCode(97 + b);
+ }
+ b -= 26;
+ if (b == 0) {
+ return '-';
+ }
+ if (b == 1) {
+ return '_';
+ }
+ return '?';
+ }
+
+ var deflater = window.SharedWorker &amp;&amp; new SharedWorker('/js/rawdeflate.js');
+ if (deflater) {
+ deflater.port.addEventListener('message', done_deflating, false);
+ deflater.port.start();
+ } else if (window.Worker) {
+ deflater = new Worker('/js/rawdeflate.js');
+ deflater.onmessage = done_deflating;
+ }
+
+ function done_deflating(e) {
+ const img = document.getElementById("plantuml-api-gateway-architecture");
+ const imgUrl = "https://www.plantuml.com/plantuml/img/"+encode64(e.data);
+ img.src = imgUrl;
+ 
+ 
+ const link = document.getElementById("plantuml-link-api-gateway-architecture");
+ if (link) {
+ link.href = imgUrl;
+ }
+ }
+
+ function compress(s) {
+ 
+ s = unescape(encodeURIComponent(s));
+ 
+ if (deflater) {
+ if (deflater.port &amp;&amp; deflater.port.postMessage) {
+ deflater.port.postMessage(s);
+ } else {
+ deflater.postMessage(s);
+ }
+ } else {
+ setTimeout(function() {
+ done_deflating({ data: deflate(s) });
+ }, 100);
+ }
+ }
+
+ compress("\n@startuml API Gateway Architecture\n!define RECTANGLE class\n\ncloud \u0022Client Applications\u0022 as clients\npackage \u0022AWS Cloud\u0022 {\n rectangle \u0022API Gateway\u0022 as apigw {\n rectangle \u0022REST API\u0022 as restapi\n rectangle \u0022Request Validation\u0022 as validation\n rectangle \u0022CORS\u0022 as cors\n }\n \n package \u0022Lambda Functions\u0022 {\n rectangle \u0022Create User\u0022 as create\n rectangle \u0022Get User\u0022 as get\n rectangle \u0022Update User\u0022 as update\n rectangle \u0022Delete User\u0022 as delete\n }\n \n database \u0022DynamoDB\u0022 as dynamo {\n rectangle \u0022Users Table\u0022 as table\n }\n}\n\nclients --\u003e restapi : HTTPS Requests\nrestapi --\u003e validation : Validate Schema\nvalidation --\u003e cors : Apply CORS\ncors --\u003e create : POST \/users\ncors --\u003e get : GET \/users\/{id}\ncors --\u003e update : PUT \/users\/{id}\ncors --\u003e delete : DELETE \/users\/{id}\n\ncreate --\u003e table : Store User\nget --\u003e table : Retrieve User\nupdate --\u003e table : Update User\ndelete --\u003e table : Remove User\n\nnote right of validation\n • Request validation\n • Type checking\n • Schema enforcement\nend note\n\nnote right of table\n • Primary Key: id\n • Attributes: name, email,\n department, timestamps\nend note\n@enduml\n")
+&lt;/script>
+&lt;h2 id="why-type-safe-apis-matter">Why Type-Safe APIs Matter&lt;/h2>
+&lt;p>Type safety in API development provides several critical advantages:&lt;/p></description></item><item><title>Building Event-Driven Architectures with AWS SNS/SQS and TypeScript</title><link>https://scottobert.com/posts/aws-sns-sqs-typescript/</link><pubDate>Sun, 21 May 2023 11:00:00 -0700</pubDate><guid>https://scottobert.com/posts/aws-sns-sqs-typescript/</guid><description>&lt;p>Event-driven architectures form the backbone of modern cloud applications, enabling systems to scale gracefully while maintaining loose coupling between components. This post explores how AWS SNS and SQS, combined with TypeScript&amp;rsquo;s type safety, create robust messaging patterns that handle everything from simple notifications to complex distributed workflows.&lt;/p>
+&lt;h2 id="event-driven-architecture-benefits">Event-Driven Architecture Benefits&lt;/h2>
+&lt;p>Event-driven systems offer compelling advantages for modern applications. &lt;strong>Loose coupling&lt;/strong> allows services to evolve independently without breaking dependencies. &lt;strong>Natural scalability&lt;/strong> emerges as components can scale based on their specific load patterns rather than system-wide peaks. &lt;strong>Resilience&lt;/strong> improves through built-in buffering and retry mechanisms that handle traffic spikes and temporary failures gracefully.&lt;/p></description></item><item><title>Securing AWS Lambda Functions: Best Practices and Implementation Guide</title><link>https://scottobert.com/posts/securing-aws-lambda/</link><pubDate>Fri, 07 Apr 2023 13:00:00 -0700</pubDate><guid>https://scottobert.com/posts/securing-aws-lambda/</guid><description>&lt;p>Following our exploration of AWS Lambda with TypeScript and Step Functions, it&amp;rsquo;s crucial to understand how to properly secure your serverless applications. Security in serverless architectures requires a different approach from traditional applications, as the infrastructure is managed by AWS while you maintain responsibility for securing your application logic and data.&lt;/p>
 &lt;h2 id="understanding-the-shared-responsibility-model">Understanding the Shared Responsibility Model&lt;/h2>
-&lt;p>In the AWS Lambda context, the shared responsibility model takes on a unique form. AWS handles the security of the runtime environment, execution environment isolation, and underlying infrastructure. However, developers are responsible for securing their application code, managing IAM permissions, protecting sensitive data, and ensuring secure communication between services. This division of responsibility allows you to focus on application-specific security while AWS handles the infrastructure security.&lt;/p></description></item><item><title>Step Functions: Orchestrating AWS Lambda Workflows in TypeScript</title><link>https://scottobert.com/posts/aws-step-functions-typescript/</link><pubDate>Sun, 05 Mar 2023 10:00:00 -0700</pubDate><guid>https://scottobert.com/posts/aws-step-functions-typescript/</guid><description>&lt;p>Building on our previous exploration of AWS Lambda with TypeScript, let&amp;rsquo;s dive into how Step Functions can orchestrate complex workflows across multiple Lambda functions. Step Functions provide a reliable way to coordinate distributed components and handle long-running processes in your serverless applications.&lt;/p>
-&lt;h2 id="why-step-functions">Why Step Functions?&lt;/h2>
-&lt;p>While individual Lambda functions excel at discrete tasks, real-world applications demand more sophisticated orchestration capabilities. Applications typically need to manage complex workflows with multiple interconnected steps, implement comprehensive error handling and retry logic, and handle processes that extend beyond Lambda&amp;rsquo;s 15-minute execution limit. Additionally, maintaining state between steps and coordinating parallel task execution are common requirements in distributed systems. Step Functions address these challenges by providing a robust state machine-based orchestration service that brings structure and reliability to complex serverless workflows.&lt;/p></description></item><item><title>How to deploy an AWS Lambda function written in TypeScript using SAM CLI</title><link>https://scottobert.com/posts/aws-lambda-typescript/</link><pubDate>Fri, 17 Feb 2023 13:30:32 -0700</pubDate><guid>https://scottobert.com/posts/aws-lambda-typescript/</guid><description>&lt;p>Welcome to the world of AWS Serverless! In this blog post, we will be discussing how to deploy an AWS Lambda function written in TypeScript using the AWS SAM CLI.&lt;/p>
-&lt;p>AWS Lambda is a compute service that allows you to run your code in response to events or triggers, such as changes to data in an S3 bucket, or updates to a DynamoDB table. AWS Serverless Application Model (SAM) is an open-source framework for building serverless applications. The SAM CLI provides a local development and testing environment for AWS Serverless applications.&lt;/p></description></item><item><title>git reset to a given commit</title><link>https://scottobert.com/posts/git-reset-to-commit/</link><pubDate>Thu, 21 Apr 2022 09:50:32 -0700</pubDate><guid>https://scottobert.com/posts/git-reset-to-commit/</guid><description>&lt;h1 id="safely-resetting-to-a-previous-commit-in-git">Safely Resetting to a Previous Commit in Git&lt;/h1>
+&lt;p>In the AWS Lambda context, the shared responsibility model takes on a unique form. AWS handles the security of the runtime environment, execution environment isolation, and underlying infrastructure. However, developers are responsible for securing their application code, managing IAM permissions, protecting sensitive data, and ensuring secure communication between services. This division of responsibility allows you to focus on application-specific security while AWS handles the infrastructure security.&lt;/p></description></item><item><title>AWS Step Functions with TypeScript: Orchestrating Serverless Workflows</title><link>https://scottobert.com/posts/aws-step-functions-typescript/</link><pubDate>Sun, 05 Mar 2023 10:00:00 -0700</pubDate><guid>https://scottobert.com/posts/aws-step-functions-typescript/</guid><description>&lt;p>Building robust serverless applications often requires orchestrating multiple Lambda functions into complex workflows. AWS Step Functions provide a visual workflow service that coordinates distributed components, manages state transitions, and handles error recovery—all while maintaining the reliability and scalability that modern applications demand.&lt;/p>
+&lt;h2 id="why-step-functions-with-typescript">Why Step Functions with TypeScript?&lt;/h2>
+&lt;p>TypeScript brings compelling advantages to Step Functions development beyond basic type safety. &lt;strong>Workflow clarity&lt;/strong> emerges from strongly-typed state definitions that make complex logic easier to understand and maintain. &lt;strong>Error prevention&lt;/strong> occurs at compile time through type checking of state inputs and outputs. &lt;strong>Developer experience&lt;/strong> improves dramatically with IntelliSense support for AWS SDK calls and state machine definitions.&lt;/p></description></item><item><title>AWS Lambda with TypeScript: A Complete Development Guide</title><link>https://scottobert.com/posts/aws-lambda-typescript/</link><pubDate>Fri, 17 Feb 2023 13:30:32 -0700</pubDate><guid>https://scottobert.com/posts/aws-lambda-typescript/</guid><description>&lt;p>AWS Lambda represents the foundation of serverless computing, allowing you to run code without managing servers. When combined with TypeScript, Lambda functions become more maintainable, reliable, and developer-friendly. This guide will walk you through building production-ready Lambda functions with TypeScript, covering everything from setup to deployment and best practices.&lt;/p>
+&lt;h2 id="why-typescript-for-lambda">Why TypeScript for Lambda?&lt;/h2>
+&lt;p>TypeScript brings several compelling advantages to Lambda development. &lt;strong>Type safety&lt;/strong> catches errors at compile time rather than runtime, preventing costly production issues. &lt;strong>Enhanced developer experience&lt;/strong> includes intelligent autocomplete, refactoring support, and better tooling integration. &lt;strong>Better maintainability&lt;/strong> comes from explicit interfaces and self-documenting code that&amp;rsquo;s easier for teams to understand and modify.&lt;/p></description></item><item><title>git reset to a given commit</title><link>https://scottobert.com/posts/git-reset-to-commit/</link><pubDate>Thu, 21 Apr 2022 09:50:32 -0700</pubDate><guid>https://scottobert.com/posts/git-reset-to-commit/</guid><description>&lt;h1 id="safely-resetting-to-a-previous-commit-in-git">Safely Resetting to a Previous Commit in Git&lt;/h1>
 &lt;p>When working with Git, sometimes you need to reset your working tree to a specific commit while preserving the commit history. This guide explains how to do this safely and understand what&amp;rsquo;s happening behind the scenes.&lt;/p>
 &lt;h2 id="the-problem">The Problem&lt;/h2>
 &lt;p>Typically, when developers want to revert to an older commit, they might reach for &lt;code>git reset --hard&lt;/code>. However, this can be dangerous as it:&lt;/p></description></item><item><title>Decompiling dotnet apps</title><link>https://scottobert.com/posts/decompiling-dotnet-apps/</link><pubDate>Tue, 12 Apr 2022 15:09:00 -0700</pubDate><guid>https://scottobert.com/posts/decompiling-dotnet-apps/</guid><description>&lt;p>Sometimes as developers we run into a legacy application that has been running in production for years when suddenly a bug surfaces. If nobody knows where the source code for that legacy application is, that can be a huge problem.&lt;/p>

@@ -1,1 +1,103 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Real-Time on Scott Obert</title><link>https://scottobert.com/tags/real-time/</link><description>Recent content in Real-Time on Scott Obert</description><generator>Hugo</generator><language>en</language><copyright>&amp;copy;2022 Scott Obert</copyright><lastBuildDate>Fri, 06 Jun 2025 09:00:00 -0500</lastBuildDate><atom:link href="https://scottobert.com/tags/real-time/index.xml" rel="self" type="application/rss+xml"/><item><title>Real-time Data Synchronization: Using DynamoDB Streams and Lambda to Keep OpenSearch Indexes Current</title><link>https://scottobert.com/posts/dynamodb-streams-opensearch-sync/</link><pubDate>Fri, 06 Jun 2025 09:00:00 -0500</pubDate><guid>https://scottobert.com/posts/dynamodb-streams-opensearch-sync/</guid><description>&lt;p>Building modern applications often requires the ability to perform full-text searches with fuzzy matching capabilities on data that&amp;rsquo;s primarily stored in NoSQL databases like DynamoDB. While DynamoDB excels at fast key-based lookups and can handle massive scale, it lacks the sophisticated search capabilities that applications need for features like autocomplete, typo-tolerant search, and complex text analysis. OpenSearch (the open-source fork of Elasticsearch) provides these advanced search capabilities, but keeping it synchronized with your primary data store presents unique challenges.&lt;/p></description></item><item><title>Real-time Processing Architectures</title><link>https://scottobert.com/posts/real-time-processing-architectures/</link><pubDate>Sun, 11 Apr 2021 09:00:00 -0500</pubDate><guid>https://scottobert.com/posts/real-time-processing-architectures/</guid><description>&lt;p>Real-time processing architectures address the fundamental challenge of extracting actionable insights from continuously flowing data streams while maintaining low latency and high throughput requirements. Unlike batch processing systems that operate on static datasets with relaxed timing constraints, real-time systems must process events as they arrive, often within milliseconds or seconds of generation. This temporal sensitivity introduces unique design considerations around event ordering, backpressure handling, and state management that distinguish real-time architectures from their batch-oriented counterparts.&lt;/p></description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Real-Time on Scott Obert</title><link>https://scottobert.com/tags/real-time/</link><description>Recent content in Real-Time on Scott Obert</description><generator>Hugo</generator><language>en</language><copyright>&amp;copy;2022 Scott Obert</copyright><lastBuildDate>Fri, 06 Jun 2025 09:00:00 -0500</lastBuildDate><atom:link href="https://scottobert.com/tags/real-time/index.xml" rel="self" type="application/rss+xml"/><item><title>Real-time Data Synchronization: Using DynamoDB Streams and Lambda to Keep OpenSearch Indexes Current</title><link>https://scottobert.com/posts/dynamodb-streams-opensearch-sync/</link><pubDate>Fri, 06 Jun 2025 09:00:00 -0500</pubDate><guid>https://scottobert.com/posts/dynamodb-streams-opensearch-sync/</guid><description>&lt;p>Building modern applications often requires the ability to perform full-text searches with fuzzy matching capabilities on data that&amp;rsquo;s primarily stored in NoSQL databases like DynamoDB. While DynamoDB excels at fast key-based lookups and can handle massive scale, it lacks the sophisticated search capabilities that applications need for features like autocomplete, typo-tolerant search, and complex text analysis. OpenSearch (the open-source fork of Elasticsearch) provides these advanced search capabilities, but keeping it synchronized with your primary data store presents unique challenges.&lt;/p></description></item><item><title>Real-time Applications with AWS WebSockets and TypeScript</title><link>https://scottobert.com/posts/aws-websockets-typescript/</link><pubDate>Sun, 13 Aug 2023 10:00:00 -0700</pubDate><guid>https://scottobert.com/posts/aws-websockets-typescript/</guid><description>&lt;p>Modern applications increasingly demand real-time capabilities—from live chat systems and collaborative editing to real-time dashboards and gaming. In this final post of our AWS and TypeScript series, we&amp;rsquo;ll explore how to build scalable real-time applications using AWS API Gateway WebSocket APIs, Lambda functions, and TypeScript to create robust, type-safe real-time communication systems.&lt;/p>
+&lt;div class="plantuml-container">
+ &lt;img id="plantuml-websocket-architecture" class="plantuml-diagram"/>
+ &lt;a id="plantuml-link-websocket-architecture" href="#" target="_blank" class="plantuml-link" title="Open diagram in new window">
+ &lt;span class="plantuml-link-icon">🔍&lt;/span>
+ &lt;/a>
+&lt;/div>
+&lt;script src="https://scottobert.com/js/rawdeflate.js">&lt;/script>
+&lt;script>
+ 
+
+ function encode64(data) {
+ r = "";
+ for (i=0; i&lt;data.length; i+=3) {
+ if (i+2==data.length) {
+ r +=append3bytes(data.charCodeAt(i), data.charCodeAt(i+1), 0);
+ } else if (i+1==data.length) {
+ r += append3bytes(data.charCodeAt(i), 0, 0);
+ } else {
+ r += append3bytes(data.charCodeAt(i), data.charCodeAt(i+1),
+ data.charCodeAt(i+2));
+ }
+ }
+ return r;
+ }
+
+ function append3bytes(b1, b2, b3) {
+ c1 = b1 >> 2;
+ c2 = ((b1 &amp; 0x3) &lt;&lt; 4) | (b2 >> 4);
+ c3 = ((b2 &amp; 0xF) &lt;&lt; 2) | (b3 >> 6);
+ c4 = b3 &amp; 0x3F;
+ r = "";
+ r += encode6bit(c1 &amp; 0x3F);
+ r += encode6bit(c2 &amp; 0x3F);
+ r += encode6bit(c3 &amp; 0x3F);
+ r += encode6bit(c4 &amp; 0x3F);
+ return r;
+ }
+
+ function encode6bit(b) {
+ if (b &lt; 10) {
+ return String.fromCharCode(48 + b);
+ }
+ b -= 10;
+ if (b &lt; 26) {
+ return String.fromCharCode(65 + b);
+ }
+ b -= 26;
+ if (b &lt; 26) {
+ return String.fromCharCode(97 + b);
+ }
+ b -= 26;
+ if (b == 0) {
+ return '-';
+ }
+ if (b == 1) {
+ return '_';
+ }
+ return '?';
+ }
+
+ var deflater = window.SharedWorker &amp;&amp; new SharedWorker('/js/rawdeflate.js');
+ if (deflater) {
+ deflater.port.addEventListener('message', done_deflating, false);
+ deflater.port.start();
+ } else if (window.Worker) {
+ deflater = new Worker('/js/rawdeflate.js');
+ deflater.onmessage = done_deflating;
+ }
+
+ function done_deflating(e) {
+ const img = document.getElementById("plantuml-websocket-architecture");
+ const imgUrl = "https://www.plantuml.com/plantuml/img/"+encode64(e.data);
+ img.src = imgUrl;
+ 
+ 
+ const link = document.getElementById("plantuml-link-websocket-architecture");
+ if (link) {
+ link.href = imgUrl;
+ }
+ }
+
+ function compress(s) {
+ 
+ s = unescape(encodeURIComponent(s));
+ 
+ if (deflater) {
+ if (deflater.port &amp;&amp; deflater.port.postMessage) {
+ deflater.port.postMessage(s);
+ } else {
+ deflater.postMessage(s);
+ }
+ } else {
+ setTimeout(function() {
+ done_deflating({ data: deflate(s) });
+ }, 100);
+ }
+ }
+
+ compress("\n@startuml WebSocket Architecture\n!define RECTANGLE class\n\ncloud \u0022Client Applications\u0022 as clients\npackage \u0022AWS Cloud\u0022 {\n rectangle \u0022API Gateway WebSocket\u0022 as apigw {\n rectangle \u0022Connect Route\u0022 as connect\n rectangle \u0022Disconnect Route\u0022 as disconnect\n rectangle \u0022Message Routes\u0022 as routes\n }\n \n package \u0022Lambda Functions\u0022 {\n rectangle \u0022Connection Handler\u0022 as conn_handler\n rectangle \u0022Message Handler\u0022 as msg_handler\n rectangle \u0022Room Manager\u0022 as room_handler\n rectangle \u0022Broadcast Service\u0022 as broadcast\n }\n \n database \u0022DynamoDB\u0022 as dynamo {\n rectangle \u0022Connections Table\u0022 as conn_table\n rectangle \u0022Messages Table\u0022 as msg_table\n rectangle \u0022Rooms Table\u0022 as room_table\n }\n \n rectangle \u0022API Gateway Management API\u0022 as mgmt_api\n}\n\nclients \u003c--\u003e connect : WebSocket Connection\nclients \u003c--\u003e disconnect : WebSocket Disconnection\nclients \u003c--\u003e routes : Real-time Messages\n\nconnect --\u003e conn_handler : $connect\ndisconnect --\u003e conn_handler : $disconnect\nroutes --\u003e msg_handler : Custom Routes\nroutes --\u003e room_handler : Room Operations\n\nconn_handler --\u003e conn_table : Store Connection\nmsg_handler --\u003e msg_table : Store Message\nroom_handler --\u003e room_table : Manage Rooms\n\nbroadcast --\u003e mgmt_api : Send to Connections\nmgmt_api --\u003e clients : Real-time Updates\n\nnote right of apigw\n • Persistent connections\n • Bidirectional communication • Auto-scaling\n • Route-based message handling\nend note\n\nnote right of dynamo\n • Connection state storage\n • Message persistence\n • Room membership\n • TTL for cleanup\nend note\n@enduml\n")
+&lt;/script>
+&lt;h2 id="understanding-websocket-apis-with-aws">Understanding WebSocket APIs with AWS&lt;/h2>
+&lt;p>AWS API Gateway WebSocket APIs provide a fully managed service for building real-time, bidirectional communication applications. Key advantages include:&lt;/p></description></item><item><title>Real-time Processing Architectures</title><link>https://scottobert.com/posts/real-time-processing-architectures/</link><pubDate>Sun, 11 Apr 2021 09:00:00 -0500</pubDate><guid>https://scottobert.com/posts/real-time-processing-architectures/</guid><description>&lt;p>Real-time processing architectures address the fundamental challenge of extracting actionable insights from continuously flowing data streams while maintaining low latency and high throughput requirements. Unlike batch processing systems that operate on static datasets with relaxed timing constraints, real-time systems must process events as they arrive, often within milliseconds or seconds of generation. This temporal sensitivity introduces unique design considerations around event ordering, backpressure handling, and state management that distinguish real-time architectures from their batch-oriented counterparts.&lt;/p></description></item></channel></rss>

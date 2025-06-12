@@ -8,24 +8,200 @@
 <span>GitHub</span></a></div></div></div></header><div class=container><nav class=breadcrumbs aria-label="Breadcrumb navigation"><ol class=breadcrumb-list><li class=breadcrumb-item><a href=https://scottobert.com/ title=Home><svg class="breadcrumb-home-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
 <span>Home</span></a></li><li class=breadcrumb-item><span class=breadcrumb-separator aria-hidden=true>/</span>
 <a href=https://scottobert.com/series/ title=Series>Series</a></li><li class="breadcrumb-item breadcrumb-current"><span class=breadcrumb-separator aria-hidden=true>/</span>
-<span class=breadcrumb-current-page aria-current=page>AWS and Typescript</span></li></ol></nav><div class=content-layout><main class=main-content><div class=container><div class=content-wrapper><main class=main-content><div class=series-header><h1>AWS and Typescript Series</h1><p class=series-description>All posts in the <strong>AWS and Typescript</strong> series (3 posts)</p></div><div class=posts><article class=post-summary><header class=post-header><h2 class=post-title><a href=/posts/aws-sns-sqs-typescript/>Building Event-Driven Architectures with AWS SNS/SQS and TypeScript</a></h2><div class=post-meta><time class=post-date>May 21, 2023</time>
+<span class=breadcrumb-current-page aria-current=page>AWS and Typescript</span></li></ol></nav><div class=content-layout><main class=main-content><div class=container><div class=content-wrapper><main class=main-content><div class=series-header><h1>AWS and Typescript Series</h1><p class=series-description>All posts in the <strong>AWS and Typescript</strong> series (7 posts)</p></div><div class=posts><article class=post-summary><header class=post-header><h2 class=post-title><a href=/posts/aws-websockets-typescript/>Real-time Applications with AWS WebSockets and TypeScript</a></h2><div class=post-meta><time class=post-date>August 13, 2023</time>
 <span class=post-categories><a href=/categories/cloud-computing>Cloud Computing</a>
-<a href=/categories/architecture-and-design>Architecture and Design</a></span></div></header><div class=post-excerpt><p>Event-driven architectures are fundamental to building scalable, loosely coupled systems in the cloud. In this post, we&rsquo;ll explore how to use AWS SNS (Simple Notification Service) and SQS (Simple Queue Service) with TypeScript to create robust event-driven applications.</p><h2 id=why-event-driven-architecture>Why Event-Driven Architecture?</h2><p>Event-driven architectures bring numerous advantages to modern cloud applications. At their core, they enable loose coupling between services, allowing components to evolve independently without affecting the entire system. This architectural approach naturally leads to improved scalability and resilience, as services can scale independently based on their specific load patterns. When traffic spikes occur, the system can better handle the increased load by buffering messages and processing them at an appropriate pace. The architecture also simplifies error handling and retry logic through built-in messaging capabilities, while the overall system becomes more maintainable due to clear boundaries between components.</p></div><footer class=post-footer><a href=/posts/aws-sns-sqs-typescript/ class=read-more>Read more →</a></footer></article><article class=post-summary><header class=post-header><h2 class=post-title><a href=/posts/aws-step-functions-typescript/>Step Functions: Orchestrating AWS Lambda Workflows in TypeScript</a></h2><div class=post-meta><time class=post-date>March 5, 2023</time>
+<a href=/categories/real-time-applications>Real-time Applications</a></span></div></header><div class=post-excerpt><p>Modern applications increasingly demand real-time capabilities—from live chat systems and collaborative editing to real-time dashboards and gaming. In this final post of our AWS and TypeScript series, we&rsquo;ll explore how to build scalable real-time applications using AWS API Gateway WebSocket APIs, Lambda functions, and TypeScript to create robust, type-safe real-time communication systems.</p><div class=plantuml-container><img id=plantuml-websocket-architecture class=plantuml-diagram>
+<a id=plantuml-link-websocket-architecture href=# target=_blank class=plantuml-link title="Open diagram in new window"><span class=plantuml-link-icon>🔍</span></a></div><script src=/js/rawdeflate.js></script><script>function encode64(e){r="";for(i=0;i<e.length;i+=3)i+2==e.length?r+=append3bytes(e.charCodeAt(i),e.charCodeAt(i+1),0):i+1==e.length?r+=append3bytes(e.charCodeAt(i),0,0):r+=append3bytes(e.charCodeAt(i),e.charCodeAt(i+1),e.charCodeAt(i+2));return r}function append3bytes(e,t,n){return c1=e>>2,c2=(e&3)<<4|t>>4,c3=(t&15)<<2|n>>6,c4=n&63,r="",r+=encode6bit(c1&63),r+=encode6bit(c2&63),r+=encode6bit(c3&63),r+=encode6bit(c4&63),r}function encode6bit(e){return e<10?String.fromCharCode(48+e):(e-=10,e<26?String.fromCharCode(65+e):(e-=26,e<26?String.fromCharCode(97+e):(e-=26,e==0?"-":e==1?"_":"?")))}var deflater=window.SharedWorker&&new SharedWorker("/js/rawdeflate.js");deflater?(deflater.port.addEventListener("message",done_deflating,!1),deflater.port.start()):window.Worker&&(deflater=new Worker("/js/rawdeflate.js"),deflater.onmessage=done_deflating);function done_deflating(e){const s=document.getElementById("plantuml-websocket-architecture"),t="https://www.plantuml.com/plantuml/img/"+encode64(e.data);s.src=t;const n=document.getElementById("plantuml-link-websocket-architecture");n&&(n.href=t)}function compress(e){e=unescape(encodeURIComponent(e)),deflater?deflater.port&&deflater.port.postMessage?deflater.port.postMessage(e):deflater.postMessage(e):setTimeout(function(){done_deflating({data:deflate(e)})},100)}compress(`
+@startuml WebSocket Architecture
+!define RECTANGLE class
+
+cloud "Client Applications" as clients
+package "AWS Cloud" {
+  rectangle "API Gateway WebSocket" as apigw {
+    rectangle "Connect Route" as connect
+    rectangle "Disconnect Route" as disconnect
+    rectangle "Message Routes" as routes
+  }
+  
+  package "Lambda Functions" {
+    rectangle "Connection Handler" as conn_handler
+    rectangle "Message Handler" as msg_handler
+    rectangle "Room Manager" as room_handler
+    rectangle "Broadcast Service" as broadcast
+  }
+  
+  database "DynamoDB" as dynamo {
+    rectangle "Connections Table" as conn_table
+    rectangle "Messages Table" as msg_table
+    rectangle "Rooms Table" as room_table
+  }
+  
+  rectangle "API Gateway Management API" as mgmt_api
+}
+
+clients <--> connect : WebSocket Connection
+clients <--> disconnect : WebSocket Disconnection
+clients <--> routes : Real-time Messages
+
+connect --> conn_handler : $connect
+disconnect --> conn_handler : $disconnect
+routes --> msg_handler : Custom Routes
+routes --> room_handler : Room Operations
+
+conn_handler --> conn_table : Store Connection
+msg_handler --> msg_table : Store Message
+room_handler --> room_table : Manage Rooms
+
+broadcast --> mgmt_api : Send to Connections
+mgmt_api --> clients : Real-time Updates
+
+note right of apigw
+  • Persistent connections
+  • Bidirectional communication  • Auto-scaling
+  • Route-based message handling
+end note
+
+note right of dynamo
+  • Connection state storage
+  • Message persistence
+  • Room membership
+  • TTL for cleanup
+end note
+@enduml
+`)</script><h2 id=understanding-websocket-apis-with-aws>Understanding WebSocket APIs with AWS</h2><p>AWS API Gateway WebSocket APIs provide a fully managed service for building real-time, bidirectional communication applications. Key advantages include:</p></div><footer class=post-footer><a href=/posts/aws-websockets-typescript/ class=read-more>Read more →</a></footer></article><article class=post-summary><header class=post-header><h2 class=post-title><a href=/posts/aws-cdk-typescript/>AWS CDK Infrastructure as Code with TypeScript</a></h2><div class=post-meta><time class=post-date>July 23, 2023</time>
 <span class=post-categories><a href=/categories/cloud-computing>Cloud Computing</a>
-<a href=/categories/architecture-and-design>Architecture and Design</a></span></div></header><div class=post-excerpt><p>Building on our previous exploration of AWS Lambda with TypeScript, let&rsquo;s dive into how Step Functions can orchestrate complex workflows across multiple Lambda functions. Step Functions provide a reliable way to coordinate distributed components and handle long-running processes in your serverless applications.</p><h2 id=why-step-functions>Why Step Functions?</h2><p>While individual Lambda functions excel at discrete tasks, real-world applications demand more sophisticated orchestration capabilities. Applications typically need to manage complex workflows with multiple interconnected steps, implement comprehensive error handling and retry logic, and handle processes that extend beyond Lambda&rsquo;s 15-minute execution limit. Additionally, maintaining state between steps and coordinating parallel task execution are common requirements in distributed systems. Step Functions address these challenges by providing a robust state machine-based orchestration service that brings structure and reliability to complex serverless workflows.</p></div><footer class=post-footer><a href=/posts/aws-step-functions-typescript/ class=read-more>Read more →</a></footer></article><article class=post-summary><header class=post-header><h2 class=post-title><a href=/posts/aws-lambda-typescript/>How to deploy an AWS Lambda function written in TypeScript using SAM CLI</a></h2><div class=post-meta><time class=post-date>February 17, 2023</time>
+<a href=/categories/infrastructure-as-code>Infrastructure as Code</a></span></div></header><div class=post-excerpt><p>Managing cloud infrastructure through code brings numerous advantages over manual configuration, including version control, reproducibility, and automated deployment pipelines. In this post, we&rsquo;ll explore how to use AWS CDK (Cloud Development Kit) with TypeScript to create, manage, and deploy serverless applications with infrastructure that&rsquo;s as maintainable and type-safe as your application code.</p><h2 id=why-cdk-with-typescript>Why CDK with TypeScript?</h2><p>AWS CDK offers a compelling alternative to traditional infrastructure tools by allowing you to define cloud resources using familiar programming languages. When combined with TypeScript, CDK provides compile-time type checking, intelligent code completion, and the ability to create reusable, composable infrastructure components.</p></div><footer class=post-footer><a href=/posts/aws-cdk-typescript/ class=read-more>Read more →</a></footer></article><article class=post-summary><header class=post-header><h2 class=post-title><a href=/posts/dynamodb-typescript/>DynamoDB with TypeScript: Type-Safe NoSQL Operations</a></h2><div class=post-meta><time class=post-date>July 2, 2023</time>
 <span class=post-categories><a href=/categories/cloud-computing>Cloud Computing</a>
-<a href=/categories/development-tutorials>Development Tutorials</a></span></div></header><div class=post-excerpt><p>Welcome to the world of AWS Serverless! In this blog post, we will be discussing how to deploy an AWS Lambda function written in TypeScript using the AWS SAM CLI.</p><p>AWS Lambda is a compute service that allows you to run your code in response to events or triggers, such as changes to data in an S3 bucket, or updates to a DynamoDB table. AWS Serverless Application Model (SAM) is an open-source framework for building serverless applications. The SAM CLI provides a local development and testing environment for AWS Serverless applications.</p></div><footer class=post-footer><a href=/posts/aws-lambda-typescript/ class=read-more>Read more →</a></footer></article></div><div class=series-navigation><a href=/ class=back-link>← Back to Home</a>
+<a href=/categories/database-design>Database Design</a></span></div></header><div class=post-excerpt><p>Working with NoSQL databases like DynamoDB can be challenging when it comes to maintaining type safety and data consistency. In this post, we&rsquo;ll explore how to build robust, type-safe DynamoDB operations using TypeScript, covering everything from basic CRUD operations to advanced patterns like single-table design and transaction handling.</p><div class=plantuml-container><img id=plantuml-dynamodb-single-table class=plantuml-diagram>
+<a id=plantuml-link-dynamodb-single-table href=# target=_blank class=plantuml-link title="Open diagram in new window"><span class=plantuml-link-icon>🔍</span></a></div><script src=/js/rawdeflate.js></script><script>function encode64(e){r="";for(i=0;i<e.length;i+=3)i+2==e.length?r+=append3bytes(e.charCodeAt(i),e.charCodeAt(i+1),0):i+1==e.length?r+=append3bytes(e.charCodeAt(i),0,0):r+=append3bytes(e.charCodeAt(i),e.charCodeAt(i+1),e.charCodeAt(i+2));return r}function append3bytes(e,t,n){return c1=e>>2,c2=(e&3)<<4|t>>4,c3=(t&15)<<2|n>>6,c4=n&63,r="",r+=encode6bit(c1&63),r+=encode6bit(c2&63),r+=encode6bit(c3&63),r+=encode6bit(c4&63),r}function encode6bit(e){return e<10?String.fromCharCode(48+e):(e-=10,e<26?String.fromCharCode(65+e):(e-=26,e<26?String.fromCharCode(97+e):(e-=26,e==0?"-":e==1?"_":"?")))}var deflater=window.SharedWorker&&new SharedWorker("/js/rawdeflate.js");deflater?(deflater.port.addEventListener("message",done_deflating,!1),deflater.port.start()):window.Worker&&(deflater=new Worker("/js/rawdeflate.js"),deflater.onmessage=done_deflating);function done_deflating(e){const s=document.getElementById("plantuml-dynamodb-single-table"),t="https://www.plantuml.com/plantuml/img/"+encode64(e.data);s.src=t;const n=document.getElementById("plantuml-link-dynamodb-single-table");n&&(n.href=t)}function compress(e){e=unescape(encodeURIComponent(e)),deflater?deflater.port&&deflater.port.postMessage?deflater.port.postMessage(e):deflater.postMessage(e):setTimeout(function(){done_deflating({data:deflate(e)})},100)}compress(`
+@startuml DynamoDB Single Table Design
+!define RECTANGLE class
+
+package "Single Table Design" {
+  database "DynamoDB Table" as table {
+    rectangle "Partition Key (PK)" as pk
+    rectangle "Sort Key (SK)" as sk
+    rectangle "GSI1PK" as gsi1pk
+    rectangle "GSI1SK" as gsi1sk
+  }
+  
+  rectangle "User Entity" as user {
+    rectangle "PK: USER#123" as user_pk
+    rectangle "SK: USER#123" as user_sk
+    rectangle "GSI1PK: EMAIL#user_at_domain.com" as user_gsi1pk
+    rectangle "Data: name, email, dept" as user_data
+  }
+  
+  rectangle "Order Entity" as order {
+    rectangle "PK: ORDER#456" as order_pk
+    rectangle "SK: ORDER#456" as order_sk
+    rectangle "GSI1PK: USER#123" as order_gsi1pk
+    rectangle "GSI1SK: ORDER#2023-07-02" as order_gsi1sk
+    rectangle "Data: items, total, status" as order_data
+  }
+  
+  rectangle "Product Entity" as product {
+    rectangle "PK: PRODUCT#789" as product_pk
+    rectangle "SK: PRODUCT#789" as product_sk
+    rectangle "GSI1PK: CATEGORY#electronics" as product_gsi1pk
+    rectangle "Data: name, price, stock" as product_data
+  }
+}
+
+table --> user : Store
+table --> order : Store
+table --> product : Store
+
+note right of table
+  • Single table for all entities
+  • Composite keys for relationships
+  • GSI for access patterns
+  • Type-safe operations
+end note
+
+note bottom of user
+  Access Patterns:
+  • Get user by ID: PK = USER#id
+  • Get user by email: GSI1PK = EMAIL#email
+end note
+
+note bottom of order
+  Access Patterns:
+  • Get order by ID: PK = ORDER#id
+  • Get orders by user: GSI1PK = USER#id
+end note
+@enduml
+`)</script><h2 id=why-type-safety-matters-with-dynamodb>Why Type Safety Matters with DynamoDB</h2><p>DynamoDB&rsquo;s flexible schema brings both opportunities and challenges:</p></div><footer class=post-footer><a href=/posts/dynamodb-typescript/ class=read-more>Read more →</a></footer></article><article class=post-summary><header class=post-header><h2 class=post-title><a href=/posts/aws-api-gateway-typescript/>Building Type-Safe APIs with AWS API Gateway and TypeScript</a></h2><div class=post-meta><time class=post-date>June 11, 2023</time>
+<span class=post-categories><a href=/categories/cloud-computing>Cloud Computing</a>
+<a href=/categories/api-development>API Development</a></span></div></header><div class=post-excerpt><p>Building robust APIs requires more than just handling HTTP requests—it demands type safety, proper validation, and clear documentation. In this post, we&rsquo;ll explore how to build production-ready APIs using AWS API Gateway with TypeScript, ensuring type safety from request to response while maintaining excellent developer experience.</p><div class=plantuml-container><img id=plantuml-api-gateway-architecture class=plantuml-diagram>
+<a id=plantuml-link-api-gateway-architecture href=# target=_blank class=plantuml-link title="Open diagram in new window"><span class=plantuml-link-icon>🔍</span></a></div><script src=/js/rawdeflate.js></script><script>function encode64(e){r="";for(i=0;i<e.length;i+=3)i+2==e.length?r+=append3bytes(e.charCodeAt(i),e.charCodeAt(i+1),0):i+1==e.length?r+=append3bytes(e.charCodeAt(i),0,0):r+=append3bytes(e.charCodeAt(i),e.charCodeAt(i+1),e.charCodeAt(i+2));return r}function append3bytes(e,t,n){return c1=e>>2,c2=(e&3)<<4|t>>4,c3=(t&15)<<2|n>>6,c4=n&63,r="",r+=encode6bit(c1&63),r+=encode6bit(c2&63),r+=encode6bit(c3&63),r+=encode6bit(c4&63),r}function encode6bit(e){return e<10?String.fromCharCode(48+e):(e-=10,e<26?String.fromCharCode(65+e):(e-=26,e<26?String.fromCharCode(97+e):(e-=26,e==0?"-":e==1?"_":"?")))}var deflater=window.SharedWorker&&new SharedWorker("/js/rawdeflate.js");deflater?(deflater.port.addEventListener("message",done_deflating,!1),deflater.port.start()):window.Worker&&(deflater=new Worker("/js/rawdeflate.js"),deflater.onmessage=done_deflating);function done_deflating(e){const s=document.getElementById("plantuml-api-gateway-architecture"),t="https://www.plantuml.com/plantuml/img/"+encode64(e.data);s.src=t;const n=document.getElementById("plantuml-link-api-gateway-architecture");n&&(n.href=t)}function compress(e){e=unescape(encodeURIComponent(e)),deflater?deflater.port&&deflater.port.postMessage?deflater.port.postMessage(e):deflater.postMessage(e):setTimeout(function(){done_deflating({data:deflate(e)})},100)}compress(`
+@startuml API Gateway Architecture
+!define RECTANGLE class
+
+cloud "Client Applications" as clients
+package "AWS Cloud" {
+  rectangle "API Gateway" as apigw {
+    rectangle "REST API" as restapi
+    rectangle "Request Validation" as validation
+    rectangle "CORS" as cors
+  }
+  
+  package "Lambda Functions" {
+    rectangle "Create User" as create
+    rectangle "Get User" as get
+    rectangle "Update User" as update
+    rectangle "Delete User" as delete
+  }
+  
+  database "DynamoDB" as dynamo {
+    rectangle "Users Table" as table
+  }
+}
+
+clients --> restapi : HTTPS Requests
+restapi --> validation : Validate Schema
+validation --> cors : Apply CORS
+cors --> create : POST /users
+cors --> get : GET /users/{id}
+cors --> update : PUT /users/{id}
+cors --> delete : DELETE /users/{id}
+
+create --> table : Store User
+get --> table : Retrieve User
+update --> table : Update User
+delete --> table : Remove User
+
+note right of validation
+  • Request validation
+  • Type checking
+  • Schema enforcement
+end note
+
+note right of table
+  • Primary Key: id
+  • Attributes: name, email,
+    department, timestamps
+end note
+@enduml
+`)</script><h2 id=why-type-safe-apis-matter>Why Type-Safe APIs Matter</h2><p>Type safety in API development provides several critical advantages:</p></div><footer class=post-footer><a href=/posts/aws-api-gateway-typescript/ class=read-more>Read more →</a></footer></article><article class=post-summary><header class=post-header><h2 class=post-title><a href=/posts/aws-sns-sqs-typescript/>Building Event-Driven Architectures with AWS SNS/SQS and TypeScript</a></h2><div class=post-meta><time class=post-date>May 21, 2023</time>
+<span class=post-categories><a href=/categories/cloud-computing>Cloud Computing</a>
+<a href=/categories/architecture-and-design>Architecture and Design</a></span></div></header><div class=post-excerpt><p>Event-driven architectures form the backbone of modern cloud applications, enabling systems to scale gracefully while maintaining loose coupling between components. This post explores how AWS SNS and SQS, combined with TypeScript&rsquo;s type safety, create robust messaging patterns that handle everything from simple notifications to complex distributed workflows.</p><h2 id=event-driven-architecture-benefits>Event-Driven Architecture Benefits</h2><p>Event-driven systems offer compelling advantages for modern applications. <strong>Loose coupling</strong> allows services to evolve independently without breaking dependencies. <strong>Natural scalability</strong> emerges as components can scale based on their specific load patterns rather than system-wide peaks. <strong>Resilience</strong> improves through built-in buffering and retry mechanisms that handle traffic spikes and temporary failures gracefully.</p></div><footer class=post-footer><a href=/posts/aws-sns-sqs-typescript/ class=read-more>Read more →</a></footer></article><article class=post-summary><header class=post-header><h2 class=post-title><a href=/posts/aws-step-functions-typescript/>AWS Step Functions with TypeScript: Orchestrating Serverless Workflows</a></h2><div class=post-meta><time class=post-date>March 5, 2023</time>
+<span class=post-categories><a href=/categories/cloud-computing>Cloud Computing</a>
+<a href=/categories/architecture-and-design>Architecture and Design</a></span></div></header><div class=post-excerpt><p>Building robust serverless applications often requires orchestrating multiple Lambda functions into complex workflows. AWS Step Functions provide a visual workflow service that coordinates distributed components, manages state transitions, and handles error recovery—all while maintaining the reliability and scalability that modern applications demand.</p><h2 id=why-step-functions-with-typescript>Why Step Functions with TypeScript?</h2><p>TypeScript brings compelling advantages to Step Functions development beyond basic type safety. <strong>Workflow clarity</strong> emerges from strongly-typed state definitions that make complex logic easier to understand and maintain. <strong>Error prevention</strong> occurs at compile time through type checking of state inputs and outputs. <strong>Developer experience</strong> improves dramatically with IntelliSense support for AWS SDK calls and state machine definitions.</p></div><footer class=post-footer><a href=/posts/aws-step-functions-typescript/ class=read-more>Read more →</a></footer></article><article class=post-summary><header class=post-header><h2 class=post-title><a href=/posts/aws-lambda-typescript/>AWS Lambda with TypeScript: A Complete Development Guide</a></h2><div class=post-meta><time class=post-date>February 17, 2023</time>
+<span class=post-categories><a href=/categories/cloud-computing>Cloud Computing</a>
+<a href=/categories/development-tutorials>Development Tutorials</a></span></div></header><div class=post-excerpt><p>AWS Lambda represents the foundation of serverless computing, allowing you to run code without managing servers. When combined with TypeScript, Lambda functions become more maintainable, reliable, and developer-friendly. This guide will walk you through building production-ready Lambda functions with TypeScript, covering everything from setup to deployment and best practices.</p><h2 id=why-typescript-for-lambda>Why TypeScript for Lambda?</h2><p>TypeScript brings several compelling advantages to Lambda development. <strong>Type safety</strong> catches errors at compile time rather than runtime, preventing costly production issues. <strong>Enhanced developer experience</strong> includes intelligent autocomplete, refactoring support, and better tooling integration. <strong>Better maintainability</strong> comes from explicit interfaces and self-documenting code that&rsquo;s easier for teams to understand and modify.</p></div><footer class=post-footer><a href=/posts/aws-lambda-typescript/ class=read-more>Read more →</a></footer></article></div><div class=series-navigation><a href=/ class=back-link>← Back to Home</a>
 <a href=/series/ class=all-series-link>View All Series →</a></div></main></div></div></main><aside class=blog-sidebar><div class=sidebar-widget><h3>Recent Posts</h3><ul class=recent-posts><li><a href=/posts/reverting-git-commits-safely/>Reverting Git Commits Safely: Undoing Changes Without Losing History</a>
 <span class=post-date>Jun 11, 2025</span></li><li><a href=/posts/dynamodb-streams-opensearch-sync/>Real-time Data Synchronization: Using DynamoDB Streams and Lambda to Keep OpenSearch Indexes Current</a>
 <span class=post-date>Jun 6, 2025</span></li><li><a href=/posts/using-ai-in-software-engineering/>Harnessing AI in Software Engineering: Opportunities and Challenges</a>
-<span class=post-date>May 29, 2025</span></li><li><a href=/posts/aws-serverless-cost-optimization/>Cost Optimization Strategies for AWS Serverless Applications</a>
-<span class=post-date>Jun 17, 2023</span></li><li><a href=/posts/aws-sns-sqs-typescript/>Building Event-Driven Architectures with AWS SNS/SQS and TypeScript</a>
-<span class=post-date>May 21, 2023</span></li></ul></div><div class=sidebar-widget><h3>Post Series</h3><ul class=recent-posts><li><a href=/posts/aws-sns-sqs-typescript/>AWS and Typescript: Building Event-Driven Architectures with AWS SNS/SQS and TypeScript</a>
-<span class=post-date>May 21, 2023</span><div class=series-meta><a href=/series/aws-and-typescript/ class=series-link>View all 3 posts in series →</a></div></li><li><a href=/posts/real-time-processing-architectures/>Cloud Architecture Patterns: Real-time Processing Architectures</a>
+<span class=post-date>May 29, 2025</span></li><li><a href=/posts/aws-websockets-typescript/>Real-time Applications with AWS WebSockets and TypeScript</a>
+<span class=post-date>Aug 13, 2023</span></li><li><a href=/posts/aws-cdk-typescript/>AWS CDK Infrastructure as Code with TypeScript</a>
+<span class=post-date>Jul 23, 2023</span></li></ul></div><div class=sidebar-widget><h3>Post Series</h3><ul class=recent-posts><li><a href=/posts/aws-websockets-typescript/>AWS and Typescript: Real-time Applications with AWS WebSockets and TypeScript</a>
+<span class=post-date>Aug 13, 2023</span><div class=series-meta><a href=/series/aws-and-typescript/ class=series-link>View all 7 posts in series →</a></div></li><li><a href=/posts/real-time-processing-architectures/>Cloud Architecture Patterns: Real-time Processing Architectures</a>
 <span class=post-date>Apr 11, 2021</span><div class=series-meta><a href=/series/cloud-architecture-patterns/ class=series-link>View all 7 posts in series →</a></div></li><li><a href=/posts/technical-debt-management-growing-codebases/>Modern Development Practices: Technical Debt Management in Growing Codebases: Strategies for Sustainable Development</a>
 <span class=post-date>Dec 19, 2021</span><div class=series-meta><a href=/series/modern-development-practices/ class=series-link>View all 7 posts in series →</a></div></li><li><a href=/posts/threat-modeling-cloud-applications/>Security in Cloud-Native Applications: Threat Modeling for Cloud Applications: A Comprehensive Approach to Security Design</a>
-<span class=post-date>Oct 19, 2019</span><div class=series-meta><a href=/series/security-in-cloud-native-applications/ class=series-link>View all 7 posts in series →</a></div></li></ul></div><div class=sidebar-widget><h3>Categories</h3><ul class=categories><li><a href=/categories/api-development>api development (1)</a></li><li><a href=/categories/architecture>architecture (2)</a></li><li><a href=/categories/architecture-and-design>architecture and design (8)</a></li><li><a href=/categories/artificial-intelligence>artificial intelligence (1)</a></li><li><a href=/categories/cloud-computing>cloud computing (16)</a></li><li><a href=/categories/code-quality>code quality (1)</a></li><li><a href=/categories/compliance>compliance (1)</a></li><li><a href=/categories/cost-optimization>cost optimization (1)</a></li><li><a href=/categories/data-engineering>data engineering (3)</a></li><li><a href=/categories/database>database (1)</a></li><li><a href=/categories/debugging-and-troubleshooting>debugging and troubleshooting (1)</a></li><li><a href=/categories/developer-experience>developer experience (1)</a></li><li><a href=/categories/development-tools>development tools (3)</a></li><li><a href=/categories/development-tutorials>development tutorials (1)</a></li><li><a href=/categories/microservices>microservices (1)</a></li><li><a href=/categories/performance>performance (1)</a></li><li><a href=/categories/quality-assurance>quality assurance (1)</a></li><li><a href=/categories/security>security (8)</a></li><li><a href=/categories/serverless>serverless (2)</a></li><li><a href=/categories/software-development>software development (8)</a></li><li><a href=/categories/technical-debt>technical debt (1)</a></li><li><a href=/categories/testing>testing (2)</a></li><li><a href=/categories/version-control>version control (2)</a></li></ul></div><div class=sidebar-widget><h3>Tags</h3><div class=tag-cloud><a href=/tags/ai class=tag-cloud-item style=font-size:1rem>ai
+<span class=post-date>Oct 19, 2019</span><div class=series-meta><a href=/series/security-in-cloud-native-applications/ class=series-link>View all 7 posts in series →</a></div></li></ul></div><div class=sidebar-widget><h3>Categories</h3><ul class=categories><li><a href=/categories/api-development>api development (2)</a></li><li><a href=/categories/architecture>architecture (2)</a></li><li><a href=/categories/architecture-and-design>architecture and design (8)</a></li><li><a href=/categories/artificial-intelligence>artificial intelligence (1)</a></li><li><a href=/categories/cloud-computing>cloud computing (20)</a></li><li><a href=/categories/code-quality>code quality (1)</a></li><li><a href=/categories/compliance>compliance (1)</a></li><li><a href=/categories/cost-optimization>cost optimization (1)</a></li><li><a href=/categories/data-engineering>data engineering (3)</a></li><li><a href=/categories/database>database (1)</a></li><li><a href=/categories/database-design>database design (1)</a></li><li><a href=/categories/debugging-and-troubleshooting>debugging and troubleshooting (1)</a></li><li><a href=/categories/developer-experience>developer experience (1)</a></li><li><a href=/categories/development-tools>development tools (3)</a></li><li><a href=/categories/development-tutorials>development tutorials (1)</a></li><li><a href=/categories/infrastructure-as-code>infrastructure as code (1)</a></li><li><a href=/categories/microservices>microservices (1)</a></li><li><a href=/categories/performance>performance (1)</a></li><li><a href=/categories/quality-assurance>quality assurance (1)</a></li><li><a href=/categories/real-time-applications>real-time applications (1)</a></li><li><a href=/categories/security>security (8)</a></li><li><a href=/categories/serverless>serverless (2)</a></li><li><a href=/categories/software-development>software development (8)</a></li><li><a href=/categories/technical-debt>technical debt (1)</a></li><li><a href=/categories/testing>testing (2)</a></li><li><a href=/categories/version-control>version control (2)</a></li></ul></div><div class=sidebar-widget><h3>Tags</h3><div class=tag-cloud><a href=/tags/ai class=tag-cloud-item style=font-size:1rem>ai
 </a><a href=/tags/api-design class=tag-cloud-item style=font-size:1rem>api design
+</a><a href=/tags/api-gateway class=tag-cloud-item style=font-size:1rem>api gateway
 </a><a href=/tags/api-security class=tag-cloud-item style=font-size:1rem>api security
 </a><a href=/tags/architecture class=tag-cloud-item style=font-size:2rem>architecture
 </a><a href=/tags/athena class=tag-cloud-item style=font-size:1rem>athena
@@ -35,6 +211,7 @@
 </a><a href=/tags/aws class=tag-cloud-item style=font-size:3rem>aws
 </a><a href=/tags/aws-lambda class=tag-cloud-item style=font-size:1rem>aws lambda
 </a><a href=/tags/best-practices class=tag-cloud-item style=font-size:1rem>best practices
+</a><a href=/tags/cdk class=tag-cloud-item style=font-size:1rem>cdk
 </a><a href=/tags/chaos-engineering class=tag-cloud-item style=font-size:1rem>chaos engineering
 </a><a href=/tags/ci/cd class=tag-cloud-item style=font-size:1rem>ci/cd
 </a><a href=/tags/cloud-native class=tag-cloud-item style=font-size:1rem>cloud native
@@ -48,6 +225,7 @@
 </a><a href=/tags/data-architecture class=tag-cloud-item style=font-size:1rem>data architecture
 </a><a href=/tags/data-lake class=tag-cloud-item style=font-size:1rem>data lake
 </a><a href=/tags/data-modeling class=tag-cloud-item style=font-size:1rem>data modeling
+</a><a href=/tags/database class=tag-cloud-item style=font-size:1rem>database
 </a><a href=/tags/database-design class=tag-cloud-item style=font-size:1rem>database design
 </a><a href=/tags/debugging class=tag-cloud-item style=font-size:1rem>debugging
 </a><a href=/tags/debugging-and-troubleshooting class=tag-cloud-item style=font-size:1rem>debugging and troubleshooting
@@ -72,6 +250,7 @@
 </a><a href=/tags/hipaa class=tag-cloud-item style=font-size:1rem>hipaa
 </a><a href=/tags/iam class=tag-cloud-item style=font-size:1rem>iam
 </a><a href=/tags/identity-management class=tag-cloud-item style=font-size:1rem>identity management
+</a><a href=/tags/infrastructure class=tag-cloud-item style=font-size:1rem>infrastructure
 </a><a href=/tags/jwt class=tag-cloud-item style=font-size:1rem>jwt
 </a><a href=/tags/kinesis class=tag-cloud-item style=font-size:1rem>kinesis
 </a><a href=/tags/kubernetes class=tag-cloud-item style=font-size:1rem>kubernetes
@@ -96,6 +275,7 @@
 </a><a href=/tags/reliability class=tag-cloud-item style=font-size:1rem>reliability
 </a><a href=/tags/resilience class=tag-cloud-item style=font-size:1rem>resilience
 </a><a href=/tags/rest class=tag-cloud-item style=font-size:1rem>rest
+</a><a href=/tags/rest-api class=tag-cloud-item style=font-size:1rem>rest api
 </a><a href=/tags/riskassessment class=tag-cloud-item style=font-size:1rem>riskassessment
 </a><a href=/tags/s3 class=tag-cloud-item style=font-size:1rem>s3
 </a><a href=/tags/search class=tag-cloud-item style=font-size:1rem>search
@@ -115,5 +295,6 @@
 </a><a href=/tags/threatmodeling class=tag-cloud-item style=font-size:1rem>threatmodeling
 </a><a href=/tags/typescript class=tag-cloud-item style=font-size:2rem>typescript
 </a><a href=/tags/version-control class=tag-cloud-item style=font-size:1rem>version control
+</a><a href=/tags/websockets class=tag-cloud-item style=font-size:1rem>websockets
 </a><a href=/tags/zero-trust class=tag-cloud-item style=font-size:1rem>zero trust</a></div></div><div class=sidebar-widget><h3>Subscribe</h3><div class=subscribe-links><a href=/index.xml class=rss-link><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 019 9"/><path d="M4 4a16 16 0 0116 16"/><circle cx="5" cy="19" r="1"/></svg>
 RSS Feed</a></div></div><div class="sidebar-widget npm-packages"><h3>My NPM Packages</h3><div id=npm-list></div></div></aside></div></div><footer class=site-footer><div class=container><p>&copy; 2025 Scott Obert</p></div></footer></body></html>
