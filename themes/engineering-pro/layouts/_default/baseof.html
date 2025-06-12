@@ -35,22 +35,26 @@
   <!-- Twitter Card Tags -->
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="{{ if .IsPage }}{{ .Title }}{{ else }}{{ .Site.Title }}{{ end }}">
-  <meta name="twitter:description" content="{{ with .Description }}{{ . }}{{ else }}{{ .Summary | truncate 160 }}{{ end }}">
-  
-  <link rel="stylesheet" href="/css/style.css">
+  <meta name="twitter:description" content="{{ with .Description }}{{ . }}{{ else }}{{ .Summary | truncate 160 }}{{ end }}">  <link rel="stylesheet" href="/css/style.css">
   <script src="/js/npm-packages.js" defer></script>
+  <script src="/js/search.js" defer></script>
   <script defer src="https://cloud.umami.is/script.js" data-website-id="e2461896-021d-422a-b83f-624a8819309b"></script>
 </head>
 <body>
   <header class="site-header">
     <div class="container">
-      <div class="header-content">
-        <div class="header-left">
+      <div class="header-content">        <div class="header-left">
           <h1><a href="/">{{ .Site.Title }}</a></h1>
           <nav>
             {{ range .Site.Menus.main }}
               <a href="{{ .URL }}">{{ .Name }}</a>
             {{ end }}
+            <button type="button" class="search-toggle" id="search-toggle-btn" aria-label="Open search" title="Search">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+              </svg>
+              <span>Search</span>
+            </button>
           </nav>
         </div>
         <div class="social-links">

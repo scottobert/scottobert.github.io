@@ -3,6 +3,9 @@ languageCode = 'en-us'
 title = 'Scott Obert'
 theme = 'engineering-pro'
 
+[outputs]
+  home = ["HTML", "RSS", "JSON"]
+
 [taxonomies]
   category = 'categories'
   tag = 'tags'
