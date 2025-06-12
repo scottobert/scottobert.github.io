@@ -12,572 +12,911 @@ tags:
 series: "AWS and Typescript"
 ---
 
-Event-driven architectures are fundamental to building scalable, loosely coupled systems in the cloud. In this post, we'll explore how to use AWS SNS (Simple Notification Service) and SQS (Simple Queue Service) with TypeScript to create robust event-driven applications.
+Event-driven architectures form the backbone of modern cloud applications, enabling systems to scale gracefully while maintaining loose coupling between components. This post explores how AWS SNS and SQS, combined with TypeScript's type safety, create robust messaging patterns that handle everything from simple notifications to complex distributed workflows.
 
-## Why Event-Driven Architecture?
+## Event-Driven Architecture Benefits
 
-Event-driven architectures bring numerous advantages to modern cloud applications. At their core, they enable loose coupling between services, allowing components to evolve independently without affecting the entire system. This architectural approach naturally leads to improved scalability and resilience, as services can scale independently based on their specific load patterns. When traffic spikes occur, the system can better handle the increased load by buffering messages and processing them at an appropriate pace. The architecture also simplifies error handling and retry logic through built-in messaging capabilities, while the overall system becomes more maintainable due to clear boundaries between components.
+Event-driven systems offer compelling advantages for modern applications. **Loose coupling** allows services to evolve independently without breaking dependencies. **Natural scalability** emerges as components can scale based on their specific load patterns rather than system-wide peaks. **Resilience** improves through built-in buffering and retry mechanisms that handle traffic spikes and temporary failures gracefully.
+
+Most importantly, **operational simplicity** increases as complex business logic becomes a series of discrete, testable event handlers rather than monolithic processes.
+
+## SNS and SQS Messaging Patterns
+
+Understanding the core messaging patterns helps you choose the right approach for your use cases:
+
+{{< plantuml id="messaging-patterns" >}}
+@startuml
+!theme aws-orange
+title SNS/SQS Messaging Patterns
+
+package "Publish/Subscribe Pattern" {
+  [Order Service] as OrderSvc
+  [SNS Topic] as Topic
+  [Email Service] as EmailSvc
+  [Analytics Service] as AnalyticsSvc
+  [Inventory Service] as InventorySvc
+  
+  OrderSvc --> Topic : publish event
+  Topic --> EmailSvc : notification
+  Topic --> AnalyticsSvc : metrics
+  Topic --> InventorySvc : update stock
+}
+
+package "Point-to-Point Queuing" {
+  [Producer] as Prod
+  [SQS Queue] as Queue
+  [Consumer] as Cons
+  [DLQ] as DLQ
+  
+  Prod --> Queue : send message
+  Queue --> Cons : process message
+  Queue --> DLQ : failed messages
+}
+
+package "Fan-out Pattern" {
+  [Event Source] as Source
+  [SNS Topic] as FanTopic
+  [Queue 1] as Q1
+  [Queue 2] as Q2
+  [Queue 3] as Q3
+  [Lambda 1] as L1
+  [Lambda 2] as L2
+  [Lambda 3] as L3
+  
+  Source --> FanTopic
+  FanTopic --> Q1
+  FanTopic --> Q2
+  FanTopic --> Q3
+  Q1 --> L1
+  Q2 --> L2
+  Q3 --> L3
+}
+
+@enduml
+{{< /plantuml >}}
+
+These patterns provide the foundation for building scalable event-driven systems with clear separation of concerns and predictable data flow.
 
 ## Prerequisites
 
-Before diving into implementation, you'll need to set up your development environment. Start by installing AWS SDK v3, specifically the `@aws-sdk/client-sns` and `@aws-sdk/client-sqs` packages for interacting with AWS messaging services. You should also have a TypeScript development environment configured and the AWS CLI installed and configured with your credentials. Additionally, familiarity with AWS Lambda is important—if you need a refresher, check out our previous posts on AWS Lambda and Step Functions for foundational knowledge.
+Before building event-driven systems with SNS and SQS, ensure you have:
 
-## Setting Up SNS and SQS
+- **AWS SDK v3** with `@aws-sdk/client-sns` and `@aws-sdk/client-sqs` packages
+- **TypeScript development environment** configured for Node.js
+- **AWS CLI** installed and configured with appropriate permissions
+- **Understanding of event-driven concepts** and messaging patterns
 
-Let's start with the infrastructure setup using AWS SAM:
+## Infrastructure Setup with SAM
+
+Let's build a complete order processing system that demonstrates real-world messaging patterns:
 
 ```yaml
 # template.yaml
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+
 Resources:
   # SNS Topic for order events
   OrderEventsTopic:
     Type: AWS::SNS::Topic
     Properties:
-      TopicName: OrderEventsTopic
+      TopicName: !Sub 'order-events-${Environment}'
+      DisplayName: 'Order Processing Events'
 
-  # SQS Queue for order processing
-  OrderProcessingQueue:
+  # High priority queue for critical orders
+  CriticalOrdersQueue:
     Type: AWS::SQS::Queue
     Properties:
+      QueueName: !Sub 'critical-orders-${Environment}'
       VisibilityTimeout: 300
+      MessageRetentionPeriod: 1209600 # 14 days
       RedrivePolicy:
-        deadLetterTargetArn: !GetAtt OrdersDLQ.Arn
+        deadLetterTargetArn: !GetAtt CriticalOrdersDLQ.Arn
         maxReceiveCount: 3
 
-  # Dead Letter Queue
-  OrdersDLQ:
+  # Standard queue for regular orders
+  StandardOrdersQueue:
     Type: AWS::SQS::Queue
     Properties:
-      MessageRetentionPeriod: 1209600 # 14 days
+      QueueName: !Sub 'standard-orders-${Environment}'
+      VisibilityTimeout: 300
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt StandardOrdersDLQ.Arn
+        maxReceiveCount: 5
 
-  # Subscribe queue to topic
-  OrderQueueSubscription:
+  # Dead letter queues
+  CriticalOrdersDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub 'critical-orders-dlq-${Environment}'
+      MessageRetentionPeriod: 1209600
+
+  StandardOrdersDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub 'standard-orders-dlq-${Environment}'
+      MessageRetentionPeriod: 1209600
+
+  # Filtered subscriptions based on order priority
+  CriticalOrdersSubscription:
     Type: AWS::SNS::Subscription
     Properties:
       TopicArn: !Ref OrderEventsTopic
       Protocol: sqs
-      Endpoint: !GetAtt OrderProcessingQueue.Arn
+      Endpoint: !GetAtt CriticalOrdersQueue.Arn
+      FilterPolicy:
+        priority: ['HIGH']
 
-  # Lambda function to process orders
-  OrderProcessorFunction:
+  StandardOrdersSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      TopicArn: !Ref OrderEventsTopic
+      Protocol: sqs
+      Endpoint: !GetAtt StandardOrdersQueue.Arn
+      FilterPolicy:
+        priority: ['MEDIUM', 'LOW']
+
+  # Order processing Lambda functions
+  CriticalOrderProcessor:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: src/functions/processOrder.handler
+      FunctionName: !Sub 'critical-order-processor-${Environment}'
+      Handler: src/handlers/processCriticalOrder.handler
       Runtime: nodejs18.x
+      Timeout: 60
+      ReservedConcurrencyLimit: 50
       Events:
         SQSEvent:
           Type: SQS
           Properties:
-            Queue: !GetAtt OrderProcessingQueue.Arn
+            Queue: !GetAtt CriticalOrdersQueue.Arn
+            BatchSize: 5
+
+  StandardOrderProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'standard-order-processor-${Environment}'
+      Handler: src/handlers/processStandardOrder.handler
+      Runtime: nodejs18.x
+      Timeout: 30
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt StandardOrdersQueue.Arn
             BatchSize: 10
+
+Outputs:
+  OrderEventsTopicArn:
+    Description: "Order Events SNS Topic ARN"
+    Value: !Ref OrderEventsTopic
+    Export:
+      Name: !Sub '${AWS::StackName}-OrderEventsTopic'
 ```
 
-## TypeScript Implementation
+This infrastructure demonstrates several key patterns:
 
-### 1. Shared Types
+- **Message filtering** routes messages to appropriate queues based on priority
+- **Dead letter queues** handle persistent failures gracefully
+- **Different processing strategies** for critical vs. standard orders
+- **Parameterized resources** enable environment-specific deployments
 
-First, let's define our type definitions:
+## Type-Safe Event Implementation
+
+### Event Type Definitions
+
+Strong typing is crucial for maintainable event-driven systems. Define comprehensive interfaces that capture your business domain:
 
 ```typescript
 // src/types/events.ts
 export interface OrderEvent {
+  eventId: string;
   eventType: OrderEventType;
   orderId: string;
   timestamp: string;
+  version: string;
+  source: string;
   data: OrderData;
+  metadata: EventMetadata;
 }
 
 export enum OrderEventType {
   CREATED = 'ORDER_CREATED',
   UPDATED = 'ORDER_UPDATED',
-  CANCELLED = 'ORDER_CANCELLED'
+  CANCELLED = 'ORDER_CANCELLED',
+  PAYMENT_PROCESSED = 'PAYMENT_PROCESSED',
+  FULFILLED = 'ORDER_FULFILLED'
 }
 
 export interface OrderData {
   customerId: string;
   items: OrderItem[];
   totalAmount: number;
+  currency: string;
   status: OrderStatus;
+  shippingAddress?: Address;
+}
+
+export interface EventMetadata {
+  priority: MessagePriority;
+  correlationId: string;
+  causationId?: string;
+  userId?: string;
+}
+
+export enum MessagePriority {
+  HIGH = 'HIGH',
+  MEDIUM = 'MEDIUM', 
+  LOW = 'LOW'
 }
 
 export interface OrderItem {
   productId: string;
   quantity: number;
-  price: number;
+  unitPrice: number;
+  productName: string;
 }
 
 export enum OrderStatus {
   PENDING = 'PENDING',
+  CONFIRMED = 'CONFIRMED',
   PROCESSING = 'PROCESSING',
-  COMPLETED = 'COMPLETED',
+  SHIPPED = 'SHIPPED',
+  DELIVERED = 'DELIVERED',
   CANCELLED = 'CANCELLED'
-}
-
-export enum MessagePriority {
-  HIGH = 'HIGH',
-  MEDIUM = 'MEDIUM',
-  LOW = 'LOW'
-}
-
-export interface PrioritizedEvent extends OrderEvent {
-  priority: MessagePriority;
 }
 ```
 
-### 2. Publishing Events to SNS
+### Event Publisher Service
 
-Let's create a service to publish events:
+Create a robust publisher that handles message formatting, retry logic, and error handling:
 
 ```typescript
 // src/services/eventPublisher.ts
-import { SNSClient, PublishCommand } from "@aws-sdk/client-sns";
-import { OrderEvent } from "../types/events";
+import { SNSClient, PublishCommand, MessageAttributeValue } from '@aws-sdk/client-sns';
+import { OrderEvent } from '../types/events';
 
 export class EventPublisher {
   private sns: SNSClient;
   private topicArn: string;
 
-  constructor(topicArn: string) {
-    this.sns = new SNSClient({});
+  constructor(topicArn: string, region?: string) {
+    this.sns = new SNSClient({ region });
     this.topicArn = topicArn;
   }
 
-  async publishEvent(event: OrderEvent): Promise<string> {
+  async publishEvent(event: OrderEvent, options?: PublishOptions): Promise<PublishResult> {
+    const messageAttributes = this.buildMessageAttributes(event);
+    
     const command = new PublishCommand({
       TopicArn: this.topicArn,
       Message: JSON.stringify(event),
-      MessageAttributes: {
-        eventType: {
-          DataType: 'String',
-          StringValue: event.eventType
-        }
-      }
+      Subject: `Order Event: ${event.eventType}`,
+      MessageAttributes: messageAttributes,
+      MessageDeduplicationId: options?.deduplicationId,
+      MessageGroupId: options?.groupId
     });
 
     try {
+      const startTime = Date.now();
       const response = await this.sns.send(command);
-      console.log(`Event published successfully: ${response.MessageId}`);
-      return response.MessageId!;
+      const duration = Date.now() - startTime;
+
+      console.log(`Event published successfully: ${response.MessageId} (${duration}ms)`);
+      
+      return {
+        messageId: response.MessageId!,
+        success: true,
+        duration
+      };
     } catch (error) {
       console.error('Failed to publish event:', error);
-      throw error;
+      throw new EventPublishError(`Failed to publish event: ${error.message}`, error);
     }
+  }
+
+  private buildMessageAttributes(event: OrderEvent): Record<string, MessageAttributeValue> {
+    return {
+      eventType: {
+        DataType: 'String',
+        StringValue: event.eventType
+      },
+      priority: {
+        DataType: 'String',
+        StringValue: event.metadata.priority
+      },
+      orderId: {
+        DataType: 'String',
+        StringValue: event.orderId
+      },
+      correlationId: {
+        DataType: 'String',
+        StringValue: event.metadata.correlationId
+      },
+      version: {
+        DataType: 'String',
+        StringValue: event.version
+      }
+    };
+  }
+}
+
+export interface PublishOptions {
+  deduplicationId?: string;
+  groupId?: string;
+}
+
+export interface PublishResult {
+  messageId: string;
+  success: boolean;
+  duration: number;
+}
+
+export class EventPublishError extends Error {
+  constructor(message: string, public readonly cause: any) {
+    super(message);
+    this.name = 'EventPublishError';
   }
 }
 ```
 
-### 3. Processing Messages from SQS
+### Message Processing with Error Handling
 
-Now, let's implement our Lambda function to process messages:
+Implement robust message processors that handle failures gracefully:
 
 ```typescript
-// src/functions/processOrder.ts
+// src/handlers/processCriticalOrder.ts
 import { SQSEvent, Context } from 'aws-lambda';
 import { OrderEvent, OrderEventType } from '../types/events';
 
 export const handler = async (event: SQSEvent, context: Context): Promise<void> => {
-  for (const record of event.Records) {
-    try {
-      const orderEvent: OrderEvent = JSON.parse(record.body);
-      console.log(`Processing order event: ${orderEvent.orderId}`);
+  console.log(`Processing ${event.Records.length} critical order messages`);
 
-      switch (orderEvent.eventType) {
-        case OrderEventType.CREATED:
-          await handleOrderCreated(orderEvent);
-          break;
-        case OrderEventType.UPDATED:
-          await handleOrderUpdated(orderEvent);
-          break;
-        case OrderEventType.CANCELLED:
-          await handleOrderCancelled(orderEvent);
-          break;
-        default:
-          console.warn(`Unknown event type: ${orderEvent.eventType}`);
-      }
-    } catch (error) {
-      console.error('Error processing message:', error);
-      // Let the message go to DLQ after max retries
-      throw error;
-    }
-  }
-};
+  const results = await Promise.allSettled(
+    event.Records.map(record => processMessage(record, context))
+  );
 
-async function handleOrderCreated(event: OrderEvent): Promise<void> {
-  // Implementation for handling new orders
-  console.log(`Processing new order: ${event.orderId}`);
-}
-
-async function handleOrderUpdated(event: OrderEvent): Promise<void> {
-  // Implementation for handling order updates
-  console.log(`Processing order update: ${event.orderId}`);
-}
-
-async function handleOrderCancelled(event: OrderEvent): Promise<void> {
-  // Implementation for handling cancelled orders
-  console.log(`Processing order cancellation: ${event.orderId}`);
-}
-```
-
-## Best Practices
-
-### 1. Message Durability
-
-Always use Dead Letter Queues (DLQ) to handle failed message processing:
-
-```typescript
-// Example of checking message attributes
-const messageAge = Date.now() - new Date(orderEvent.timestamp).getTime();
-if (messageAge > 24 * 60 * 60 * 1000) { // 24 hours
-  console.warn(`Message too old, skipping: ${orderEvent.orderId}`);
-  return; // Skip processing without error
-}
-```
-
-### 2. Message Filtering
-
-Use SNS message filtering to reduce unnecessary processing:
-
-```yaml
-# Add to template.yaml subscription
-FilterPolicy:
-  eventType:
-    - ORDER_CREATED
-    - ORDER_UPDATED
-```
-
-### 3. Batch Processing
-
-Optimize Lambda costs by processing messages in batches:
-
-```typescript
-// Example batch processing with error handling
-export const handler = async (event: SQSEvent): Promise<void> => {
-  const successfulMessages: string[] = [];
-  const failedMessages: string[] = [];
-
-  for (const record of event.Records) {
-    try {
-      await processMessage(record);
-      successfulMessages.push(record.messageId);
-    } catch (error) {
-      console.error(`Failed to process message ${record.messageId}:`, error);
-      failedMessages.push(record.messageId);
-    }
-  }
-
-  // Log batch processing results
-  console.log(`Successfully processed: ${successfulMessages.length}`);
-  console.log(`Failed to process: ${failedMessages.length}`);
-
-  if (failedMessages.length > 0) {
+  // Handle partial failures
+  const failures = results.filter(result => result.status === 'rejected');
+  if (failures.length > 0) {
+    console.error(`${failures.length} messages failed processing`);
+    // In a real implementation, you might implement selective retry
     throw new Error('Some messages failed processing');
   }
 };
-```
 
-### 4. Monitoring and Observability
-
-Implement comprehensive monitoring:
-
-```typescript
-// Example monitoring wrapper
-async function withMonitoring<T>(
-  operation: () => Promise<T>,
-  metricName: string
-): Promise<T> {
-  const startTime = Date.now();
+async function processMessage(record: any, context: Context): Promise<void> {
   try {
-    const result = await operation();
-    await recordMetric(metricName, 'Success', Date.now() - startTime);
-    return result;
+    // Parse the SNS message from SQS record
+    const snsMessage = JSON.parse(record.body);
+    const orderEvent: OrderEvent = JSON.parse(snsMessage.Message);
+
+    // Validate event structure
+    validateOrderEvent(orderEvent);
+
+    // Route to appropriate handler
+    switch (orderEvent.eventType) {
+      case OrderEventType.CREATED:
+        await handleCriticalOrderCreated(orderEvent);
+        break;
+      case OrderEventType.PAYMENT_PROCESSED:
+        await handleCriticalPaymentProcessed(orderEvent);
+        break;
+      default:
+        console.warn(`Unhandled event type for critical processing: ${orderEvent.eventType}`);
+    }
+
+    console.log(`Successfully processed critical order event: ${orderEvent.orderId}`);
+
   } catch (error) {
-    await recordMetric(metricName, 'Failure', Date.now() - startTime);
+    console.error('Error processing critical order message:', error);
+    // Re-throw to trigger SQS retry mechanism
     throw error;
   }
 }
 
-// Usage in handler
-await withMonitoring(
-  () => processMessage(record),
-  'MessageProcessing'
-);
-```
-
-## Error Handling Patterns
-
-### 1. Message Validation
-
-Always validate messages before processing:
-
-```typescript
-function validateOrderEvent(event: unknown): OrderEvent {
-  if (!event || typeof event !== 'object') {
-    throw new Error('Invalid event format');
-  }
-
-  // Add more validation logic here
-  return event as OrderEvent;
-}
-```
-
-### 2. Idempotency
-
-Implement idempotency to handle duplicate messages:
-
-```typescript
-async function processMessageIdempotently(event: OrderEvent): Promise<void> {
-  const idempotencyKey = `${event.eventType}-${event.orderId}-${event.timestamp}`;
+async function handleCriticalOrderCreated(event: OrderEvent): Promise<void> {
+  // Prioritized processing for high-value orders
+  console.log(`Processing critical order creation: ${event.orderId}`);
   
-  // Check if we've processed this message before
-  if (await hasBeenProcessed(idempotencyKey)) {
-    console.log(`Skipping duplicate message: ${idempotencyKey}`);
-    return;
+  // Implement expedited inventory reservation
+  await reserveInventoryUrgent(event.data.items);
+  
+  // Send immediate notification to fulfillment team
+  await notifyFulfillmentTeam(event);
+  
+  // Update analytics with high-priority flag
+  await recordCriticalOrderMetrics(event);
+}
+
+async function handleCriticalPaymentProcessed(event: OrderEvent): Promise<void> {
+  console.log(`Processing critical payment: ${event.orderId}`);
+  
+  // Immediate fraud check for high-value transactions
+  await performEnhancedFraudCheck(event);
+  
+  // Expedite shipping preparation
+  await initiatePriorityShipping(event);
+}
+
+function validateOrderEvent(event: OrderEvent): void {
+  if (!event.eventId || !event.orderId || !event.eventType) {
+    throw new Error('Invalid order event: missing required fields');
   }
+  
+  if (!event.data || !event.metadata) {
+    throw new Error('Invalid order event: missing data or metadata');
+  }
+}
 
-  // Process the message
-  await processMessage(event);
+// Placeholder implementations for business logic
+async function reserveInventoryUrgent(items: any[]): Promise<void> {
+  // Implementation would integrate with inventory system
+}
 
-  // Mark as processed
-  await markAsProcessed(idempotencyKey);
+async function notifyFulfillmentTeam(event: OrderEvent): Promise<void> {
+  // Implementation would send alerts to fulfillment team
+}
+
+async function recordCriticalOrderMetrics(event: OrderEvent): Promise<void> {
+  // Implementation would record metrics in CloudWatch
+}
+
+async function performEnhancedFraudCheck(event: OrderEvent): Promise<void> {
+  // Implementation would perform additional fraud checks
+}
+
+async function initiatePriorityShipping(event: OrderEvent): Promise<void> {
+  // Implementation would prioritize in shipping queue
 }
 ```
 
-## Advanced Patterns and Real-World Considerations
+This implementation demonstrates several important patterns:
 
-### 1. Message Batching and Chunking
+- **Message validation** ensures data integrity before processing
+- **Error isolation** prevents single message failures from affecting batch processing
+- **Business logic separation** keeps handlers focused and testable
+- **Comprehensive logging** aids in debugging and monitoring
 
-When dealing with large datasets, it's important to implement proper batching:
+## Production-Ready Patterns
+
+### Idempotency and Deduplication
+
+Implement robust idempotency to handle duplicate messages gracefully:
 
 ```typescript
-// src/utils/batchProcessor.ts
-export class BatchProcessor<T> {
-  private readonly batchSize: number;
-  private batch: T[] = [];
+// src/utils/idempotency.ts
+import { DynamoDBClient, PutItemCommand, GetItemCommand } from '@aws-sdk/client-dynamodb';
 
-  constructor(batchSize: number = 10) {
-    this.batchSize = batchSize;
+export class IdempotencyHandler {
+  private dynamodb: DynamoDBClient;
+  private tableName: string;
+
+  constructor(tableName: string) {
+    this.dynamodb = new DynamoDBClient({});
+    this.tableName = tableName;
   }
 
-  async addItem(item: T, processor: (items: T[]) => Promise<void>): Promise<void> {
-    this.batch.push(item);
-    if (this.batch.length >= this.batchSize) {
-      await this.processBatch(processor);
+  async processIdempotently<T>(
+    idempotencyKey: string,
+    operation: () => Promise<T>,
+    ttlSeconds: number = 86400
+  ): Promise<T> {
+    // Check if already processed
+    const existing = await this.getProcessingRecord(idempotencyKey);
+    if (existing) {
+      console.log(`Skipping duplicate message: ${idempotencyKey}`);
+      return existing.result;
+    }
+
+    // Process the operation
+    const result = await operation();
+
+    // Store the result
+    await this.storeProcessingRecord(idempotencyKey, result, ttlSeconds);
+
+    return result;
+  }
+
+  private async getProcessingRecord(key: string): Promise<any> {
+    try {
+      const response = await this.dynamodb.send(new GetItemCommand({
+        TableName: this.tableName,
+        Key: { id: { S: key } }
+      }));
+
+      return response.Item ? JSON.parse(response.Item.result.S!) : null;
+    } catch (error) {
+      console.error('Error checking idempotency:', error);
+      return null;
     }
   }
 
-  private async processBatch(processor: (items: T[]) => Promise<void>): Promise<void> {
-    const itemsToProcess = [...this.batch];
-    this.batch = [];
-    await processor(itemsToProcess);
-  }
+  private async storeProcessingRecord(key: string, result: any, ttl: number): Promise<void> {
+    const expirationTime = Math.floor(Date.now() / 1000) + ttl;
 
-  async flush(processor: (items: T[]) => Promise<void>): Promise<void> {
-    if (this.batch.length > 0) {
-      await this.processBatch(processor);
-    }
+    await this.dynamodb.send(new PutItemCommand({
+      TableName: this.tableName,
+      Item: {
+        id: { S: key },
+        result: { S: JSON.stringify(result) },
+        ttl: { N: expirationTime.toString() }
+      }
+    }));
   }
 }
 ```
 
-### 2. Circuit Breaker Pattern
+### Circuit Breaker for External Services
 
-Implement circuit breakers to handle downstream service failures:
+Implement resilience patterns for external service calls:
 
 ```typescript
 // src/utils/circuitBreaker.ts
 export class CircuitBreaker {
   private failures: number = 0;
-  private lastFailure?: Date;
-  private readonly threshold: number;
-  private readonly resetTimeout: number;
+  private lastFailureTime?: number;
+  private state: CircuitState = CircuitState.CLOSED;
 
-  constructor(threshold: number = 5, resetTimeout: number = 60000) {
-    this.threshold = threshold;
-    this.resetTimeout = resetTimeout;
-  }
+  constructor(
+    private readonly failureThreshold: number = 5,
+    private readonly recoveryTimeout: number = 60000,
+    private readonly monitoringWindow: number = 60000
+  ) {}
 
   async execute<T>(operation: () => Promise<T>): Promise<T> {
-    if (this.isOpen()) {
-      throw new Error('Circuit is open - too many failures');
+    if (this.state === CircuitState.OPEN) {
+      if (this.shouldAttemptReset()) {
+        this.state = CircuitState.HALF_OPEN;
+      } else {
+        throw new Error('Circuit breaker is OPEN');
+      }
     }
 
     try {
       const result = await operation();
-      this.reset();
+      this.onSuccess();
       return result;
     } catch (error) {
-      this.recordFailure();
+      this.onFailure();
       throw error;
     }
   }
 
-  private isOpen(): boolean {
-    if (!this.lastFailure) return false;
-    
-    const timeSinceLastFailure = Date.now() - this.lastFailure.getTime();
-    return this.failures >= this.threshold && timeSinceLastFailure < this.resetTimeout;
-  }
-
-  private recordFailure(): void {
-    this.failures++;
-    this.lastFailure = new Date();
-  }
-
-  private reset(): void {
+  private onSuccess(): void {
     this.failures = 0;
-    this.lastFailure = undefined;
-  }
-}
-```
-
-### 3. Message Priority Handling
-
-Implement priority queues for critical messages:
-
-```typescript
-// src/types/events.ts
-export enum MessagePriority {
-  HIGH = 'HIGH',
-  MEDIUM = 'MEDIUM',
-  LOW = 'LOW'
-}
-
-export interface PrioritizedEvent extends OrderEvent {
-  priority: MessagePriority;
-}
-```
-
-### 4. Performance Optimization with Caching
-
-Add caching to improve performance:
-
-```typescript
-// src/utils/cache.ts
-export class MessageCache<T> {
-  private cache: Map<string, T>;
-  private readonly maxSize: number;
-
-  constructor(maxSize: number = 1000) {
-    this.cache = new Map();
-    this.maxSize = maxSize;
+    this.state = CircuitState.CLOSED;
   }
 
-  set(key: string, value: T): void {
-    if (this.cache.size >= this.maxSize) {
-      const firstKey = this.cache.keys().next().value;
-      this.cache.delete(firstKey);
+  private onFailure(): void {
+    this.failures++;
+    this.lastFailureTime = Date.now();
+
+    if (this.failures >= this.failureThreshold) {
+      this.state = CircuitState.OPEN;
     }
-    this.cache.set(key, value);
   }
 
-  get(key: string): T | undefined {
-    return this.cache.get(key);
+  private shouldAttemptReset(): boolean {
+    return this.lastFailureTime !== undefined && 
+           Date.now() - this.lastFailureTime >= this.recoveryTimeout;
+  }
+}
+
+enum CircuitState {
+  CLOSED = 'CLOSED',
+  OPEN = 'OPEN',
+  HALF_OPEN = 'HALF_OPEN'
+}
+```
+
+### Monitoring and Metrics
+
+Implement comprehensive monitoring for your event-driven system:
+
+```typescript
+// src/utils/monitoring.ts
+import { CloudWatchClient, PutMetricDataCommand } from '@aws-sdk/client-cloudwatch';
+
+export class EventMetrics {
+  private cloudwatch: CloudWatchClient;
+  private namespace: string;
+
+  constructor(namespace: string = 'EventDriven/Orders') {
+    this.cloudwatch = new CloudWatchClient({});
+    this.namespace = namespace;
   }
 
-  clear(): void {
-    this.cache.clear();
+  async recordEventProcessed(eventType: string, success: boolean, duration: number): Promise<void> {
+    const metrics = [
+      {
+        MetricName: 'EventsProcessed',
+        Value: 1,
+        Unit: 'Count',
+        Dimensions: [
+          { Name: 'EventType', Value: eventType },
+          { Name: 'Status', Value: success ? 'Success' : 'Failure' }
+        ]
+      },
+      {
+        MetricName: 'ProcessingDuration',
+        Value: duration,
+        Unit: 'Milliseconds',
+        Dimensions: [
+          { Name: 'EventType', Value: eventType }
+        ]
+      }
+    ];
+
+    await this.cloudwatch.send(new PutMetricDataCommand({
+      Namespace: this.namespace,
+      MetricData: metrics
+    }));
+  }
+
+  async recordBusinessMetric(metricName: string, value: number, dimensions: Record<string, string> = {}): Promise<void> {
+    const metricDimensions = Object.entries(dimensions).map(([name, value]) => ({
+      Name: name,
+      Value: value
+    }));
+
+    await this.cloudwatch.send(new PutMetricDataCommand({
+      Namespace: this.namespace,
+      MetricData: [{
+        MetricName: metricName,
+        Value: value,
+        Unit: 'None',
+        Dimensions: metricDimensions
+      }]
+    }));
+  }
+}
+
+// Usage in message handlers
+export async function withMetrics<T>(
+  operation: () => Promise<T>,
+  eventType: string,
+  metrics: EventMetrics
+): Promise<T> {
+  const startTime = Date.now();
+  
+  try {
+    const result = await operation();
+    await metrics.recordEventProcessed(eventType, true, Date.now() - startTime);
+    return result;
+  } catch (error) {
+    await metrics.recordEventProcessed(eventType, false, Date.now() - startTime);
+    throw error;
   }
 }
 ```
 
-### 5. Message Versioning and Schema Evolution
+### Message Schema Evolution
 
-Handle message schema changes gracefully:
+Handle evolving message schemas gracefully:
 
 ```typescript
-// src/utils/messageTransformer.ts
-export class MessageTransformer {
-  private readonly transformers: Map<string, (data: any) => OrderEvent>;
+// src/utils/schemaEvolution.ts
+export interface MessageTransformer<T> {
+  version: string;
+  transform(message: any): T;
+}
 
-  constructor() {
-    this.transformers = new Map();
-    this.registerTransformers();
+export class MessageProcessor<T> {
+  private transformers: Map<string, MessageTransformer<T>> = new Map();
+
+  registerTransformer(transformer: MessageTransformer<T>): void {
+    this.transformers.set(transformer.version, transformer);
   }
 
-  private registerTransformers() {
-    this.transformers.set('1.0', this.transformV1);
-    this.transformers.set('2.0', this.transformV2);
-  }
-
-  transform(message: any, version: string): OrderEvent {
+  processMessage(rawMessage: any): T {
+    const version = rawMessage.version || '1.0';
     const transformer = this.transformers.get(version);
+    
     if (!transformer) {
       throw new Error(`No transformer found for version ${version}`);
     }
-    return transformer(message);
-  }
 
-  private transformV1(data: any): OrderEvent {
-    // Transform v1 message format
+    return transformer.transform(rawMessage);
+  }
+}
+
+// Example transformers
+export class OrderEventV1Transformer implements MessageTransformer<OrderEvent> {
+  version = '1.0';
+
+  transform(message: any): OrderEvent {
     return {
-      eventType: data.type,
-      orderId: data.id,
-      timestamp: data.time,
+      eventId: message.id || crypto.randomUUID(),
+      eventType: message.type,
+      orderId: message.orderId,
+      timestamp: message.timestamp,
+      version: '1.0',
+      source: 'order-service-v1',
       data: {
-        customerId: data.customer,
-        items: data.items,
-        totalAmount: data.total,
-        status: data.status
+        customerId: message.customerId,
+        items: message.items,
+        totalAmount: message.total,
+        currency: message.currency || 'USD',
+        status: message.status
+      },
+      metadata: {
+        priority: message.priority || 'MEDIUM',
+        correlationId: message.correlationId || crypto.randomUUID()
       }
     };
   }
+}
 
-  private transformV2(data: any): OrderEvent {
-    // Transform v2 message format
-    return {
-      eventType: data.eventType,
-      orderId: data.orderId,
-      timestamp: data.timestamp,
-      data: data.orderData
-    };
+export class OrderEventV2Transformer implements MessageTransformer<OrderEvent> {
+  version = '2.0';
+
+  transform(message: any): OrderEvent {
+    // V2 already matches our current format
+    return message as OrderEvent;
   }
 }
 ```
 
-## Testing
+## Testing Event-Driven Systems
 
-Here's how to test your event-driven components:
+Comprehensive testing strategies for event-driven architectures require multiple approaches:
+
+### Unit Testing Event Handlers
 
 ```typescript
-// src/__tests__/eventPublisher.test.ts
-import { EventPublisher } from '../services/eventPublisher';
-import { mockClient } from 'aws-sdk-client-mock';
-import { SNSClient, PublishCommand } from '@aws-sdk/client-sns';
+// src/__tests__/eventHandlers.test.ts
+import { OrderEvent, OrderEventType } from '../types/events';
+import { handleCriticalOrderCreated } from '../handlers/processCriticalOrder';
 
-describe('EventPublisher', () => {
-  const snsMock = mockClient(SNSClient);
-
-  beforeEach(() => {
-    snsMock.reset();
-  });
-
-  it('should publish event successfully', async () => {
-    const messageId = '123456';
-    snsMock.on(PublishCommand).resolves({ MessageId: messageId });
-
-    const publisher = new EventPublisher('topic-arn');
-    const event = {
-      eventType: 'ORDER_CREATED',
-      orderId: '123',
+describe('Critical Order Handlers', () => {
+  test('handles critical order creation with proper validation', async () => {
+    const mockEvent: OrderEvent = {
+      eventId: 'test-event-001',
+      eventType: OrderEventType.CREATED,
+      orderId: 'order-123',
       timestamp: new Date().toISOString(),
+      version: '2.0',
+      source: 'order-service',
       data: {
-        // ... event data
+        customerId: 'customer-456',
+        items: [
+          { productId: 'product-001', quantity: 2, unitPrice: 50.00, productName: 'Test Product' }
+        ],
+        totalAmount: 100.00,
+        currency: 'USD',
+        status: 'PENDING'
+      },
+      metadata: {
+        priority: 'HIGH',
+        correlationId: 'correlation-123'
       }
     };
 
-    const result = await publisher.publishEvent(event);
-    expect(result).toBe(messageId);
+    // Mock external services
+    jest.mock('../services/inventoryService');
+    jest.mock('../services/notificationService');
+
+    await expect(handleCriticalOrderCreated(mockEvent)).resolves.toBeUndefined();
+    
+    // Verify that critical path functions were called
+    expect(mockInventoryService.reserveInventoryUrgent).toHaveBeenCalledWith(mockEvent.data.items);
+    expect(mockNotificationService.notifyFulfillmentTeam).toHaveBeenCalledWith(mockEvent);
+  });
+});
+```
+
+### Integration Testing with LocalStack
+
+```typescript
+// src/__tests__/integration/eventFlow.test.ts
+import { SNSClient, PublishCommand } from '@aws-sdk/client-sns';
+import { SQSClient, ReceiveMessageCommand, DeleteMessageCommand } from '@aws-sdk/client-sqs';
+
+describe('Event Flow Integration Tests', () => {
+  let sns: SNSClient;
+  let sqs: SQSClient;
+  
+  beforeAll(() => {
+    // Configure clients for LocalStack
+    sns = new SNSClient({
+      endpoint: 'http://localhost:4566',
+      region: 'us-east-1'
+    });
+    
+    sqs = new SQSClient({
+      endpoint: 'http://localhost:4566',
+      region: 'us-east-1'
+    });
+  });
+
+  test('message flows from SNS to appropriate SQS queue based on priority', async () => {
+    const highPriorityEvent = {
+      eventType: 'ORDER_CREATED',
+      orderId: 'test-order-001',
+      // ... other event data
+      metadata: { priority: 'HIGH' }
+    };
+
+    // Publish to SNS
+    await sns.send(new PublishCommand({
+      TopicArn: process.env.TEST_TOPIC_ARN,
+      Message: JSON.stringify(highPriorityEvent),
+      MessageAttributes: {
+        priority: { DataType: 'String', StringValue: 'HIGH' }
+      }
+    }));
+
+    // Verify message appears in critical queue
+    const messages = await sqs.send(new ReceiveMessageCommand({
+      QueueUrl: process.env.CRITICAL_QUEUE_URL,
+      MaxNumberOfMessages: 1,
+      WaitTimeSeconds: 5
+    }));
+
+    expect(messages.Messages).toHaveLength(1);
+    const receivedEvent = JSON.parse(messages.Messages![0].Body!);
+    expect(receivedEvent.orderId).toBe('test-order-001');
+
+    // Clean up
+    await sqs.send(new DeleteMessageCommand({
+      QueueUrl: process.env.CRITICAL_QUEUE_URL,
+      ReceiptHandle: messages.Messages![0].ReceiptHandle
+    }));
+  });
+});
+```
+
+### Load Testing Event Systems
+
+```typescript
+// src/__tests__/load/eventLoad.test.ts
+import { EventPublisher } from '../services/eventPublisher';
+
+describe('Event System Load Tests', () => {
+  test('handles high-volume message publishing', async () => {
+    const publisher = new EventPublisher(process.env.TEST_TOPIC_ARN!);
+    const promises: Promise<any>[] = [];
+    const messageCount = 1000;
+
+    const startTime = Date.now();
+
+    // Generate concurrent publish operations
+    for (let i = 0; i < messageCount; i++) {
+      const event = generateTestEvent(i);
+      promises.push(publisher.publishEvent(event));
+    }
+
+    const results = await Promise.allSettled(promises);
+    const duration = Date.now() - startTime;
+
+    const successful = results.filter(r => r.status === 'fulfilled').length;
+    const failed = results.filter(r => r.status === 'rejected').length;
+
+    console.log(`Published ${successful} messages in ${duration}ms`);
+    console.log(`Success rate: ${(successful / messageCount) * 100}%`);
+
+    expect(successful).toBeGreaterThan(messageCount * 0.95); // 95% success rate
+    expect(duration).toBeLessThan(30000); // Complete within 30 seconds
   });
 });
 ```
 
 ## Conclusion
 
-Event-driven architectures using SNS and SQS provide a robust foundation for building scalable applications. When combined with TypeScript's type safety and AWS Lambda's serverless compute, you can create maintainable and reliable systems that handle complex workflows efficiently.
+Building event-driven architectures with AWS SNS, SQS, and TypeScript creates systems that are both resilient and maintainable. The combination of strong typing, message durability, and flexible routing patterns enables applications that can scale from simple notifications to complex distributed workflows.
 
-As you build event-driven systems, remember to leverage SNS for pub/sub messaging and fan-out patterns while using SQS for reliable message processing and traffic spike handling. Proper error handling and monitoring are crucial for system reliability, and TypeScript's type safety features help catch potential issues early in development. Following best practices for message processing and implementing idempotency will ensure your system remains robust and maintainable.
+Key benefits of this approach include **decoupled architecture** that enables independent service evolution, **natural scalability** through message buffering and parallel processing, **operational resilience** via dead letter queues and retry mechanisms, and **type safety** that catches integration issues at compile time.
 
-Looking ahead, consider enhancing your implementation by exploring SNS message filtering to optimize message routing and processing efficiency. Implementing dead letter queues will improve your system's resilience by properly handling failed messages. Adding distributed tracing with AWS X-Ray will give you better visibility into your distributed system, and considering event sourcing patterns could provide additional benefits for certain use cases. These advanced techniques will help you build even more sophisticated and reliable event-driven architectures.
+The patterns demonstrated here—from basic pub/sub to sophisticated priority processing—provide a foundation for building production-ready event-driven systems. **Message filtering** enables efficient resource utilization, **idempotency handling** ensures reliable processing, **circuit breakers** provide resilience against downstream failures, and **comprehensive monitoring** offers visibility into system health.
+
+As you advance your event-driven architecture, consider implementing **event sourcing patterns** for audit trails and temporal queries, **saga patterns** for distributed transaction management, **CQRS implementations** for optimized read/write patterns, and **stream processing** for real-time analytics and complex event correlation.
+
+These foundational patterns scale from simple microservice communication to enterprise-wide event mesh architectures, providing the building blocks for systems that can evolve with your business requirements while maintaining reliability and performance.
+
+In our next post, we'll explore building type-safe APIs with AWS API Gateway and TypeScript, showing how to create robust HTTP interfaces that complement our event-driven architecture.
