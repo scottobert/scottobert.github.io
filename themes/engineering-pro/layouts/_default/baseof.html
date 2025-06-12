@@ -74,6 +74,9 @@
       </div>
     </div>
   </header>  <div class="container">
+    {{/* Add breadcrumbs for all pages except home */}}
+    {{ partial "breadcrumbs.html" . }}
+    
     {{ if .IsHome }}
     <main class="main-content-full">
       {{ block "main" . }}{{ end }}

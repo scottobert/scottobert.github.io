@@ -1,0 +1,137 @@
+{{/* Series Navigation Partial */}}
+{{- if and .Params.series .IsPage -}}
+  {{- $currentSeries := "" -}}
+  {{- if reflect.IsSlice .Params.series -}}
+    {{- $currentSeries = index .Params.series 0 -}}
+  {{- else -}}
+    {{- $currentSeries = .Params.series -}}
+  {{- end -}}
+  {{- if $currentSeries -}}
+    {{- $seriesPages := where .Site.RegularPages ".Params.series" "intersect" (slice $currentSeries) -}}
+    {{- $seriesPages = $seriesPages.ByDate -}}
+    {{- $currentIndex := 0 -}}
+    
+    {{/* Find current page index in series */}}
+    {{- range $index, $page := $seriesPages -}}
+      {{- if eq $page.Permalink $.Permalink -}}
+        {{- $currentIndex = $index -}}
+      {{- end -}}
+    {{- end -}}
+    
+    {{- if gt (len $seriesPages) 1 -}}
+      <div class="series-navigation">
+        <div class="series-header">
+          <h3>
+            <svg class="series-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 4v1.38c-.83-.33-1.72-.5-2.61-.5-1.79 0-3.58.68-4.95 2.05l3.33 3.33h1.11v1.11c.86.86 1.98 1.31 3.11 1.31 1.13 0 2.25-.45 3.11-1.31V9.26h1.11l3.33-3.33c-1.37-1.37-3.16-2.05-4.95-2.05-.89 0-1.78.17-2.61.5V4H9z"/>
+            </svg>
+            <span>{{ $currentSeries }} Series</span>
+            <span class="series-count">({{ add $currentIndex 1 }} of {{ len $seriesPages }})</span>
+          </h3>
+          <a href="{{ printf "/series/%s" ($currentSeries | urlize) | absURL }}" class="series-link">
+            View all posts in series
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M13.025 1l-2.847 2.828 6.176 6.176h-16.354v3.992h16.354l-6.176 6.176 2.847 2.828 10.975-11z"/>
+            </svg>
+          </a>
+        </div>
+        
+        <div class="series-progress">
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: {{ div (mul (add $currentIndex 1) 100) (len $seriesPages) }}%"></div>
+          </div>
+        </div>
+        
+        <nav class="series-posts">
+          {{- $prevPost := "" -}}
+          {{- $nextPost := "" -}}
+          
+          {{/* Get previous and next posts */}}
+          {{- if gt $currentIndex 0 -}}
+            {{- $prevPost = index $seriesPages (sub $currentIndex 1) -}}
+          {{- end -}}
+          {{- if lt $currentIndex (sub (len $seriesPages) 1) -}}
+            {{- $nextPost = index $seriesPages (add $currentIndex 1) -}}
+          {{- end -}}
+          
+          <div class="series-nav-buttons">
+            {{- if $prevPost -}}
+              <a href="{{ $prevPost.Permalink }}" class="series-nav-button series-prev" title="Previous: {{ $prevPost.Title }}">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                </svg>
+                <div class="nav-content">
+                  <span class="nav-label">Previous</span>
+                  <span class="nav-title">{{ $prevPost.Title | truncate 50 }}</span>
+                </div>
+              </a>
+            {{- else -}}
+              <div class="series-nav-button series-nav-disabled">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                </svg>
+                <div class="nav-content">
+                  <span class="nav-label">Previous</span>
+                  <span class="nav-title">No previous post</span>
+                </div>
+              </div>
+            {{- end -}}
+            
+            {{- if $nextPost -}}
+              <a href="{{ $nextPost.Permalink }}" class="series-nav-button series-next" title="Next: {{ $nextPost.Title }}">
+                <div class="nav-content">
+                  <span class="nav-label">Next</span>
+                  <span class="nav-title">{{ $nextPost.Title | truncate 50 }}</span>
+                </div>
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+                </svg>
+              </a>
+            {{- else -}}
+              <div class="series-nav-button series-nav-disabled">
+                <div class="nav-content">
+                  <span class="nav-label">Next</span>
+                  <span class="nav-title">No next post</span>
+                </div>
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+                </svg>
+              </div>
+            {{- end -}}
+          </div>
+          
+          {{/* Series overview with all posts */}}
+          <details class="series-overview">
+            <summary>
+              <span>All posts in this series</span>
+              <svg class="chevron" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+              </svg>
+            </summary>
+            <ol class="series-post-list">
+              {{- range $index, $post := $seriesPages -}}
+                <li class="series-post-item {{ if eq $post.Permalink $.Permalink }}current{{ end }}">
+                  {{- if eq $post.Permalink $.Permalink -}}
+                    <span class="current-indicator" aria-label="Current post">
+                      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                      </svg>
+                    </span>
+                    <span class="post-title">{{ $post.Title }}</span>
+                    <span class="current-badge">Current</span>
+                  {{- else -}}
+                    <a href="{{ $post.Permalink }}" title="{{ $post.Title }}">
+                      <span class="post-number">{{ add $index 1 }}.</span>
+                      <span class="post-title">{{ $post.Title }}</span>
+                      <time class="post-date">{{ $post.Date.Format "Jan 2, 2006" }}</time>
+                    </a>
+                  {{- end -}}
+                </li>
+              {{- end -}}
+            </ol>
+          </details>
+        </nav>
+      </div>
+    {{- end -}}
+  {{- end -}}
+{{- end -}}

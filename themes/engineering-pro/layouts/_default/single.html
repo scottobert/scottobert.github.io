@@ -9,6 +9,9 @@
     {{ .Content }}
   </div>
   
+  <!-- Series navigation -->
+  {{ partial "series-navigation.html" . }}
+  
   <!-- Social sharing buttons -->
   {{- if not .Params.disableSharing -}}
     {{ partial "social-share.html" . }}
