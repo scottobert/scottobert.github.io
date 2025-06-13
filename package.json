@@ -1,0 +1,30 @@
+{
+  "name": "scottobert-website",
+  "version": "1.0.0",
+  "description": "Scott Obert's technical blog - End-to-End Testing Suite",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:report": "playwright show-report",
+    "test:install": "playwright install",
+    "serve": "hugo server --bind 0.0.0.0 --baseURL http://localhost:1313 --buildDrafts --buildFuture",
+    "build": "hugo --buildDrafts --buildFuture",
+    "test:ci": "npm run build && npm run test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@types/node": "^24.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/scottobert/scottobert.github.io.git"
+  },
+  "author": "Scott Obert",
+  "license": "MIT"
+}

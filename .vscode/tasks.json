@@ -72,7 +72,179 @@
                 "reveal": "always",
                 "focus": false,
                 "panel": "shared"
+            }        },
+        {
+            "label": "E2E: Install Dependencies",
+            "type": "shell",
+            "command": "npm",
+            "args": ["install"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
             }
+        },
+        {
+            "label": "E2E: Install Playwright",
+            "type": "shell",
+            "command": "npx",
+            "args": ["playwright", "install"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "E2E: Run Tests",
+            "type": "shell",
+            "command": "npm",
+            "args": ["test"],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "E2E: Run Tests (UI Mode)",
+            "type": "shell",
+            "command": "npm",
+            "args": ["run", "test:ui"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "E2E: Run Tests (Headed)",
+            "type": "shell",
+            "command": "npm",
+            "args": ["run", "test:headed"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "E2E: Debug Tests",
+            "type": "shell",
+            "command": "npm",
+            "args": ["run", "test:debug"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "E2E: Show Report",
+            "type": "shell",
+            "command": "npm",
+            "args": ["run", "test:report"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }        },
+        {
+            "label": "E2E Tests: Run All",
+            "type": "shell",
+            "command": "npm",
+            "args": ["test"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "new"
+            },
+            "dependsOn": "Hugo: Build Site"
+        },
+        {
+            "label": "E2E Tests: UI Mode",
+            "type": "shell",
+            "command": "npm",
+            "args": ["run", "test:ui"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "new"
+            }
+        },
+        {
+            "label": "E2E Tests: Debug",
+            "type": "shell",
+            "command": "npm",
+            "args": ["run", "test:debug"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "new"
+            }
+        },
+        {
+            "label": "E2E Tests: Show Report",
+            "type": "shell",
+            "command": "npm",
+            "args": ["run", "test:report"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Setup: Install Test Dependencies",
+            "type": "shell",
+            "command": "npm",
+            "args": ["install"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Setup: Install Playwright Browsers",
+            "type": "shell",
+            "command": "npx",
+            "args": ["playwright", "install"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "dependsOn": "Setup: Install Test Dependencies"
         }
     ],
     "inputs": [
