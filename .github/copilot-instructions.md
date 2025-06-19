@@ -1,0 +1,11 @@
+- When adding a new feature to the `engineering-pro` theme, document the feature in a `README.md` file within the theme directory. If the file does not exist, create it and provide a summary of the theme and its features.
+- For any changes to Hugo layouts, partials, or archetypes, include a comment in the relevant file describing the purpose of the change.
+- When creating or updating content in `content/posts`, ensure each post uses the front matter format found in existing posts and follows the established writing style.
+- For static assets (images, CSS, JS), place them in the appropriate subdirectory under `static/` or `themes/engineering-pro/static/` and update references in layouts or content as needed.
+- When adding or updating end-to-end or integration tests in the `tests/` directory, use Playwright and TypeScript, and keep test helpers in `tests/utils/`.
+- For any new configuration or documentation files, provide a brief description at the top of the file explaining its purpose.
+- When updating the site configuration (`config.toml`), ensure changes are compatible with the Hugo version in use and document any breaking changes.
+- Always use meaningful commit messages that describe the intent of the change.
+- Prefer TypeScript for all new scripts and tests.
+- When adding new Hugo shortcodes or custom logic, document their usage in a `USAGE.md` or in the theme's `README.md`.
+- When writing new content, limit the usage of lists, use paragraph-style prose where possible, and ensure the content is clear and concise.
