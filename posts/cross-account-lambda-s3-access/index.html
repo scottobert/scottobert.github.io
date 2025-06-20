@@ -1,0 +1,482 @@
+<!doctype html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Scott Obert</title><meta name=description content="Setting up cross-account access between AWS Lambda and S3 is a common requirement in enterprise environments where resources are distributed across multiple AWS …"><link rel=canonical href=https://scottobert.com/posts/cross-account-lambda-s3-access/><meta property="og:title" content="Cross-Account Lambda Access to S3: A Complete Implementation Guide"><meta property="og:description" content="Setting up cross-account access between AWS Lambda and S3 is a common requirement in enterprise environments where resources are distributed across multiple AWS …"><meta property="og:type" content="article"><meta property="og:url" content="https://scottobert.com/posts/cross-account-lambda-s3-access/"><meta property="og:site_name" content="Scott Obert"><meta name=twitter:card content="summary"><meta name=twitter:title content="Cross-Account Lambda Access to S3: A Complete Implementation Guide"><meta name=twitter:description content="Setting up cross-account access between AWS Lambda and S3 is a common requirement in enterprise environments where resources are distributed across multiple AWS …"><link rel=stylesheet href=/css/style.css><script src=/js/npm-packages.js defer></script><script src=/js/search.js defer></script><script defer src=https://cloud.umami.is/script.js data-website-id=e2461896-021d-422a-b83f-624a8819309b></script><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/site.webmanifest></head><body><header class=site-header><div class=container><div class=header-content><div class=header-left><h1><a href=/>Scott Obert</a></h1><nav><a href=/posts/>Blog</a>
+<a href=/album/>Photo Album</a>
+<button type=button class=search-toggle id=search-toggle-btn aria-label="Open search" title=Search>
+<svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61.0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+<span>Search</span></button></nav></div><div class=social-links><a href=https://www.linkedin.com/in/scott-obert-3a7338b/ target=_blank rel="noopener noreferrer" title="LinkedIn Profile"><svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853.0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601.0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144.0-2.063-.926-2.063-2.065.0-1.138.92-2.063 2.063-2.063 1.14.0 2.064.925 2.064 2.063.0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225.0H1.771C.792.0.0.774.0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2.0 22.222.0h.003z"/></svg>
+<span>LinkedIn</span>
+</a><a href=https://github.com/scottobert target=_blank rel="noopener noreferrer" title="GitHub Profile"><svg viewBox="0 0 24 24"><path d="M12 0C5.37.0.0 5.37.0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577.0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93.0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176.0.0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22.0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22.0 1.605-.015 2.896-.015 3.286.0.315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12"/></svg>
+<span>GitHub</span></a></div></div></div></header><div class=container><nav class=breadcrumbs aria-label="Breadcrumb navigation"><ol class=breadcrumb-list><li class=breadcrumb-item><a href=https://scottobert.com/ title=Home><svg class="breadcrumb-home-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+<span>Home</span></a></li><li class=breadcrumb-item><span class=breadcrumb-separator aria-hidden=true>/</span>
+<a href=https://scottobert.com/posts/ title=Posts>Posts</a></li><li class=breadcrumb-item><span class=breadcrumb-separator aria-hidden=true>/</span>
+<a href=https://scottobert.com/series/aws-cross-account-patterns/ title="Series: AWS Cross-Account Patterns"><svg class="breadcrumb-series-icon" viewBox="0 0 24 24"><path d="M9 4v1.38c-.83-.33-1.72-.5-2.61-.5-1.79.0-3.58.68-4.95 2.05l3.33 3.33h1.11v1.11c.86.86 1.98 1.31 3.11 1.31 1.13.0 2.25-.45 3.11-1.31V9.26h1.11l3.33-3.33c-1.37-1.37-3.16-2.05-4.95-2.05-.89.0-1.78.17-2.61.5V4H9z"/></svg>
+<span>AWS Cross-Account Patterns</span></a></li><li class=breadcrumb-item><span class=breadcrumb-separator aria-hidden=true>/</span>
+<a href=https://scottobert.com/categories/cloud-computing title="Category: Cloud Computing"><svg class="breadcrumb-category-icon" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+<span>Cloud Computing</span></a></li><li class="breadcrumb-item breadcrumb-current"><span class=breadcrumb-separator aria-hidden=true>/</span>
+<span class=breadcrumb-current-page aria-current=page>Cross-Account Lambda Access to S3: A Complete Implementation Guide</span></li></ol></nav><div class=content-layout><main class=main-content><article class=post><h1>Cross-Account Lambda Access to S3: A Complete Implementation Guide</h1><div class=post-meta><div class=post-meta-left><span>Jun 19, 2025</span>
+<span>| Tags: AWS, Lambda, S3, IAM, Cross-Account, Security</span></div><div class=post-meta-right><div class=quick-social-share><button type=button class=quick-share-toggle id=quick-share-toggle title="Share this post">
+<svg viewBox="0 0 24 24"><path d="M18 16.08c-.76.0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66.0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66.0-3 1.34-3 3s1.34 3 3 3c.79.0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65.0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
+<span>Share</span></button><div class=quick-share-buttons id=quick-share-buttons><a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fscottobert.com%2Fposts%2Fcross-account-lambda-s3-access%2F&text=Cross-Account+Lambda+Access+to+S3%3A+A+Complete+Implementation+Guide" target=_blank rel="noopener noreferrer" class="quick-share-button twitter" title="Share on Twitter"><svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+</a><a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fscottobert.com%2Fposts%2Fcross-account-lambda-s3-access%2F" target=_blank rel="noopener noreferrer" class="quick-share-button linkedin" title="Share on LinkedIn"><svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853.0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601.0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144.0-2.063-.926-2.063-2.065.0-1.138.92-2.063 2.063-2.063 1.14.0 2.064.925 2.064 2.063.0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225.0H1.771C.792.0.0.774.0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2.0 22.222.0h.003z"/></svg>
+</a><a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fscottobert.com%2Fposts%2Fcross-account-lambda-s3-access%2F" target=_blank rel="noopener noreferrer" class="quick-share-button facebook" title="Share on Facebook"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312.0 2.686.235 2.686.235v2.953H15.83c-1.491.0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+</a><a href="https://reddit.com/submit?url=https%3A%2F%2Fscottobert.com%2Fposts%2Fcross-account-lambda-s3-access%2F&title=Cross-Account+Lambda+Access+to+S3%3A+A+Complete+Implementation+Guide" target=_blank rel="noopener noreferrer" class="quick-share-button reddit" title="Share on Reddit"><svg viewBox="0 0 24 24"><path d="M12 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012 0zm5.01 4.744c.688.0 1.25.561 1.25 1.249a1.25 1.25.0 01-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968.0 1.754.786 1.754 1.754.0.716-.435 1.333-1.01 1.614a3.111 3.111.0 01.042.52c0 2.694-3.13 4.87-7.004 4.87s-7.004-2.176-7.004-4.87c0-.183.015-.366.043-.534A1.748 1.748.0 014.028 12c0-.968.786-1.754 1.754-1.754.463.0.898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342.0 01.14-.197.35.35.0 01.238-.042l2.906.617a1.214 1.214.0 011.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687.0 1.248-.561 1.248-1.249S9.937 12 9.249 12zm5.5.0c-.687.0-1.248.561-1.248 1.25.0.687.561 1.248 1.249 1.248S16 13.937 16 13.249c0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327.0 00-.231.094.33.33.0 000 .463c.842.842 2.484.913 2.961.913s2.105-.056 2.961-.913a.361.361.0 00.029-.463.33.33.0 00-.464.0c-.547.533-1.684.73-2.512.73-.828.0-1.979-.196-2.512-.73a.326.326.0 00-.232-.095z"/></svg>
+</a><a href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fscottobert.com%2Fposts%2Fcross-account-lambda-s3-access%2F&t=Cross-Account+Lambda+Access+to+S3%3A+A+Complete+Implementation+Guide" target=_blank rel="noopener noreferrer" class="quick-share-button hackernews" title="Share on Hacker News"><svg viewBox="0 0 24 24"><path d="M0 24V0h24v24H0zM6.951 5.896l4.112 7.708v5.064h1.583v-4.972l4.148-7.799h-1.749l-2.457 4.875c-.372.745-.688 1.434-.688 1.434s-.297-.708-.651-1.434L8.831 5.896h-1.88z"/></svg>
+</a><a href="https://wa.me/?text=Cross-Account+Lambda+Access+to+S3%3A+A+Complete+Implementation+Guide+https%3A%2F%2Fscottobert.com%2Fposts%2Fcross-account-lambda-s3-access%2F" target=_blank rel="noopener noreferrer" class="quick-share-button whatsapp" title="Share on WhatsApp"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198.0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479.0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87.0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86.0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64.0 5.122 1.03 6.988 2.898a9.825 9.825.0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815.0 0012.05.0C5.495.0.16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882.0 005.683 1.448h.005c6.554.0 11.89-5.335 11.893-11.893A11.821 11.821.0 0020.465 3.488"/></svg>
+</a><a href="mailto:?subject=Cross-Account+Lambda+Access+to+S3%3A+A+Complete+Implementation+Guide&body=Check+out+this+article%3A+Cross-Account+Lambda+Access+to+S3%3A+A+Complete+Implementation+Guide+-+https%3A%2F%2Fscottobert.com%2Fposts%2Fcross-account-lambda-s3-access%2F" class="quick-share-button email" title="Share via Email"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1.0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1.0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
+</a><button type=button class="quick-share-button copy-link" data-url=https://scottobert.com/posts/cross-account-lambda-s3-access/ title="Copy link to clipboard">
+<svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1.0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1.0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1.0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button></div></div><script>(function(){const i=document.querySelector(".quick-social-share"),e=document.getElementById("quick-share-toggle"),t=document.getElementById("quick-share-buttons");if(!i||!e||!t)return;let n=!1;e.addEventListener("click",function(){n=!n,n?(t.classList.add("visible"),e.classList.add("active")):(t.classList.remove("visible"),e.classList.remove("active"))});const a=document.querySelectorAll(".quick-share-button.copy-link");a.forEach(e=>{e.addEventListener("click",function(){const e=this.getAttribute("data-url");navigator.clipboard&&window.isSecureContext?navigator.clipboard.writeText(e).then(()=>{o(this)}).catch(()=>{s(e,this)}):s(e,this)})});function s(e,t){const n=document.createElement("textarea");n.value=e,n.style.position="fixed",n.style.left="-999999px",n.style.top="-999999px",document.body.appendChild(n),n.focus(),n.select();try{document.execCommand("copy"),o(t)}catch(e){console.error("Fallback: Unable to copy",e),r(t)}document.body.removeChild(n)}function o(e){const n=e.getAttribute("title");e.setAttribute("title","Copied!"),e.classList.add("copied");const t=document.createElement("div");t.textContent="Copied!",t.style.position="absolute",t.style.bottom="100%",t.style.left="50%",t.style.transform="translateX(-50%)",t.style.background="#28a745",t.style.color="white",t.style.padding="4px 8px",t.style.borderRadius="4px",t.style.fontSize="0.75rem",t.style.whiteSpace="nowrap",t.style.zIndex="1000",t.style.marginBottom="5px",e.style.position="relative",e.appendChild(t),setTimeout(()=>{e.setAttribute("title",n),e.classList.remove("copied"),t.parentNode&&e.removeChild(t)},2e3)}function r(e){const t=e.getAttribute("title");e.setAttribute("title","Copy failed"),e.classList.add("error"),setTimeout(()=>{e.setAttribute("title",t),e.classList.remove("error")},2e3)}})()</script></div></div><div class=post-content><p>Setting up cross-account access between AWS Lambda and S3 is a common requirement in enterprise environments where resources are distributed across multiple AWS accounts for security, compliance, or organizational reasons. This guide provides a comprehensive walkthrough of establishing secure cross-account access, covering IAM role configuration, bucket policies, and practical implementation patterns.</p><p>Cross-account access enables Lambda functions in one AWS account (Account A) to securely access S3 buckets in another account (Account B). This pattern is essential for data processing workflows, backup operations, and multi-account architectures where centralized data storage serves multiple application accounts.</p><h2 id=architecture-overview>Architecture Overview</h2><p>The cross-account access pattern involves three key components working together to provide secure access. <strong>Account A</strong> contains the Lambda function that needs to access S3 resources. <strong>Account B</strong> hosts the S3 bucket containing the data. The <strong>trust relationship</strong> enables Account A&rsquo;s Lambda execution role to assume permissions for Account B&rsquo;s resources.</p><div class=plantuml-container><img id=plantuml-cross-account-architecture class=plantuml-diagram>
+<a id=plantuml-link-cross-account-architecture href=# target=_blank class=plantuml-link title="Open diagram in new window"><span class=plantuml-link-icon>🔍</span></a></div><script src=/js/rawdeflate.js></script><script>function encode64(e){r="";for(i=0;i<e.length;i+=3)i+2==e.length?r+=append3bytes(e.charCodeAt(i),e.charCodeAt(i+1),0):i+1==e.length?r+=append3bytes(e.charCodeAt(i),0,0):r+=append3bytes(e.charCodeAt(i),e.charCodeAt(i+1),e.charCodeAt(i+2));return r}function append3bytes(e,t,n){return c1=e>>2,c2=(e&3)<<4|t>>4,c3=(t&15)<<2|n>>6,c4=n&63,r="",r+=encode6bit(c1&63),r+=encode6bit(c2&63),r+=encode6bit(c3&63),r+=encode6bit(c4&63),r}function encode6bit(e){return e<10?String.fromCharCode(48+e):(e-=10,e<26?String.fromCharCode(65+e):(e-=26,e<26?String.fromCharCode(97+e):(e-=26,e==0?"-":e==1?"_":"?")))}var deflater=window.SharedWorker&&new SharedWorker("/js/rawdeflate.js");deflater?(deflater.port.addEventListener("message",done_deflating,!1),deflater.port.start()):window.Worker&&(deflater=new Worker("/js/rawdeflate.js"),deflater.onmessage=done_deflating);function done_deflating(e){const s=document.getElementById("plantuml-cross-account-architecture"),t="https://www.plantuml.com/plantuml/img/"+encode64(e.data);s.src=t;const n=document.getElementById("plantuml-link-cross-account-architecture");n&&(n.href=t)}function compress(e){e=unescape(encodeURIComponent(e)),deflater?deflater.port&&deflater.port.postMessage?deflater.port.postMessage(e):deflater.postMessage(e):setTimeout(function(){done_deflating({data:deflate(e)})},100)}compress(`
+@startuml
+!theme aws-orange
+title Cross-Account Lambda S3 Access Architecture
+
+cloud "Account A (123456789012)" as AccountA {
+  rectangle "Lambda Function" as Lambda
+  rectangle "Execution Role\\n(CrossAccountS3Role)" as ExecutionRole
+}
+
+cloud "Account B (987654321098)" as AccountB {
+  storage "S3 Bucket\\n(my-cross-account-bucket)" as S3Bucket
+  rectangle "Bucket Policy" as BucketPolicy
+}
+
+Lambda --> ExecutionRole : "Assumes"
+ExecutionRole --> S3Bucket : "Accesses via\\nBucket Policy"
+BucketPolicy --> S3Bucket : "Grants Access"
+
+note right of ExecutionRole
+  Role ARN:
+  arn:aws:iam::123456789012:role/CrossAccountS3Role
+end note
+
+note left of BucketPolicy
+  Allows actions from
+  Account A's role ARN
+end note
+@enduml
+`)</script><h2 id=step-1-setting-up-the-iam-role-in-account-a>Step 1: Setting Up the IAM Role in Account A</h2><p>The first step involves creating an IAM role in Account A that your Lambda function will use to access the S3 bucket in Account B. This role must have the necessary permissions and be configured to be assumed by the Lambda service.</p><p>Create the IAM role with the following trust policy that allows the Lambda service to assume it:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// trust-policy.json - Allows Lambda service to assume this role
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>{
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;Version&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;2012-10-17&#34;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;Statement&#34;</span><span style=color:#f92672>:</span> [
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Effect&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;Allow&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Principal&#34;</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;Service&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;lambda.amazonaws.com&#34;</span>
+</span></span><span style=display:flex><span>      },
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Action&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;sts:AssumeRole&#34;</span>
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  ]
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Next, create a permissions policy that grants the necessary S3 actions. This policy should be as restrictive as possible while meeting your functional requirements:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// cross-account-s3-policy.json - Permissions for S3 access
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>{
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;Version&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;2012-10-17&#34;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;Statement&#34;</span><span style=color:#f92672>:</span> [
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Effect&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;Allow&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Action&#34;</span><span style=color:#f92672>:</span> [
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;s3:GetObject&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;s3:PutObject&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;s3:DeleteObject&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;s3:ListBucket&#34;</span>
+</span></span><span style=display:flex><span>      ],
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Resource&#34;</span><span style=color:#f92672>:</span> [
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;arn:aws:s3:::my-cross-account-bucket&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;arn:aws:s3:::my-cross-account-bucket/*&#34;</span>
+</span></span><span style=display:flex><span>      ]
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  ]
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Create the role using the AWS CLI or CloudFormation. Here&rsquo;s the CLI approach:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># Create the IAM role</span>
+</span></span><span style=display:flex><span>aws iam create-role <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --role-name CrossAccountS3Role <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --assume-role-policy-document file://trust-policy.json
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># Attach the S3 permissions policy</span>
+</span></span><span style=display:flex><span>aws iam put-role-policy <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --role-name CrossAccountS3Role <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --policy-name CrossAccountS3Policy <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --policy-document file://cross-account-s3-policy.json
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># Attach the basic Lambda execution role (for CloudWatch logs)</span>
+</span></span><span style=display:flex><span>aws iam attach-role-policy <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --role-name CrossAccountS3Role <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+</span></span></code></pre></div><p>After creating the role, note the Role ARN which will be in the format: <code>arn:aws:iam::123456789012:role/CrossAccountS3Role</code>. You&rsquo;ll need this ARN for the bucket policy in Account B.</p><h2 id=step-2-configuring-the-s3-bucket-policy-in-account-b>Step 2: Configuring the S3 Bucket Policy in Account B</h2><p>The S3 bucket in Account B requires a bucket policy that explicitly grants access to the IAM role from Account A. This policy acts as a resource-based access control mechanism that works in conjunction with the identity-based policies in Account A.</p><p>Create a bucket policy that allows the specific role ARN from Account A to perform the required S3 operations:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// bucket-policy.json - Grants access to Account A&#39;s role
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>{
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;Version&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;2012-10-17&#34;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;Statement&#34;</span><span style=color:#f92672>:</span> [
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Sid&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;CrossAccountLambdaAccess&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Effect&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;Allow&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Principal&#34;</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;AWS&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;arn:aws:iam::123456789012:role/CrossAccountS3Role&#34;</span>
+</span></span><span style=display:flex><span>      },
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Action&#34;</span><span style=color:#f92672>:</span> [
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;s3:GetObject&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;s3:PutObject&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;s3:DeleteObject&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;s3:ListBucket&#34;</span>
+</span></span><span style=display:flex><span>      ],
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Resource&#34;</span><span style=color:#f92672>:</span> [
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;arn:aws:s3:::my-cross-account-bucket&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;arn:aws:s3:::my-cross-account-bucket/*&#34;</span>
+</span></span><span style=display:flex><span>      ]
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  ]
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Apply the bucket policy using the AWS CLI:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># Apply the bucket policy to grant cross-account access</span>
+</span></span><span style=display:flex><span>aws s3api put-bucket-policy <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --bucket my-cross-account-bucket <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --policy file://bucket-policy.json
+</span></span></code></pre></div><p>For enhanced security, consider adding conditions to the bucket policy to restrict access based on additional factors such as source IP addresses, VPC endpoints, or request encryption:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// Enhanced bucket policy with security conditions
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>{
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;Version&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;2012-10-17&#34;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;Statement&#34;</span><span style=color:#f92672>:</span> [
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Sid&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;CrossAccountLambdaAccess&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Effect&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;Allow&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Principal&#34;</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;AWS&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;arn:aws:iam::123456789012:role/CrossAccountS3Role&#34;</span>
+</span></span><span style=display:flex><span>      },
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Action&#34;</span><span style=color:#f92672>:</span> [
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;s3:GetObject&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;s3:PutObject&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;s3:DeleteObject&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;s3:ListBucket&#34;</span>
+</span></span><span style=display:flex><span>      ],
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Resource&#34;</span><span style=color:#f92672>:</span> [
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;arn:aws:s3:::my-cross-account-bucket&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;arn:aws:s3:::my-cross-account-bucket/*&#34;</span>
+</span></span><span style=display:flex><span>      ],
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Condition&#34;</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;Bool&#34;</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>          <span style=color:#e6db74>&#34;aws:SecureTransport&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;true&#34;</span>
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  ]
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=step-3-sharing-arns-between-accounts>Step 3: Sharing ARNs Between Accounts</h2><p>Securely sharing the IAM role ARN between accounts is crucial for proper configuration. Several approaches can facilitate this ARN sharing while maintaining security best practices.</p><p><strong>AWS Systems Manager Parameter Store</strong> provides a secure way to share configuration values across accounts. Store the role ARN as a parameter in Account A and grant Account B read access:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># In Account A - Store the role ARN</span>
+</span></span><span style=display:flex><span>aws ssm put-parameter <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --name <span style=color:#e6db74>&#34;/cross-account/lambda-role-arn&#34;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --value <span style=color:#e6db74>&#34;arn:aws:iam::123456789012:role/CrossAccountS3Role&#34;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --type <span style=color:#e6db74>&#34;String&#34;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --description <span style=color:#e6db74>&#34;Role ARN for cross-account S3 access&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># Grant Account B read access to the parameter</span>
+</span></span><span style=display:flex><span>aws ssm put-parameter-policy <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --name <span style=color:#e6db74>&#34;/cross-account/lambda-role-arn&#34;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --policy <span style=color:#e6db74>&#39;{
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>        &#34;Version&#34;: &#34;2012-10-17&#34;,
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>        &#34;Statement&#34;: [
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>            {
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>                &#34;Effect&#34;: &#34;Allow&#34;,
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>                &#34;Principal&#34;: {
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>                    &#34;AWS&#34;: &#34;arn:aws:iam::987654321098:root&#34;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>                },
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>                &#34;Action&#34;: &#34;ssm:GetParameter&#34;,
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>                &#34;Resource&#34;: &#34;*&#34;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>            }
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>        ]
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    }&#39;</span>
+</span></span></code></pre></div><p><strong>Infrastructure as Code</strong> tools like CloudFormation or Terraform can automate ARN sharing through stack outputs and cross-stack references:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// CloudFormation template in Account A
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>{
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;AWSTemplateFormatVersion&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;2010-09-09&#34;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;Resources&#34;</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;CrossAccountS3Role&#34;</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Type&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;AWS::IAM::Role&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Properties&#34;</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;RoleName&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;CrossAccountS3Role&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;AssumeRolePolicyDocument&#34;</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>          <span style=color:#75715e>// Trust policy here
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        },
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;Policies&#34;</span><span style=color:#f92672>:</span> [
+</span></span><span style=display:flex><span>          <span style=color:#75715e>// Permissions policies here
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        ]
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  },
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;Outputs&#34;</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;CrossAccountRoleArn&#34;</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Description&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;ARN of the cross-account S3 access role&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Value&#34;</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;Fn::GetAtt&#34;</span><span style=color:#f92672>:</span> [<span style=color:#e6db74>&#34;CrossAccountS3Role&#34;</span>, <span style=color:#e6db74>&#34;Arn&#34;</span>]
+</span></span><span style=display:flex><span>      },
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Export&#34;</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;Name&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;CrossAccountS3RoleArn&#34;</span>
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p><strong>AWS Secrets Manager</strong> offers another secure option for sharing sensitive configuration data between accounts with fine-grained access controls and automatic rotation capabilities.</p><h2 id=step-4-implementing-the-lambda-function>Step 4: Implementing the Lambda Function</h2><p>With the IAM role and bucket policy configured, implement your Lambda function in Account A to access the S3 bucket in Account B. The function should use the AWS SDK v3 with proper error handling and logging.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>S3Client</span>, <span style=color:#a6e22e>GetObjectCommand</span>, <span style=color:#a6e22e>PutObjectCommand</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/client-s3&#39;</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>fromNodeProviderChain</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/credential-providers&#39;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>CrossAccountS3Event</span> {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>bucketName</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>objectKey</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>operation</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;get&#39;</span> <span style=color:#f92672>|</span> <span style=color:#e6db74>&#39;put&#39;</span> <span style=color:#f92672>|</span> <span style=color:#e6db74>&#39;delete&#39;</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>data?</span>: <span style=color:#66d9ef>string</span>;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>handler</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>async</span> (<span style=color:#a6e22e>event</span>: <span style=color:#66d9ef>CrossAccountS3Event</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>any</span>&gt; <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>s3Client</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>S3Client</span>({
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>region</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;us-east-1&#39;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>credentials</span>: <span style=color:#66d9ef>fromNodeProviderChain</span>()
+</span></span><span style=display:flex><span>  });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>switch</span> (<span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>operation</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>case</span> <span style=color:#e6db74>&#39;get&#39;</span><span style=color:#f92672>:</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>getObjectFromCrossAccountBucket</span>(<span style=color:#a6e22e>s3Client</span>, <span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>bucketName</span>, <span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>objectKey</span>);
+</span></span><span style=display:flex><span>      
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>case</span> <span style=color:#e6db74>&#39;put&#39;</span><span style=color:#f92672>:</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>putObjectToCrossAccountBucket</span>(<span style=color:#a6e22e>s3Client</span>, <span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>bucketName</span>, <span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>objectKey</span>, <span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>data</span>);
+</span></span><span style=display:flex><span>      
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>default</span><span style=color:#f92672>:</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>`Unsupported operation: </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>operation</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>error</span>(<span style=color:#e6db74>&#39;Cross-account S3 operation failed:&#39;</span>, {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>error</span>: <span style=color:#66d9ef>error.message</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>bucket</span>: <span style=color:#66d9ef>event.bucketName</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>key</span>: <span style=color:#66d9ef>event.objectKey</span>,
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>operation</span>: <span style=color:#66d9ef>event.operation</span>
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>throw</span> <span style=color:#a6e22e>error</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>async</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>getObjectFromCrossAccountBucket</span>(
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>s3Client</span>: <span style=color:#66d9ef>S3Client</span>,
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>bucketName</span>: <span style=color:#66d9ef>string</span>,
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>objectKey</span>: <span style=color:#66d9ef>string</span>
+</span></span><span style=display:flex><span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>string</span>&gt; {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>command</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>GetObjectCommand</span>({
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>Bucket</span>: <span style=color:#66d9ef>bucketName</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>Key</span>: <span style=color:#66d9ef>objectKey</span>
+</span></span><span style=display:flex><span>  });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>response</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>s3Client</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>command</span>);
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>bodyContents</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>response</span>.<span style=color:#a6e22e>Body</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>transformToString</span>();
+</span></span><span style=display:flex><span>  
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#39;Successfully retrieved object from cross-account bucket:&#39;</span>, {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>bucket</span>: <span style=color:#66d9ef>bucketName</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>key</span>: <span style=color:#66d9ef>objectKey</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>contentLength</span>: <span style=color:#66d9ef>response.ContentLength</span>
+</span></span><span style=display:flex><span>  });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>bodyContents</span> <span style=color:#f92672>||</span> <span style=color:#e6db74>&#39;&#39;</span>;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>async</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>putObjectToCrossAccountBucket</span>(
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>s3Client</span>: <span style=color:#66d9ef>S3Client</span>,
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>bucketName</span>: <span style=color:#66d9ef>string</span>,
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>objectKey</span>: <span style=color:#66d9ef>string</span>,
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>data?</span>: <span style=color:#66d9ef>string</span>
+</span></span><span style=display:flex><span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>data</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>&#39;Data is required for put operation&#39;</span>);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>command</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>PutObjectCommand</span>({
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>Bucket</span>: <span style=color:#66d9ef>bucketName</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>Key</span>: <span style=color:#66d9ef>objectKey</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>Body</span>: <span style=color:#66d9ef>data</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>ContentType</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;text/plain&#39;</span>
+</span></span><span style=display:flex><span>  });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>s3Client</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>command</span>);
+</span></span><span style=display:flex><span>  
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#39;Successfully stored object in cross-account bucket:&#39;</span>, {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>bucket</span>: <span style=color:#66d9ef>bucketName</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>key</span>: <span style=color:#66d9ef>objectKey</span>,
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>dataLength</span>: <span style=color:#66d9ef>data.length</span>
+</span></span><span style=display:flex><span>  });
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Deploy the Lambda function with the IAM role created in Step 1:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># Package and deploy the Lambda function</span>
+</span></span><span style=display:flex><span>zip -r lambda-function.zip index.js node_modules/
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>aws lambda create-function <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --function-name CrossAccountS3Access <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --runtime nodejs18.x <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --role arn:aws:iam::123456789012:role/CrossAccountS3Role <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --handler index.handler <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --zip-file fileb://lambda-function.zip <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --timeout <span style=color:#ae81ff>30</span>
+</span></span></code></pre></div><h2 id=testing-and-validation>Testing and Validation</h2><p>Thorough testing ensures that your cross-account setup works correctly and handles error conditions gracefully. Create test objects and verify that your Lambda function can perform the expected operations.</p><p>Test the Lambda function with different scenarios:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// Test event for getting an object
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>getTestEvent</span> <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>bucketName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;my-cross-account-bucket&#39;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>objectKey</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;test-files/sample.txt&#39;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>operation</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;get&#39;</span>
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Test event for putting an object
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>putTestEvent</span> <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>bucketName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;my-cross-account-bucket&#39;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>objectKey</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;test-files/output.txt&#39;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>operation</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;put&#39;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>data</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Hello from cross-account Lambda!&#39;</span>
+</span></span><span style=display:flex><span>};
+</span></span></code></pre></div><p>Invoke the Lambda function using the AWS CLI to validate functionality:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># Test getting an object</span>
+</span></span><span style=display:flex><span>aws lambda invoke <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --function-name CrossAccountS3Access <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --payload <span style=color:#e6db74>&#39;{&#34;bucketName&#34;:&#34;my-cross-account-bucket&#34;,&#34;objectKey&#34;:&#34;test-files/sample.txt&#34;,&#34;operation&#34;:&#34;get&#34;}&#39;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    response.json
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># Test putting an object</span>
+</span></span><span style=display:flex><span>aws lambda invoke <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --function-name CrossAccountS3Access <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --payload <span style=color:#e6db74>&#39;{&#34;bucketName&#34;:&#34;my-cross-account-bucket&#34;,&#34;objectKey&#34;:&#34;test-files/output.txt&#34;,&#34;operation&#34;:&#34;put&#34;,&#34;data&#34;:&#34;Test data&#34;}&#39;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    response.json
+</span></span></code></pre></div><p>Monitor CloudWatch logs for both successful operations and error conditions. Verify that appropriate log entries are created and that error handling works as expected.</p><h2 id=security-considerations-and-best-practices>Security Considerations and Best Practices</h2><p>Implementing cross-account access requires careful attention to security principles to prevent unauthorized access and data breaches. Follow the principle of least privilege by granting only the minimum permissions necessary for your use case.</p><p><strong>Regular permission auditing</strong> should be performed to ensure that cross-account access remains appropriate and necessary. Remove unused permissions and regularly review bucket policies and IAM roles for compliance with current requirements.</p><p><strong>Monitoring and alerting</strong> help detect unusual access patterns or potential security issues. Set up CloudTrail logging and CloudWatch alarms to monitor cross-account S3 operations:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// CloudWatch alarm for unusual cross-account access
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>{
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;AlarmName&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;CrossAccountS3AccessAnomalies&#34;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;MetricName&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;4xxError&#34;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;Namespace&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;AWS/S3&#34;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;Statistic&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;Sum&#34;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;Period&#34;</span><span style=color:#f92672>:</span> <span style=color:#ae81ff>300</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;EvaluationPeriods&#34;</span><span style=color:#f92672>:</span> <span style=color:#ae81ff>2</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;Threshold&#34;</span><span style=color:#f92672>:</span> <span style=color:#ae81ff>5</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;ComparisonOperator&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;GreaterThanThreshold&#34;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;Dimensions&#34;</span><span style=color:#f92672>:</span> [
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Name&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;BucketName&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#e6db74>&#34;Value&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;my-cross-account-bucket&#34;</span>
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  ]
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p><strong>Encryption</strong> should be enforced for data in transit and at rest. Use HTTPS for all API calls and configure S3 bucket encryption with appropriate key management policies.</p><h2 id=troubleshooting-common-issues>Troubleshooting Common Issues</h2><p>Several common issues can prevent successful cross-account access. <strong>Access denied errors</strong> typically indicate problems with IAM permissions or bucket policies. Verify that the role ARN in the bucket policy exactly matches the ARN of the Lambda execution role.</p><p><strong>Credential issues</strong> may arise from incorrect role assumption or expired tokens. Ensure that the Lambda function is configured with the correct execution role and that the role has appropriate trust relationships.</p><p><strong>Network connectivity problems</strong> can occur in VPC-enabled Lambda functions. Verify that VPC endpoints or NAT gateways provide appropriate internet access for S3 API calls.</p><p>Use AWS CloudTrail to diagnose permission issues by examining the API calls and their responses. CloudTrail logs show which principal made the request and why it was denied.</p><h2 id=advanced-patterns-and-extensions>Advanced Patterns and Extensions</h2><p>Cross-account S3 access can be extended with additional patterns for complex enterprise scenarios. <strong>Multi-region replication</strong> enables Lambda functions to access replicated data across different AWS regions while maintaining cross-account boundaries.</p><p><strong>Event-driven processing</strong> can trigger Lambda functions in Account A when objects are created or modified in Account B&rsquo;s S3 bucket. Configure S3 event notifications to send messages to SQS queues or SNS topics that span account boundaries.</p><p><strong>Data transformation pipelines</strong> can leverage cross-account access to process data from centralized storage accounts and write results to application-specific accounts. This pattern supports data lake architectures where raw data is centrally managed while processed data is distributed to relevant business units.</p><p>Cross-account Lambda access to S3 provides a foundation for building secure, scalable multi-account architectures. By carefully implementing IAM roles, bucket policies, and proper monitoring, you can enable powerful data processing workflows while maintaining strong security boundaries. Regular review and testing of these configurations ensures continued security and functionality as your architecture evolves.</p><p>The patterns and practices outlined in this guide provide a solid foundation for implementing cross-account access in production environments. Start with the basic configuration and gradually add security enhancements and monitoring as your requirements mature.</p></div><div class=social-share><h3 class=social-share-title>Share this post</h3><div class=social-share-buttons><a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fscottobert.com%2Fposts%2Fcross-account-lambda-s3-access%2F&text=Cross-Account+Lambda+Access+to+S3%3A+A+Complete+Implementation+Guide+-+%3Cp%3ESetting+up+cross-account+access+between+AWS+Lambda+and+S3+is+a+common+requirement+in+enterprise+environments+where+resources+are+distributed+across+multiple+AWS+%E2%80%A6%3C%2Fp%3E" target=_blank rel="noopener noreferrer" class="social-share-button twitter" title="Share on Twitter"><svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+<span>Twitter</span>
+</a><a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fscottobert.com%2Fposts%2Fcross-account-lambda-s3-access%2F" target=_blank rel="noopener noreferrer" class="social-share-button linkedin" title="Share on LinkedIn"><svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853.0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601.0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144.0-2.063-.926-2.063-2.065.0-1.138.92-2.063 2.063-2.063 1.14.0 2.064.925 2.064 2.063.0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225.0H1.771C.792.0.0.774.0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2.0 22.222.0h.003z"/></svg>
+<span>LinkedIn</span>
+</a><a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fscottobert.com%2Fposts%2Fcross-account-lambda-s3-access%2F" target=_blank rel="noopener noreferrer" class="social-share-button facebook" title="Share on Facebook"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312.0 2.686.235 2.686.235v2.953H15.83c-1.491.0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+<span>Facebook</span>
+</a><a href="https://reddit.com/submit?url=https%3A%2F%2Fscottobert.com%2Fposts%2Fcross-account-lambda-s3-access%2F&title=Cross-Account+Lambda+Access+to+S3%3A+A+Complete+Implementation+Guide" target=_blank rel="noopener noreferrer" class="social-share-button reddit" title="Share on Reddit"><svg viewBox="0 0 24 24"><path d="M12 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012 0zm5.01 4.744c.688.0 1.25.561 1.25 1.249a1.25 1.25.0 01-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968.0 1.754.786 1.754 1.754.0.716-.435 1.333-1.01 1.614a3.111 3.111.0 01.042.52c0 2.694-3.13 4.87-7.004 4.87s-7.004-2.176-7.004-4.87c0-.183.015-.366.043-.534A1.748 1.748.0 014.028 12c0-.968.786-1.754 1.754-1.754.463.0.898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342.0 01.14-.197.35.35.0 01.238-.042l2.906.617a1.214 1.214.0 011.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687.0 1.248-.561 1.248-1.249S9.937 12 9.249 12zm5.5.0c-.687.0-1.248.561-1.248 1.25.0.687.561 1.248 1.249 1.248S16 13.937 16 13.249c0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327.0 00-.231.094.33.33.0 000 .463c.842.842 2.484.913 2.961.913s2.105-.056 2.961-.913a.361.361.0 00.029-.463.33.33.0 00-.464.0c-.547.533-1.684.73-2.512.73-.828.0-1.979-.196-2.512-.73a.326.326.0 00-.232-.095z"/></svg>
+<span>Reddit</span>
+</a><a href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fscottobert.com%2Fposts%2Fcross-account-lambda-s3-access%2F&t=Cross-Account+Lambda+Access+to+S3%3A+A+Complete+Implementation+Guide" target=_blank rel="noopener noreferrer" class="social-share-button hackernews" title="Share on Hacker News"><svg viewBox="0 0 24 24"><path d="M0 24V0h24v24H0zM6.951 5.896l4.112 7.708v5.064h1.583v-4.972l4.148-7.799h-1.749l-2.457 4.875c-.372.745-.688 1.434-.688 1.434s-.297-.708-.651-1.434L8.831 5.896h-1.88z"/></svg>
+<span>Hacker News</span>
+</a><a href="https://wa.me/?text=Cross-Account+Lambda+Access+to+S3%3A+A+Complete+Implementation+Guide+https%3A%2F%2Fscottobert.com%2Fposts%2Fcross-account-lambda-s3-access%2F" target=_blank rel="noopener noreferrer" class="social-share-button whatsapp" title="Share on WhatsApp"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198.0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479.0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87.0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86.0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64.0 5.122 1.03 6.988 2.898a9.825 9.825.0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815.0 0012.05.0C5.495.0.16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882.0 005.683 1.448h.005c6.554.0 11.89-5.335 11.893-11.893A11.821 11.821.0 0020.465 3.488"/></svg>
+<span>WhatsApp</span>
+</a><a href="mailto:?subject=Cross-Account+Lambda+Access+to+S3%3A+A+Complete+Implementation+Guide&body=Check+out+this+article%3A+Cross-Account+Lambda+Access+to+S3%3A+A+Complete+Implementation+Guide+-+https%3A%2F%2Fscottobert.com%2Fposts%2Fcross-account-lambda-s3-access%2F" class="social-share-button email" title="Share via Email"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1.0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1.0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
+<span>Email</span>
+</a><button type=button class="social-share-button copy-link" data-url=https://scottobert.com/posts/cross-account-lambda-s3-access/ title="Copy link to clipboard">
+<svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1.0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1.0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1.0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+<span>Copy Link</span></button></div></div><script>(function(){const n=document.querySelectorAll(".copy-link");n.forEach(n=>{n.addEventListener("click",function(){const n=this.getAttribute("data-url");navigator.clipboard&&window.isSecureContext?navigator.clipboard.writeText(n).then(()=>{t(this)}).catch(()=>{e(n,this)}):e(n,this)})});function e(e,n){const o=document.createElement("textarea");o.value=e,o.style.position="fixed",o.style.left="-999999px",o.style.top="-999999px",document.body.appendChild(o),o.focus(),o.select();try{document.execCommand("copy"),t(n)}catch(e){console.error("Fallback: Unable to copy",e),s(n)}document.body.removeChild(o)}function t(e){const t=e.querySelector("span").textContent;e.querySelector("span").textContent="Copied!",e.classList.add("copied"),setTimeout(()=>{e.querySelector("span").textContent=t,e.classList.remove("copied")},2e3)}function s(e){const t=e.querySelector("span").textContent;e.querySelector("span").textContent="Error",e.classList.add("error"),setTimeout(()=>{e.querySelector("span").textContent=t,e.classList.remove("error")},2e3)}})()</script><div id=comments-section style="margin-top:2rem;padding-top:2rem;border-top:1px solid #e1e5e9"><h3 style=margin-bottom:1rem;color:#586069>Comments</h3><script src=https://giscus.app/client.js data-repo=scottobert/scottobert.github.io data-repo-id=R_kgDOHRSG6A data-category=General data-category-id=DIC_kwDOHRSG6M4CrQaA data-mapping=pathname data-strict=0 data-reactions-enabled=1 data-emit-metadata=1 data-input-position=top data-theme=light data-lang=en data-loading=lazy crossorigin=anonymous async></script></div></article><div class=floating-social-share id=floating-share><div class=floating-share-toggle id=share-toggle title="Share this post"><svg viewBox="0 0 24 24"><path d="M18 16.08c-.76.0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66.0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66.0-3 1.34-3 3s1.34 3 3 3c.79.0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65.0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg></div><div class=floating-share-buttons id=share-buttons><a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fscottobert.com%2Fposts%2Fcross-account-lambda-s3-access%2F&text=Cross-Account+Lambda+Access+to+S3%3A+A+Complete+Implementation+Guide" target=_blank rel="noopener noreferrer" class="floating-share-button twitter" title="Share on Twitter"><svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+</a><a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fscottobert.com%2Fposts%2Fcross-account-lambda-s3-access%2F" target=_blank rel="noopener noreferrer" class="floating-share-button linkedin" title="Share on LinkedIn"><svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853.0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601.0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144.0-2.063-.926-2.063-2.065.0-1.138.92-2.063 2.063-2.063 1.14.0 2.064.925 2.064 2.063.0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225.0H1.771C.792.0.0.774.0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2.0 22.222.0h.003z"/></svg>
+</a><a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fscottobert.com%2Fposts%2Fcross-account-lambda-s3-access%2F" target=_blank rel="noopener noreferrer" class="floating-share-button facebook" title="Share on Facebook"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312.0 2.686.235 2.686.235v2.953H15.83c-1.491.0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+</a><a href="https://reddit.com/submit?url=https%3A%2F%2Fscottobert.com%2Fposts%2Fcross-account-lambda-s3-access%2F&title=Cross-Account+Lambda+Access+to+S3%3A+A+Complete+Implementation+Guide" target=_blank rel="noopener noreferrer" class="floating-share-button reddit" title="Share on Reddit"><svg viewBox="0 0 24 24"><path d="M12 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012 0zm5.01 4.744c.688.0 1.25.561 1.25 1.249a1.25 1.25.0 01-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968.0 1.754.786 1.754 1.754.0.716-.435 1.333-1.01 1.614a3.111 3.111.0 01.042.52c0 2.694-3.13 4.87-7.004 4.87s-7.004-2.176-7.004-4.87c0-.183.015-.366.043-.534A1.748 1.748.0 014.028 12c0-.968.786-1.754 1.754-1.754.463.0.898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342.0 01.14-.197.35.35.0 01.238-.042l2.906.617a1.214 1.214.0 011.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687.0 1.248-.561 1.248-1.249S9.937 12 9.249 12zm5.5.0c-.687.0-1.248.561-1.248 1.25.0.687.561 1.248 1.249 1.248S16 13.937 16 13.249c0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327.0 00-.231.094.33.33.0 000 .463c.842.842 2.484.913 2.961.913s2.105-.056 2.961-.913a.361.361.0 00.029-.463.33.33.0 00-.464.0c-.547.533-1.684.73-2.512.73-.828.0-1.979-.196-2.512-.73a.326.326.0 00-.232-.095z"/></svg>
+</a><a href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fscottobert.com%2Fposts%2Fcross-account-lambda-s3-access%2F&t=Cross-Account+Lambda+Access+to+S3%3A+A+Complete+Implementation+Guide" target=_blank rel="noopener noreferrer" class="floating-share-button hackernews" title="Share on Hacker News"><svg viewBox="0 0 24 24"><path d="M0 24V0h24v24H0zM6.951 5.896l4.112 7.708v5.064h1.583v-4.972l4.148-7.799h-1.749l-2.457 4.875c-.372.745-.688 1.434-.688 1.434s-.297-.708-.651-1.434L8.831 5.896h-1.88z"/></svg>
+</a><a href="https://wa.me/?text=Cross-Account+Lambda+Access+to+S3%3A+A+Complete+Implementation+Guide+https%3A%2F%2Fscottobert.com%2Fposts%2Fcross-account-lambda-s3-access%2F" target=_blank rel="noopener noreferrer" class="floating-share-button whatsapp" title="Share on WhatsApp"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198.0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479.0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87.0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86.0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64.0 5.122 1.03 6.988 2.898a9.825 9.825.0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815.0 0012.05.0C5.495.0.16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882.0 005.683 1.448h.005c6.554.0 11.89-5.335 11.893-11.893A11.821 11.821.0 0020.465 3.488"/></svg>
+</a><a href="mailto:?subject=Cross-Account+Lambda+Access+to+S3%3A+A+Complete+Implementation+Guide&body=Check+out+this+article%3A+Cross-Account+Lambda+Access+to+S3%3A+A+Complete+Implementation+Guide+-+https%3A%2F%2Fscottobert.com%2Fposts%2Fcross-account-lambda-s3-access%2F" class="floating-share-button email" title="Share via Email"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1.0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1.0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
+</a><button type=button class="floating-share-button copy-link" data-url=https://scottobert.com/posts/cross-account-lambda-s3-access/ title="Copy link">
+<svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1.0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1.0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1.0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button></div></div><script>(function(){const s=document.getElementById("floating-share"),t=document.getElementById("share-toggle"),n=document.getElementById("share-buttons");if(!s||!t||!n)return;let e=!1,o;t.addEventListener("click",function(){e=!e,e?(n.classList.add("visible"),t.classList.add("active"),clearTimeout(o)):(n.classList.remove("visible"),t.classList.remove("active"))});function i(){clearTimeout(o),o=setTimeout(()=>{e&&(n.classList.remove("visible"),t.classList.remove("active"),e=!1)},5e3)}s.addEventListener("mouseenter",()=>{clearTimeout(o)}),s.addEventListener("mouseleave",()=>{e&&i()}),t.addEventListener("click",()=>{e&&i()});let l=0;const d=300;window.addEventListener("scroll",function(){const o=window.pageYOffset||document.documentElement.scrollTop;o>d?s.classList.add("visible"):(s.classList.remove("visible"),e&&(n.classList.remove("visible"),t.classList.remove("active"),e=!1)),l=o});const a=n.querySelector(".copy-link");a&&a.addEventListener("click",function(){const e=this.getAttribute("data-url");navigator.clipboard&&window.isSecureContext?navigator.clipboard.writeText(e).then(()=>{c(this)}).catch(()=>{r(e,this)}):r(e,this)});function r(e,t){const n=document.createElement("textarea");n.value=e,n.style.position="fixed",n.style.left="-999999px",n.style.top="-999999px",document.body.appendChild(n),n.focus(),n.select();try{document.execCommand("copy"),c(t)}catch(e){console.error("Fallback: Unable to copy",e)}document.body.removeChild(n)}function c(e){e.classList.add("copied"),setTimeout(()=>{e.classList.remove("copied")},2e3)}})()</script></main><aside class=blog-sidebar><div class=sidebar-widget><h3>Recent Posts</h3><ul class=recent-posts><li><a href=/posts/cross-account-lambda-s3-access/>Cross-Account Lambda Access to S3: A Complete Implementation Guide</a>
+<span class=post-date>Jun 19, 2025</span></li><li><a href=/posts/lambda-to-lambda-vs-sns-chaining/>Lambda-to-Lambda Calls vs. SNS Chaining in AWS: When and How to Use Each</a>
+<span class=post-date>Jun 19, 2025</span></li><li><a href=/posts/advanced-cloudformation-patterns/>Infrastructure as Code: Advanced CloudFormation Patterns</a>
+<span class=post-date>Jun 13, 2025</span></li><li><a href=/posts/reverting-git-commits-safely/>Reverting Git Commits Safely: Undoing Changes Without Losing History</a>
+<span class=post-date>Jun 11, 2025</span></li><li><a href=/posts/dynamodb-streams-opensearch-sync/>Real-time Data Synchronization: Using DynamoDB Streams and Lambda to Keep OpenSearch Indexes Current</a>
+<span class=post-date>Jun 6, 2025</span></li></ul></div><div class=sidebar-widget><h3>Post Series</h3><ul class=recent-posts><li><a href=/posts/cross-account-lambda-s3-access/>AWS Cross-Account Patterns: Cross-Account Lambda Access to S3: A Complete Implementation Guide</a>
+<span class=post-date>Jun 19, 2025</span><div class=series-meta><a href=/series/aws-cross-account-patterns/ class=series-link>View all 1 posts in series →</a></div></li><li><a href=/posts/lambda-to-lambda-vs-sns-chaining/>AWS and Typescript: Lambda-to-Lambda Calls vs. SNS Chaining in AWS: When and How to Use Each</a>
+<span class=post-date>Jun 19, 2025</span><div class=series-meta><a href=/series/aws-and-typescript/ class=series-link>View all 8 posts in series →</a></div></li><li><a href=/posts/real-time-processing-architectures/>Cloud Architecture Patterns: Real-time Processing Architectures</a>
+<span class=post-date>Apr 11, 2021</span><div class=series-meta><a href=/series/cloud-architecture-patterns/ class=series-link>View all 7 posts in series →</a></div></li><li><a href=/posts/technical-debt-management-growing-codebases/>Modern Development Practices: Technical Debt Management in Growing Codebases: Strategies for Sustainable Development</a>
+<span class=post-date>Dec 19, 2021</span><div class=series-meta><a href=/series/modern-development-practices/ class=series-link>View all 7 posts in series →</a></div></li><li><a href=/posts/threat-modeling-cloud-applications/>Security in Cloud-Native Applications: Threat Modeling for Cloud Applications: A Comprehensive Approach to Security Design</a>
+<span class=post-date>Oct 19, 2019</span><div class=series-meta><a href=/series/security-in-cloud-native-applications/ class=series-link>View all 7 posts in series →</a></div></li></ul></div><div class=sidebar-widget><h3>Categories</h3><ul class=categories><li><a href=/categories/api-development>api development (2)</a></li><li><a href=/categories/architecture>architecture (2)</a></li><li><a href=/categories/architecture-and-design>architecture and design (10)</a></li><li><a href=/categories/artificial-intelligence>artificial intelligence (1)</a></li><li><a href=/categories/aws>aws (1)</a></li><li><a href=/categories/cloud-computing>cloud computing (23)</a></li><li><a href=/categories/code-quality>code quality (1)</a></li><li><a href=/categories/compliance>compliance (1)</a></li><li><a href=/categories/cost-optimization>cost optimization (1)</a></li><li><a href=/categories/data-engineering>data engineering (3)</a></li><li><a href=/categories/database>database (1)</a></li><li><a href=/categories/database-design>database design (1)</a></li><li><a href=/categories/debugging-and-troubleshooting>debugging and troubleshooting (1)</a></li><li><a href=/categories/developer-experience>developer experience (1)</a></li><li><a href=/categories/development-tools>development tools (3)</a></li><li><a href=/categories/development-tutorials>development tutorials (1)</a></li><li><a href=/categories/infrastructure-as-code>infrastructure as code (1)</a></li><li><a href=/categories/microservices>microservices (1)</a></li><li><a href=/categories/performance>performance (1)</a></li><li><a href=/categories/quality-assurance>quality assurance (1)</a></li><li><a href=/categories/real-time-applications>real-time applications (1)</a></li><li><a href=/categories/security>security (8)</a></li><li><a href=/categories/serverless>serverless (2)</a></li><li><a href=/categories/software-development>software development (8)</a></li><li><a href=/categories/technical-debt>technical debt (1)</a></li><li><a href=/categories/testing>testing (2)</a></li><li><a href=/categories/version-control>version control (2)</a></li></ul></div><div class=sidebar-widget><h3>Tags</h3><div class=tag-cloud><a href=/tags/ai class=tag-cloud-item style=font-size:1rem>ai
+</a><a href=/tags/api-design class=tag-cloud-item style=font-size:1rem>api design
+</a><a href=/tags/api-gateway class=tag-cloud-item style=font-size:1rem>api gateway
+</a><a href=/tags/api-security class=tag-cloud-item style=font-size:1rem>api security
+</a><a href=/tags/architecture class=tag-cloud-item style=font-size:2rem>architecture
+</a><a href=/tags/athena class=tag-cloud-item style=font-size:1rem>athena
+</a><a href=/tags/authentication class=tag-cloud-item style=font-size:1rem>authentication
+</a><a href=/tags/authorization class=tag-cloud-item style=font-size:1rem>authorization
+</a><a href=/tags/automation class=tag-cloud-item style=font-size:1rem>automation
+</a><a href=/tags/aws class=tag-cloud-item style=font-size:4rem>aws
+</a><a href=/tags/aws-lambda class=tag-cloud-item style=font-size:1rem>aws lambda
+</a><a href=/tags/best-practices class=tag-cloud-item style=font-size:2rem>best practices
+</a><a href=/tags/cdk class=tag-cloud-item style=font-size:1rem>cdk
+</a><a href=/tags/chaos-engineering class=tag-cloud-item style=font-size:1rem>chaos engineering
+</a><a href=/tags/ci/cd class=tag-cloud-item style=font-size:1rem>ci/cd
+</a><a href=/tags/cloud-native class=tag-cloud-item style=font-size:1rem>cloud native
+</a><a href=/tags/cloudformation class=tag-cloud-item style=font-size:1rem>cloudformation
+</a><a href=/tags/cloudnative class=tag-cloud-item style=font-size:1rem>cloudnative
+</a><a href=/tags/code-quality class=tag-cloud-item style=font-size:1rem>code quality
+</a><a href=/tags/communication-patterns class=tag-cloud-item style=font-size:1rem>communication patterns
+</a><a href=/tags/compliance class=tag-cloud-item style=font-size:1rem>compliance
+</a><a href=/tags/containers class=tag-cloud-item style=font-size:1rem>containers
+</a><a href=/tags/cost-optimization class=tag-cloud-item style=font-size:1rem>cost optimization
+</a><a href=/tags/cqrs class=tag-cloud-item style=font-size:1rem>cqrs
+</a><a href=/tags/cross-account class=tag-cloud-item style=font-size:1rem>cross-account
+</a><a href=/tags/data-architecture class=tag-cloud-item style=font-size:1rem>data architecture
+</a><a href=/tags/data-lake class=tag-cloud-item style=font-size:1rem>data lake
+</a><a href=/tags/data-modeling class=tag-cloud-item style=font-size:1rem>data modeling
+</a><a href=/tags/database class=tag-cloud-item style=font-size:1rem>database
+</a><a href=/tags/database-design class=tag-cloud-item style=font-size:1rem>database design
+</a><a href=/tags/debugging class=tag-cloud-item style=font-size:1rem>debugging
+</a><a href=/tags/debugging-and-troubleshooting class=tag-cloud-item style=font-size:1rem>debugging and troubleshooting
+</a><a href=/tags/developer-tips class=tag-cloud-item style=font-size:1rem>developer tips
+</a><a href=/tags/development class=tag-cloud-item style=font-size:2rem>development
+</a><a href=/tags/devops class=tag-cloud-item style=font-size:1rem>devops
+</a><a href=/tags/devsecops class=tag-cloud-item style=font-size:1rem>devsecops
+</a><a href=/tags/distributed-systems class=tag-cloud-item style=font-size:1rem>distributed systems
+</a><a href=/tags/docker class=tag-cloud-item style=font-size:1rem>docker
+</a><a href=/tags/dynamodb class=tag-cloud-item style=font-size:1rem>dynamodb
+</a><a href=/tags/encryption class=tag-cloud-item style=font-size:1rem>encryption
+</a><a href=/tags/enterprise-architecture class=tag-cloud-item style=font-size:1rem>enterprise architecture
+</a><a href=/tags/event-sourcing class=tag-cloud-item style=font-size:1rem>event sourcing
+</a><a href=/tags/event-driven-architecture class=tag-cloud-item style=font-size:1rem>event-driven architecture
+</a><a href=/tags/eventbridge class=tag-cloud-item style=font-size:1rem>eventbridge
+</a><a href=/tags/fault-tolerance class=tag-cloud-item style=font-size:1rem>fault tolerance
+</a><a href=/tags/gdpr class=tag-cloud-item style=font-size:1rem>gdpr
+</a><a href=/tags/git class=tag-cloud-item style=font-size:1rem>git
+</a><a href=/tags/glue class=tag-cloud-item style=font-size:1rem>glue
+</a><a href=/tags/governance class=tag-cloud-item style=font-size:1rem>governance
+</a><a href=/tags/graphql class=tag-cloud-item style=font-size:1rem>graphql
+</a><a href=/tags/hipaa class=tag-cloud-item style=font-size:1rem>hipaa
+</a><a href=/tags/iam class=tag-cloud-item style=font-size:1rem>iam
+</a><a href=/tags/identity-management class=tag-cloud-item style=font-size:1rem>identity management
+</a><a href=/tags/infrastructure class=tag-cloud-item style=font-size:1rem>infrastructure
+</a><a href=/tags/infrastructure-as-code class=tag-cloud-item style=font-size:1rem>infrastructure as code
+</a><a href=/tags/jwt class=tag-cloud-item style=font-size:1rem>jwt
+</a><a href=/tags/kinesis class=tag-cloud-item style=font-size:1rem>kinesis
+</a><a href=/tags/kubernetes class=tag-cloud-item style=font-size:1rem>kubernetes
+</a><a href=/tags/lambda class=tag-cloud-item style=font-size:1rem>lambda
+</a><a href=/tags/load-testing class=tag-cloud-item style=font-size:1rem>load testing
+</a><a href=/tags/metrics class=tag-cloud-item style=font-size:1rem>metrics
+</a><a href=/tags/microservices class=tag-cloud-item style=font-size:1rem>microservices
+</a><a href=/tags/monitoring class=tag-cloud-item style=font-size:1rem>monitoring
+</a><a href=/tags/multi-account class=tag-cloud-item style=font-size:1rem>multi-account
+</a><a href=/tags/nosql class=tag-cloud-item style=font-size:1rem>nosql
+</a><a href=/tags/oauth class=tag-cloud-item style=font-size:1rem>oauth
+</a><a href=/tags/octave class=tag-cloud-item style=font-size:1rem>octave
+</a><a href=/tags/opensearch class=tag-cloud-item style=font-size:1rem>opensearch
+</a><a href=/tags/pasta class=tag-cloud-item style=font-size:1rem>pasta
+</a><a href=/tags/patterns class=tag-cloud-item style=font-size:1rem>patterns
+</a><a href=/tags/pci-dss class=tag-cloud-item style=font-size:1rem>pci-dss
+</a><a href=/tags/performance-testing class=tag-cloud-item style=font-size:1rem>performance testing
+</a><a href=/tags/productivity class=tag-cloud-item style=font-size:1rem>productivity
+</a><a href=/tags/rate-limiting class=tag-cloud-item style=font-size:1rem>rate limiting
+</a><a href=/tags/real-time class=tag-cloud-item style=font-size:1rem>real-time
+</a><a href=/tags/refactoring class=tag-cloud-item style=font-size:1rem>refactoring
+</a><a href=/tags/reliability class=tag-cloud-item style=font-size:1rem>reliability
+</a><a href=/tags/resilience class=tag-cloud-item style=font-size:1rem>resilience
+</a><a href=/tags/rest class=tag-cloud-item style=font-size:1rem>rest
+</a><a href=/tags/rest-api class=tag-cloud-item style=font-size:1rem>rest api
+</a><a href=/tags/riskassessment class=tag-cloud-item style=font-size:1rem>riskassessment
+</a><a href=/tags/s3 class=tag-cloud-item style=font-size:1rem>s3
+</a><a href=/tags/search class=tag-cloud-item style=font-size:1rem>search
+</a><a href=/tags/secrets-management class=tag-cloud-item style=font-size:1rem>secrets management
+</a><a href=/tags/security class=tag-cloud-item style=font-size:2rem>security
+</a><a href=/tags/securitydesign class=tag-cloud-item style=font-size:1rem>securitydesign
+</a><a href=/tags/serverless class=tag-cloud-item style=font-size:2rem>serverless
+</a><a href=/tags/soc2 class=tag-cloud-item style=font-size:1rem>soc2
+</a><a href=/tags/software-engineering class=tag-cloud-item style=font-size:1rem>software engineering
+</a><a href=/tags/standards class=tag-cloud-item style=font-size:1rem>standards
+</a><a href=/tags/stream-processing class=tag-cloud-item style=font-size:1rem>stream processing
+</a><a href=/tags/streams class=tag-cloud-item style=font-size:1rem>streams
+</a><a href=/tags/stride class=tag-cloud-item style=font-size:1rem>stride
+</a><a href=/tags/tdd class=tag-cloud-item style=font-size:1rem>tdd
+</a><a href=/tags/technical-debt class=tag-cloud-item style=font-size:1rem>technical debt
+</a><a href=/tags/testing class=tag-cloud-item style=font-size:1rem>testing
+</a><a href=/tags/threatmodeling class=tag-cloud-item style=font-size:1rem>threatmodeling
+</a><a href=/tags/typescript class=tag-cloud-item style=font-size:3rem>typescript
+</a><a href=/tags/version-control class=tag-cloud-item style=font-size:1rem>version control
+</a><a href=/tags/websockets class=tag-cloud-item style=font-size:1rem>websockets
+</a><a href=/tags/zero-trust class=tag-cloud-item style=font-size:1rem>zero trust</a></div></div><div class=sidebar-widget><h3>Subscribe</h3><div class=subscribe-links><a href=/index.xml class=rss-link><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 019 9"/><path d="M4 4a16 16 0 0116 16"/><circle cx="5" cy="19" r="1"/></svg>
+RSS Feed</a></div></div><div class="sidebar-widget npm-packages"><h3>My NPM Packages</h3><div id=npm-list></div></div></aside></div></div><footer class=site-footer><div class=container><p>&copy; 2025 Scott Obert</p></div></footer></body></html>

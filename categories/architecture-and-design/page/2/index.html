@@ -8,27 +8,79 @@
 <span>GitHub</span></a></div></div></div></header><div class=container><nav class=breadcrumbs aria-label="Breadcrumb navigation"><ol class=breadcrumb-list><li class=breadcrumb-item><a href=https://scottobert.com/ title=Home><svg class="breadcrumb-home-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
 <span>Home</span></a></li><li class=breadcrumb-item><span class=breadcrumb-separator aria-hidden=true>/</span>
 <a href=https://scottobert.com/categories/ title=Categories>Categories</a></li><li class="breadcrumb-item breadcrumb-current"><span class=breadcrumb-separator aria-hidden=true>/</span>
-<span class=breadcrumb-current-page aria-current=page>Architecture and Design</span></li></ol></nav><div class=content-layout><main class=main-content><section class="post-list taxonomy-list"><div class=taxonomy-header><h1>Architecture and Design</h1><p class=taxonomy-description>9 posts in the <strong>Architecture and Design</strong> category</p></div><div class=posts><article class=post-summary><header><h2><a href=/posts/zero-trust-architecture-implementation/>Zero-Trust Architecture Implementation in Cloud-Native Applications</a></h2><div class=post-meta><time datetime=2019-06-15T09:00:00-07:00>June 15, 2019</time><div class=tags><a href=/tags/security class=tag>Security</a>
+<span class=breadcrumb-current-page aria-current=page>Architecture and Design</span></li></ol></nav><div class=content-layout><main class=main-content><section class="post-list taxonomy-list"><div class=taxonomy-header><h1>Architecture and Design</h1><p class=taxonomy-description>10 posts in the <strong>Architecture and Design</strong> category</p></div><div class=posts><article class=post-summary><header><h2><a href=/posts/multi-account-aws-strategies-enterprise-applications/>Multi-Account AWS Strategies for Enterprise Applications</a></h2><div class=post-meta><time datetime=2020-12-06T11:00:00-07:00>December 6, 2020</time><div class=tags><a href=/tags/aws class=tag>AWS</a>
+<a href=/tags/enterprise-architecture class=tag>Enterprise Architecture</a>
+<a href=/tags/multi-account class=tag>Multi-Account</a>
+<a href=/tags/security class=tag>Security</a>
+<a href=/tags/best-practices class=tag>Best Practices</a></div><div class=series-link><a href=/series/cloud-architecture-patterns>Cloud Architecture Patterns Series</a></div></div></header><div class=summary><p>Enterprise organizations face unique challenges when scaling their AWS infrastructure beyond simple single-account deployments. As applications grow in complexity and regulatory requirements become more stringent, the need for sophisticated multi-account strategies becomes paramount. This exploration delves into proven patterns that enable organizations to maintain security, compliance, and operational efficiency across distributed cloud environments.</p><div class=plantuml-container><img id=plantuml-multi-account-architecture class=plantuml-diagram>
+<a id=plantuml-link-multi-account-architecture href=# target=_blank class=plantuml-link title="Open diagram in new window"><span class=plantuml-link-icon>🔍</span></a></div><script src=/js/rawdeflate.js></script><script>function encode64(e){r="";for(i=0;i<e.length;i+=3)i+2==e.length?r+=append3bytes(e.charCodeAt(i),e.charCodeAt(i+1),0):i+1==e.length?r+=append3bytes(e.charCodeAt(i),0,0):r+=append3bytes(e.charCodeAt(i),e.charCodeAt(i+1),e.charCodeAt(i+2));return r}function append3bytes(e,t,n){return c1=e>>2,c2=(e&3)<<4|t>>4,c3=(t&15)<<2|n>>6,c4=n&63,r="",r+=encode6bit(c1&63),r+=encode6bit(c2&63),r+=encode6bit(c3&63),r+=encode6bit(c4&63),r}function encode6bit(e){return e<10?String.fromCharCode(48+e):(e-=10,e<26?String.fromCharCode(65+e):(e-=26,e<26?String.fromCharCode(97+e):(e-=26,e==0?"-":e==1?"_":"?")))}var deflater=window.SharedWorker&&new SharedWorker("/js/rawdeflate.js");deflater?(deflater.port.addEventListener("message",done_deflating,!1),deflater.port.start()):window.Worker&&(deflater=new Worker("/js/rawdeflate.js"),deflater.onmessage=done_deflating);function done_deflating(e){const s=document.getElementById("plantuml-multi-account-architecture"),t="https://www.plantuml.com/plantuml/img/"+encode64(e.data);s.src=t;const n=document.getElementById("plantuml-link-multi-account-architecture");n&&(n.href=t)}function compress(e){e=unescape(encodeURIComponent(e)),deflater?deflater.port&&deflater.port.postMessage?deflater.port.postMessage(e):deflater.postMessage(e):setTimeout(function(){done_deflating({data:deflate(e)})},100)}compress(`
+@startuml
+!theme aws-orange
+title Multi-Account AWS Architecture Pattern
+
+package "Management Account" {
+  [AWS Organizations]
+  [Consolidated Billing]
+  [AWS SSO]
+  [CloudTrail (Org)]
+}
+
+package "Security Account" {
+  [GuardDuty Master]
+  [Security Hub]
+  [Config Aggregator]
+  [CloudTrail Logs]
+}
+
+package "Production Account" {
+  [Application Services]
+  [RDS Production]
+  [S3 Production]
+}
+
+package "Development Account" {
+  [Dev Services]
+  [RDS Dev]
+  [S3 Dev]
+}
+
+package "Shared Services Account" {
+  [Transit Gateway]
+  [DNS Resolution]
+  [Centralized Logging]
+}
+
+[AWS Organizations] --> [Security Account]
+[AWS Organizations] --> [Production Account]
+[AWS Organizations] --> [Development Account]
+[AWS Organizations] --> [Shared Services Account]
+
+[Transit Gateway] --> [Production Account]
+[Transit Gateway] --> [Development Account]
+
+@enduml
+`)</script><h2 id=understanding-the-multi-account-imperative>Understanding the Multi-Account Imperative</h2><p>The traditional approach of housing all resources within a single AWS account quickly becomes untenable for enterprise applications. Security boundaries blur when development, staging, and production workloads share the same account, creating unnecessary risk exposure. Compliance frameworks often mandate strict separation of environments, making single-account architectures insufficient for regulated industries.</p></div><footer><a href=/posts/multi-account-aws-strategies-enterprise-applications/ class=read-more>Read More →</a></footer></article><article class=post-summary><header><h2><a href=/posts/zero-trust-architecture-implementation/>Zero-Trust Architecture Implementation in Cloud-Native Applications</a></h2><div class=post-meta><time datetime=2019-06-15T09:00:00-07:00>June 15, 2019</time><div class=tags><a href=/tags/security class=tag>Security</a>
 <a href=/tags/zero-trust class=tag>Zero Trust</a>
 <a href=/tags/aws class=tag>AWS</a>
 <a href=/tags/cloud-native class=tag>Cloud Native</a>
 <a href=/tags/architecture class=tag>Architecture</a>
 <a href=/tags/iam class=tag>IAM</a></div><div class=series-link><a href=/series/security-in-cloud-native-applications>Security in Cloud-Native Applications Series</a></div></div></header><div class=summary><p>The traditional security model of &ldquo;trust but verify&rdquo; has become fundamentally inadequate for modern cloud-native environments. Zero-trust architecture operates on the principle that no entity—whether inside or outside the network perimeter—should be trusted by default. This paradigm shift represents a critical evolution in how we approach security design, particularly as organizations embrace distributed architectures, remote workforces, and multi-cloud strategies.</p><p>In cloud-native applications, the concept of a network perimeter has largely dissolved. Services communicate across various networks, containers spin up and down dynamically, and data flows through multiple layers of infrastructure. Zero-trust provides a framework for securing these complex, distributed systems by treating every access request as potentially hostile and requiring explicit verification before granting access to any resource.</p></div><footer><a href=/posts/zero-trust-architecture-implementation/ class=read-more>Read More →</a></footer></article></div><nav class=pagination role=navigation aria-label="Pagination Navigation"><div class=pagination-info><span class=pagination-stats role=status aria-live=polite>Showing 9 to
-9
-of 9 posts</span></div><ul class=pagination-list><li class=pagination-item><a href=/categories/architecture-and-design/ class=pagination-link aria-label="Go to first page" rel=prev><span aria-hidden=true>«</span>
+10
+of 10 posts</span></div><ul class=pagination-list><li class=pagination-item><a href=/categories/architecture-and-design/ class=pagination-link aria-label="Go to first page" rel=prev><span aria-hidden=true>«</span>
 <span class=sr-only>First</span></a></li><li class=pagination-item><a href=/categories/architecture-and-design/ class=pagination-link aria-label="Go to previous page" rel=prev><span aria-hidden=true>‹</span>
 <span class=sr-only>Previous</span></a></li><li class=pagination-item><a href=/categories/architecture-and-design/ class=pagination-link aria-label="Go to page 1">1</a></li><li class=pagination-item><span class="pagination-link current" aria-current=page aria-label="Current page, page 2">2</span></li><li class="pagination-item disabled"><span class=pagination-link aria-label="Next page (unavailable)"><span aria-hidden=true>›</span>
 <span class=sr-only>Next</span></span></li><li class="pagination-item disabled"><span class=pagination-link aria-label="Last page (unavailable)"><span aria-hidden=true>»</span>
-<span class=sr-only>Last</span></span></li></ul></nav><div class=taxonomy-navigation><a href=/categories/ class=back-link>← All Categories</a></div></section></main><aside class=blog-sidebar><div class=sidebar-widget><h3>Recent Posts</h3><ul class=recent-posts><li><a href=/posts/advanced-cloudformation-patterns/>Infrastructure as Code: Advanced CloudFormation Patterns</a>
+<span class=sr-only>Last</span></span></li></ul></nav><div class=taxonomy-navigation><a href=/categories/ class=back-link>← All Categories</a></div></section></main><aside class=blog-sidebar><div class=sidebar-widget><h3>Recent Posts</h3><ul class=recent-posts><li><a href=/posts/cross-account-lambda-s3-access/>Cross-Account Lambda Access to S3: A Complete Implementation Guide</a>
+<span class=post-date>Jun 19, 2025</span></li><li><a href=/posts/lambda-to-lambda-vs-sns-chaining/>Lambda-to-Lambda Calls vs. SNS Chaining in AWS: When and How to Use Each</a>
+<span class=post-date>Jun 19, 2025</span></li><li><a href=/posts/advanced-cloudformation-patterns/>Infrastructure as Code: Advanced CloudFormation Patterns</a>
 <span class=post-date>Jun 13, 2025</span></li><li><a href=/posts/reverting-git-commits-safely/>Reverting Git Commits Safely: Undoing Changes Without Losing History</a>
 <span class=post-date>Jun 11, 2025</span></li><li><a href=/posts/dynamodb-streams-opensearch-sync/>Real-time Data Synchronization: Using DynamoDB Streams and Lambda to Keep OpenSearch Indexes Current</a>
-<span class=post-date>Jun 6, 2025</span></li><li><a href=/posts/using-ai-in-software-engineering/>Harnessing AI in Software Engineering: Opportunities and Challenges</a>
-<span class=post-date>May 29, 2025</span></li><li><a href=/posts/aws-websockets-typescript/>Real-time Applications with AWS WebSockets and TypeScript</a>
-<span class=post-date>Aug 13, 2023</span></li></ul></div><div class=sidebar-widget><h3>Post Series</h3><ul class=recent-posts><li><a href=/posts/aws-websockets-typescript/>AWS and Typescript: Real-time Applications with AWS WebSockets and TypeScript</a>
-<span class=post-date>Aug 13, 2023</span><div class=series-meta><a href=/series/aws-and-typescript/ class=series-link>View all 7 posts in series →</a></div></li><li><a href=/posts/real-time-processing-architectures/>Cloud Architecture Patterns: Real-time Processing Architectures</a>
+<span class=post-date>Jun 6, 2025</span></li></ul></div><div class=sidebar-widget><h3>Post Series</h3><ul class=recent-posts><li><a href=/posts/cross-account-lambda-s3-access/>AWS Cross-Account Patterns: Cross-Account Lambda Access to S3: A Complete Implementation Guide</a>
+<span class=post-date>Jun 19, 2025</span><div class=series-meta><a href=/series/aws-cross-account-patterns/ class=series-link>View all 1 posts in series →</a></div></li><li><a href=/posts/lambda-to-lambda-vs-sns-chaining/>AWS and Typescript: Lambda-to-Lambda Calls vs. SNS Chaining in AWS: When and How to Use Each</a>
+<span class=post-date>Jun 19, 2025</span><div class=series-meta><a href=/series/aws-and-typescript/ class=series-link>View all 8 posts in series →</a></div></li><li><a href=/posts/real-time-processing-architectures/>Cloud Architecture Patterns: Real-time Processing Architectures</a>
 <span class=post-date>Apr 11, 2021</span><div class=series-meta><a href=/series/cloud-architecture-patterns/ class=series-link>View all 7 posts in series →</a></div></li><li><a href=/posts/technical-debt-management-growing-codebases/>Modern Development Practices: Technical Debt Management in Growing Codebases: Strategies for Sustainable Development</a>
 <span class=post-date>Dec 19, 2021</span><div class=series-meta><a href=/series/modern-development-practices/ class=series-link>View all 7 posts in series →</a></div></li><li><a href=/posts/threat-modeling-cloud-applications/>Security in Cloud-Native Applications: Threat Modeling for Cloud Applications: A Comprehensive Approach to Security Design</a>
-<span class=post-date>Oct 19, 2019</span><div class=series-meta><a href=/series/security-in-cloud-native-applications/ class=series-link>View all 7 posts in series →</a></div></li></ul></div><div class=sidebar-widget><h3>Categories</h3><ul class=categories><li><a href=/categories/api-development>api development (2)</a></li><li><a href=/categories/architecture>architecture (2)</a></li><li><a href=/categories/architecture-and-design>architecture and design (9)</a></li><li><a href=/categories/artificial-intelligence>artificial intelligence (1)</a></li><li><a href=/categories/cloud-computing>cloud computing (21)</a></li><li><a href=/categories/code-quality>code quality (1)</a></li><li><a href=/categories/compliance>compliance (1)</a></li><li><a href=/categories/cost-optimization>cost optimization (1)</a></li><li><a href=/categories/data-engineering>data engineering (3)</a></li><li><a href=/categories/database>database (1)</a></li><li><a href=/categories/database-design>database design (1)</a></li><li><a href=/categories/debugging-and-troubleshooting>debugging and troubleshooting (1)</a></li><li><a href=/categories/developer-experience>developer experience (1)</a></li><li><a href=/categories/development-tools>development tools (3)</a></li><li><a href=/categories/development-tutorials>development tutorials (1)</a></li><li><a href=/categories/infrastructure-as-code>infrastructure as code (1)</a></li><li><a href=/categories/microservices>microservices (1)</a></li><li><a href=/categories/performance>performance (1)</a></li><li><a href=/categories/quality-assurance>quality assurance (1)</a></li><li><a href=/categories/real-time-applications>real-time applications (1)</a></li><li><a href=/categories/security>security (8)</a></li><li><a href=/categories/serverless>serverless (2)</a></li><li><a href=/categories/software-development>software development (8)</a></li><li><a href=/categories/technical-debt>technical debt (1)</a></li><li><a href=/categories/testing>testing (2)</a></li><li><a href=/categories/version-control>version control (2)</a></li></ul></div><div class=sidebar-widget><h3>Tags</h3><div class=tag-cloud><a href=/tags/ai class=tag-cloud-item style=font-size:1rem>ai
+<span class=post-date>Oct 19, 2019</span><div class=series-meta><a href=/series/security-in-cloud-native-applications/ class=series-link>View all 7 posts in series →</a></div></li></ul></div><div class=sidebar-widget><h3>Categories</h3><ul class=categories><li><a href=/categories/api-development>api development (2)</a></li><li><a href=/categories/architecture>architecture (2)</a></li><li><a href=/categories/architecture-and-design>architecture and design (10)</a></li><li><a href=/categories/artificial-intelligence>artificial intelligence (1)</a></li><li><a href=/categories/aws>aws (1)</a></li><li><a href=/categories/cloud-computing>cloud computing (23)</a></li><li><a href=/categories/code-quality>code quality (1)</a></li><li><a href=/categories/compliance>compliance (1)</a></li><li><a href=/categories/cost-optimization>cost optimization (1)</a></li><li><a href=/categories/data-engineering>data engineering (3)</a></li><li><a href=/categories/database>database (1)</a></li><li><a href=/categories/database-design>database design (1)</a></li><li><a href=/categories/debugging-and-troubleshooting>debugging and troubleshooting (1)</a></li><li><a href=/categories/developer-experience>developer experience (1)</a></li><li><a href=/categories/development-tools>development tools (3)</a></li><li><a href=/categories/development-tutorials>development tutorials (1)</a></li><li><a href=/categories/infrastructure-as-code>infrastructure as code (1)</a></li><li><a href=/categories/microservices>microservices (1)</a></li><li><a href=/categories/performance>performance (1)</a></li><li><a href=/categories/quality-assurance>quality assurance (1)</a></li><li><a href=/categories/real-time-applications>real-time applications (1)</a></li><li><a href=/categories/security>security (8)</a></li><li><a href=/categories/serverless>serverless (2)</a></li><li><a href=/categories/software-development>software development (8)</a></li><li><a href=/categories/technical-debt>technical debt (1)</a></li><li><a href=/categories/testing>testing (2)</a></li><li><a href=/categories/version-control>version control (2)</a></li></ul></div><div class=sidebar-widget><h3>Tags</h3><div class=tag-cloud><a href=/tags/ai class=tag-cloud-item style=font-size:1rem>ai
 </a><a href=/tags/api-design class=tag-cloud-item style=font-size:1rem>api design
 </a><a href=/tags/api-gateway class=tag-cloud-item style=font-size:1rem>api gateway
 </a><a href=/tags/api-security class=tag-cloud-item style=font-size:1rem>api security
@@ -37,7 +89,7 @@ of 9 posts</span></div><ul class=pagination-list><li class=pagination-item><a hr
 </a><a href=/tags/authentication class=tag-cloud-item style=font-size:1rem>authentication
 </a><a href=/tags/authorization class=tag-cloud-item style=font-size:1rem>authorization
 </a><a href=/tags/automation class=tag-cloud-item style=font-size:1rem>automation
-</a><a href=/tags/aws class=tag-cloud-item style=font-size:3rem>aws
+</a><a href=/tags/aws class=tag-cloud-item style=font-size:4rem>aws
 </a><a href=/tags/aws-lambda class=tag-cloud-item style=font-size:1rem>aws lambda
 </a><a href=/tags/best-practices class=tag-cloud-item style=font-size:2rem>best practices
 </a><a href=/tags/cdk class=tag-cloud-item style=font-size:1rem>cdk
@@ -52,6 +104,7 @@ of 9 posts</span></div><ul class=pagination-list><li class=pagination-item><a hr
 </a><a href=/tags/containers class=tag-cloud-item style=font-size:1rem>containers
 </a><a href=/tags/cost-optimization class=tag-cloud-item style=font-size:1rem>cost optimization
 </a><a href=/tags/cqrs class=tag-cloud-item style=font-size:1rem>cqrs
+</a><a href=/tags/cross-account class=tag-cloud-item style=font-size:1rem>cross-account
 </a><a href=/tags/data-architecture class=tag-cloud-item style=font-size:1rem>data architecture
 </a><a href=/tags/data-lake class=tag-cloud-item style=font-size:1rem>data lake
 </a><a href=/tags/data-modeling class=tag-cloud-item style=font-size:1rem>data modeling
@@ -124,7 +177,7 @@ of 9 posts</span></div><ul class=pagination-list><li class=pagination-item><a hr
 </a><a href=/tags/technical-debt class=tag-cloud-item style=font-size:1rem>technical debt
 </a><a href=/tags/testing class=tag-cloud-item style=font-size:1rem>testing
 </a><a href=/tags/threatmodeling class=tag-cloud-item style=font-size:1rem>threatmodeling
-</a><a href=/tags/typescript class=tag-cloud-item style=font-size:2rem>typescript
+</a><a href=/tags/typescript class=tag-cloud-item style=font-size:3rem>typescript
 </a><a href=/tags/version-control class=tag-cloud-item style=font-size:1rem>version control
 </a><a href=/tags/websockets class=tag-cloud-item style=font-size:1rem>websockets
 </a><a href=/tags/zero-trust class=tag-cloud-item style=font-size:1rem>zero trust</a></div></div><div class=sidebar-widget><h3>Subscribe</h3><div class=subscribe-links><a href=/index.xml class=rss-link><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 019 9"/><path d="M4 4a16 16 0 0116 16"/><circle cx="5" cy="19" r="1"/></svg>
