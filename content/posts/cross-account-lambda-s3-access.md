@@ -1,6 +1,6 @@
 ---
 title: "Cross-Account Lambda Access to S3: A Complete Implementation Guide"
-date: 2025-06-19T16:04:13-07:00
+date: 2025-06-25T16:04:13-07:00
 draft: false
 categories: ["Cloud Computing", "AWS"]
 tags:
