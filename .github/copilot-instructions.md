@@ -41,7 +41,7 @@ series: "Series Name" # Optional, only if part of a series
 ### Front Matter Guidelines
 
 - **Title**: Use title case and be descriptive but concise.
-- **Date**: Use the ISO 8601 format with Mountain Time zone (-07:00).
+- **Date**: Use the ISO 8601 format with Pacific Time zone (-08:00). Set the date to one week after the latest post.
 - **Draft**: Set to `false` when ready to publish, `true` for work-in-progress.
 - **Categories**: Use 1-2 broad categories from existing ones like "Cloud Computing", "Software Development", "Architecture and Design", "Development Tutorials".
 - **Tags**: Include 3-6 specific, relevant tags related to technologies, frameworks, or concepts covered.
