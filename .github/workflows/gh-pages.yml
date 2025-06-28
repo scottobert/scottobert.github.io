@@ -72,6 +72,151 @@ jobs:
         with:
           hugo-version: 'latest'
           extended: true
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Check for newly published posts
+        id: check-new-posts
+        run: |
+          # Create script to check for newly published posts
+          cat > check-new-posts.js << 'EOF'
+          const { execSync } = require('child_process');
+          const fs = require('fs');
+          
+          function getNewlyPublishedPosts() {
+            try {
+              // Get all posts that are now published (not future, not draft)
+              const allPostsOutput = execSync('hugo list all --format json', { encoding: 'utf-8' });
+              const allPosts = JSON.parse(allPostsOutput);
+              
+              // Get posts that are still in the future
+              let futurePosts = [];
+              try {
+                const futurePostsOutput = execSync('hugo list future --format json', { encoding: 'utf-8' });
+                futurePosts = JSON.parse(futurePostsOutput);
+              } catch (e) {
+                // No future posts or command failed - that's okay
+                console.log('No future posts found or command failed:', e.message);
+              }
+              
+              // Filter for posts published today
+              const today = new Date();
+              const todayString = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+              
+              const publishedToday = allPosts.filter(post => {
+                if (post.draft) return false;
+                
+                // Check if post's publish date is today
+                const postDate = new Date(post.publishDate || post.date);
+                const postDateString = postDate.toISOString().split('T')[0];
+                
+                return postDateString === todayString;
+              });
+              
+              // Filter out posts that are still in the future
+              const futurePostPaths = new Set(futurePosts.map(p => p.path));
+              const newlyPublished = publishedToday.filter(post => !futurePostPaths.has(post.path));
+              
+              return { newlyPublished, publishedToday, futurePosts };
+            } catch (error) {
+              console.error('Error checking for newly published posts:', error);
+              return { newlyPublished: [], publishedToday: [], futurePosts: [] };
+            }
+          }
+          
+          function formatPostSummary(result) {
+            const { newlyPublished, publishedToday, futurePosts } = result;
+            
+            let summary = '';
+            
+            // Report newly published posts
+            if (newlyPublished.length === 0) {
+              summary += 'No new posts published today.\\n\\n';
+            } else {
+              summary += `🎉 ${newlyPublished.length} new post${newlyPublished.length > 1 ? 's' : ''} published today:\\n\\n`;
+              
+              newlyPublished.forEach(post => {
+                const postDate = new Date(post.publishDate || post.date);
+                summary += `📝 **${post.title}**\\n`;
+                summary += `   📅 Published: ${postDate.toLocaleDateString()}\\n`;
+                summary += `   🔗 Path: ${post.path}\\n`;
+                if (post.permalink) {
+                  summary += `   🌐 URL: ${post.permalink}\\n`;
+                }
+                summary += '\\n';
+              });
+            }
+            
+            // Report upcoming posts
+            if (futurePosts.length > 0) {
+              // Sort future posts by publish date
+              const sortedFuturePosts = futurePosts
+                .map(post => ({
+                  ...post,
+                  publishDateTime: new Date(post.publishDate || post.date)
+                }))
+                .sort((a, b) => a.publishDateTime.getTime() - b.publishDateTime.getTime());
+              
+              summary += `📅 **Upcoming Posts (${futurePosts.length} scheduled):**\\n\\n`;
+              
+              // Show next 10 upcoming posts
+              const postsToShow = sortedFuturePosts.slice(0, 10);
+              postsToShow.forEach(post => {
+                const postDate = post.publishDateTime;
+                const daysFromNow = Math.ceil((postDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                summary += `📄 **${post.title}**\\n`;
+                summary += `   📅 Scheduled: ${postDate.toLocaleDateString()} (in ${daysFromNow} day${daysFromNow > 1 ? 's' : ''})\\n`;
+                summary += `   🔗 Path: ${post.path}\\n`;
+                summary += '\\n';
+              });
+              
+              if (futurePosts.length > 10) {
+                summary += `   ... and ${futurePosts.length - 10} more upcoming posts\\n\\n`;
+              }
+            } else {
+              summary += '📅 **No upcoming posts scheduled.**\\n\\n';
+            }
+            
+            return summary;
+          }
+          
+          // Main execution
+          const result = getNewlyPublishedPosts();
+          const summary = formatPostSummary(result);
+          
+          console.log(summary.replace(/\\n/g, '\n'));
+          
+          // Set outputs for GitHub Actions
+          console.log(`new_posts_count=${result.newlyPublished.length}`);
+          console.log(`has_new_posts=${result.newlyPublished.length > 0}`);
+          console.log(`summary=${summary}`);
+          
+          // Save outputs to GitHub Actions environment
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `new_posts_count=${result.newlyPublished.length}\n`);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `has_new_posts=${result.newlyPublished.length > 0}\n`);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `summary=${summary}\n`);
+          
+          // Save detailed info to file for potential use in notifications
+          if (result.newlyPublished.length > 0) {
+            fs.writeFileSync('newly-published-posts.json', JSON.stringify(result.newlyPublished, null, 2));
+          }
+          EOF
+          
+          # Run the script
+          node check-new-posts.js
+      
+      - name: Display post publication status
+        run: |
+          if [ "${{ steps.check-new-posts.outputs.has_new_posts }}" == "true" ]; then
+            echo "🎉 New posts detected in today's build!"
+          else
+            echo "📅 Daily build completed - checking publication status..."
+          fi
+          echo "${{ steps.check-new-posts.outputs.summary }}" | sed 's/\\n/\n/g'
+      
       - name: Build
         run: hugo --minify
       - name: Deploy
@@ -80,3 +225,26 @@ jobs:
         with:
           github_token: ${{ secrets.GH_TOKEN }}
           publish_dir: ./public
+      
+      - name: Create deployment summary
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Build completed:** $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Hugo version:** $(hugo version)" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.check-new-posts.outputs.has_new_posts }}" == "true" ]; then
+            echo "- **New posts published:** ${{ steps.check-new-posts.outputs.new_posts_count }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "${{ steps.check-new-posts.outputs.summary }}" | sed 's/\\n/\n/g' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **New posts published:** 0" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Upload newly published posts info
+        if: steps.check-new-posts.outputs.has_new_posts == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: newly-published-posts
+          path: newly-published-posts.json
+          retention-days: 30
