@@ -242,10 +242,7 @@
 <a id=plantuml-link- href=# target=_blank class=plantuml-link title="Open diagram in new window"><span class=plantuml-link-icon>🔍</span></a></div><script src=/js/rawdeflate.js></script><script>function encode64(e){r="";for(i=0;i<e.length;i+=3)i+2==e.length?r+=append3bytes(e.charCodeAt(i),e.charCodeAt(i+1),0):i+1==e.length?r+=append3bytes(e.charCodeAt(i),0,0):r+=append3bytes(e.charCodeAt(i),e.charCodeAt(i+1),e.charCodeAt(i+2));return r}function append3bytes(e,t,n){return c1=e>>2,c2=(e&3)<<4|t>>4,c3=(t&15)<<2|n>>6,c4=n&63,r="",r+=encode6bit(c1&63),r+=encode6bit(c2&63),r+=encode6bit(c3&63),r+=encode6bit(c4&63),r}function encode6bit(e){return e<10?String.fromCharCode(48+e):(e-=10,e<26?String.fromCharCode(65+e):(e-=26,e<26?String.fromCharCode(97+e):(e-=26,e==0?"-":e==1?"_":"?")))}var deflater=window.SharedWorker&&new SharedWorker("/js/rawdeflate.js");deflater?(deflater.port.addEventListener("message",done_deflating,!1),deflater.port.start()):window.Worker&&(deflater=new Worker("/js/rawdeflate.js"),deflater.onmessage=done_deflating);function done_deflating(e){const s=document.getElementById("plantuml-"),t="https://www.plantuml.com/plantuml/img/"+encode64(e.data);s.src=t;const n=document.getElementById("plantuml-link-");n&&(n.href=t)}function compress(e){e=unescape(encodeURIComponent(e)),deflater?deflater.port&&deflater.port.postMessage?deflater.port.postMessage(e):deflater.postMessage(e):setTimeout(function(){done_deflating({data:deflate(e)})},100)}compress(`
 @startuml
 !define ICONURL https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/v2.4.0
-!includeurl ICONURL/common.puml
-!includeurl ICONURL/devicons2/docker.puml
-!includeurl ICONURL/font-awesome-5/shield-alt.puml
-!includeurl ICONURL/aws/SecurityIdentityCompliance/aws-identity-and-access-management.puml
+
 
 title Container Security Pipeline
 
@@ -722,10 +719,6 @@ deactivate pipeline
 <a id=plantuml-link- href=# target=_blank class=plantuml-link title="Open diagram in new window"><span class=plantuml-link-icon>🔍</span></a></div><script src=/js/rawdeflate.js></script><script>function encode64(e){r="";for(i=0;i<e.length;i+=3)i+2==e.length?r+=append3bytes(e.charCodeAt(i),e.charCodeAt(i+1),0):i+1==e.length?r+=append3bytes(e.charCodeAt(i),0,0):r+=append3bytes(e.charCodeAt(i),e.charCodeAt(i+1),e.charCodeAt(i+2));return r}function append3bytes(e,t,n){return c1=e>>2,c2=(e&3)<<4|t>>4,c3=(t&15)<<2|n>>6,c4=n&63,r="",r+=encode6bit(c1&63),r+=encode6bit(c2&63),r+=encode6bit(c3&63),r+=encode6bit(c4&63),r}function encode6bit(e){return e<10?String.fromCharCode(48+e):(e-=10,e<26?String.fromCharCode(65+e):(e-=26,e<26?String.fromCharCode(97+e):(e-=26,e==0?"-":e==1?"_":"?")))}var deflater=window.SharedWorker&&new SharedWorker("/js/rawdeflate.js");deflater?(deflater.port.addEventListener("message",done_deflating,!1),deflater.port.start()):window.Worker&&(deflater=new Worker("/js/rawdeflate.js"),deflater.onmessage=done_deflating);function done_deflating(e){const s=document.getElementById("plantuml-"),t="https://www.plantuml.com/plantuml/img/"+encode64(e.data);s.src=t;const n=document.getElementById("plantuml-link-");n&&(n.href=t)}function compress(e){e=unescape(encodeURIComponent(e)),deflater?deflater.port&&deflater.port.postMessage?deflater.port.postMessage(e):deflater.postMessage(e):setTimeout(function(){done_deflating({data:deflate(e)})},100)}compress(`
 @startuml
 !define ICONURL https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/v2.4.0
-!includeurl ICONURL/common.puml
-!includeurl ICONURL/font-awesome-5/shield-alt.puml
-!includeurl ICONURL/font-awesome-5/eye.puml
-!includeurl ICONURL/aws/Analytics/amazon-kinesis.puml
 
 title Runtime Security Monitoring Architecture
 
