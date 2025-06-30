@@ -1,0 +1,33 @@
+# Trivy ignore file for Hugo static site
+# This file contains vulnerability IDs that can be safely ignored for a static website
+
+# Hugo-specific ignores
+# These are typically not applicable to static sites
+
+# Example ignores (uncomment and modify as needed):
+# CVE-2023-XXXX  # Ignore specific CVE that doesn't apply to static sites
+# GHSA-XXXX-XXXX-XXXX  # Ignore GitHub Security Advisory
+
+# Node.js development dependencies that don't affect production
+# (Uncomment if you have a package.json with dev dependencies)
+# npm:**/node_modules/**/test/**
+# npm:**/node_modules/**/tests/**
+# npm:**/node_modules/**/*.test.js
+# npm:**/node_modules/**/*.spec.js
+
+# Documentation and example files
+**/example/**
+**/examples/**
+**/test/**
+**/tests/**
+**/*.test.*
+**/*.spec.*
+**/README.md
+**/CHANGELOG.md
+**/LICENSE*
+
+# Ignore secrets scanning for common false positives
+generic-api-key:tests/**
+generic-api-key:examples/**
+aws-access-key-id:tests/**
+aws-secret-access-key:tests/**

@@ -1,0 +1,18 @@
+# ZAP Scanning Rules Configuration
+# Format: rule_id	WARN|FAIL|INFO|IGNORE	parameter
+10021	WARN	# X-Content-Type-Options Header Missing
+10020	WARN	# X-Frame-Options Header Missing
+10016	WARN	# Web Browser XSS Protection Not Enabled
+10035	WARN	# Strict-Transport-Security Header Missing
+10038	WARN	# Content Security Policy (CSP) Header Not Set
+90022	IGNORE	# Application Error Disclosure (ignore for static sites)
+10049	IGNORE	# Storable and Cacheable Content (acceptable for static sites)
+10027	IGNORE	# Information Disclosure - Suspicious Comments (acceptable for Hugo sites)
+10015	IGNORE	# Incomplete or No Cache-control and Pragma HTTP Header Set (acceptable for static content)
+10017	IGNORE	# Cross-Domain JavaScript Source File Inclusion (common for CDN usage)
+10023	IGNORE	# Information Disclosure - Debug Error Messages (not applicable to static sites)
+10040	IGNORE	# Secure Pages Include Mixed Content (if using HTTPS CDN resources)
+90020	IGNORE	# Missing Anti-clickjacking Header (covered by X-Frame-Options check)
+10096	IGNORE	# Timestamp Disclosure - Unix (not sensitive for static sites)
+10109	IGNORE	# Modern Web Application (informational)
+10202	IGNORE	# Absence of Anti-CSRF Tokens (not applicable to static sites)

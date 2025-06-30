@@ -1,0 +1,140 @@
+name: Comprehensive Security Scan
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 2 * * 1'  # Weekly scan on Mondays at 2 AM
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Hugo
+      uses: peaceiris/actions-hugo@v2
+      with:
+        hugo-version: 'latest'
+        extended: true
+
+    - name: Build site
+      run: hugo --minify --baseURL "http://localhost:8080"
+
+    - name: Start local server
+      run: |
+        cd public
+        python3 -m http.server 8080 &
+        echo $! > server.pid
+        sleep 10
+        curl -f http://localhost:8080 || exit 1
+
+    # Dependency vulnerability scan
+    - name: Run Trivy dependency scan
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        severity: 'CRITICAL,HIGH,MEDIUM'
+
+    - name: Upload Trivy results
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+    # Web application security scan
+    - name: ZAP Baseline Scan
+      uses: zaproxy/action-baseline@v0.10.0
+      with:
+        target: 'http://localhost:8080'
+        rules_file_name: '.zap/rules.tsv'
+        cmd_options: '-a -j'
+        
+    - name: Upload ZAP Report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: zap-security-report
+        path: |
+          report_html.html
+          report_json.json
+
+    # SSL/TLS configuration check (for production)
+    - name: SSL Labs Test
+      if: github.ref == 'refs/heads/main'
+      run: |
+        curl -s "https://api.ssllabs.com/api/v3/analyze?host=scottobert.github.io&publish=off&startNew=on&all=done&ignoreMismatch=on" > ssl-report.json
+        
+    - name: Upload SSL Report
+      if: github.ref == 'refs/heads/main'
+      uses: actions/upload-artifact@v4
+      with:
+        name: ssl-report
+        path: ssl-report.json
+
+    - name: Stop local server
+      if: always()
+      run: |
+        if [ -f public/server.pid ]; then
+          kill $(cat public/server.pid) || true
+        fi
+
+    # Security policy compliance check
+    - name: Check Security Headers
+      run: |
+        echo "Checking for security headers..."
+        curl -I http://localhost:8080 > headers.txt
+        
+        # Check for important security headers
+        if ! grep -i "content-security-policy" headers.txt; then
+          echo "⚠️  Missing Content-Security-Policy header"
+        fi
+        
+        if ! grep -i "x-frame-options" headers.txt; then
+          echo "⚠️  Missing X-Frame-Options header"
+        fi
+        
+        if ! grep -i "x-content-type-options" headers.txt; then
+          echo "⚠️  Missing X-Content-Type-Options header"
+        fi
+
+    - name: Upload Security Headers Report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: security-headers
+        path: headers.txt
+
+  lighthouse-security:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Hugo
+      uses: peaceiris/actions-hugo@v2
+      with:
+        hugo-version: 'latest'
+        extended: true
+
+    - name: Build site
+      run: hugo --minify
+
+    - name: Lighthouse CI Action
+      uses: treosh/lighthouse-ci-action@v10
+      with:
+        uploadArtifacts: true
+        temporaryPublicStorage: true
+        configPath: './lighthouserc.json'

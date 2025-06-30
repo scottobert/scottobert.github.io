@@ -1,0 +1,91 @@
+name: Trivy Vulnerability Scan
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 4 * * 1'  # Weekly scan on Mondays at 4 AM
+
+jobs:
+  trivy-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # Scan repository filesystem for vulnerabilities
+    - name: Run Trivy vulnerability scanner in fs mode
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        severity: 'CRITICAL,HIGH,MEDIUM'
+
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+    # Also generate a table format for easy reading
+    - name: Run Trivy scanner for table output
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'table'
+        output: 'trivy-table.txt'
+        severity: 'CRITICAL,HIGH,MEDIUM'
+
+    - name: Upload Trivy table report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: trivy-vulnerability-report
+        path: trivy-table.txt
+
+    # Scan for secrets in the repository
+    - name: Run Trivy secret scan
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        scanners: 'secret'
+        format: 'table'
+        output: 'trivy-secrets.txt'
+
+    - name: Upload Trivy secrets report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: trivy-secrets-report
+        path: trivy-secrets.txt
+
+    - name: Create Trivy Summary
+      if: always()
+      run: |
+        echo "## 🔍 Trivy Vulnerability Scan Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Trivy scanned the repository for:" >> $GITHUB_STEP_SUMMARY
+        echo "- 🐛 Known vulnerabilities in dependencies" >> $GITHUB_STEP_SUMMARY
+        echo "- 🔐 Exposed secrets and credentials" >> $GITHUB_STEP_SUMMARY
+        echo "- ⚙️ Configuration issues" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Scan Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- Scan completed at: $(date)" >> $GITHUB_STEP_SUMMARY
+        echo "- Severity levels checked: CRITICAL, HIGH, MEDIUM" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        if [ -f trivy-table.txt ]; then
+          echo "Check the 'trivy-vulnerability-report' artifact for detailed results." >> $GITHUB_STEP_SUMMARY
+        fi
+        if [ -f trivy-secrets.txt ]; then
+          echo "Check the 'trivy-secrets-report' artifact for secrets scan results." >> $GITHUB_STEP_SUMMARY
+        fi
