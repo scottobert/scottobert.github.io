@@ -714,11 +714,6 @@ const TestImplementation = {
 
 {{< plantuml >}}
 @startuml
-!define ICONURL https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/v2.4.0
-!includeurl ICONURL/common.puml
-!includeurl ICONURL/font-awesome-5/check-circle.puml
-!includeurl ICONURL/font-awesome-5/exclamation-triangle.puml
-!includeurl ICONURL/aws/ManagementAndGovernance/aws-config.puml
 
 title Continuous Compliance Architecture
 
@@ -1319,11 +1314,6 @@ The integration of compliance reporting with broader business intelligence and r
 
 {{< plantuml >}}
 @startuml
-!define ICONURL https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/v2.4.0
-!includeurl ICONURL/common.puml
-!includeurl ICONURL/font-awesome-5/chart-bar.puml
-!includeurl ICONURL/font-awesome-5/file-alt.puml
-!includeurl ICONURL/aws/Analytics/amazon-quicksight.puml
 
 title Compliance Reporting and Analytics Architecture
 

@@ -253,10 +253,7 @@ export class ContainerSecurityScanner {
 {{< plantuml >}}
 @startuml
 !define ICONURL https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/v2.4.0
-!includeurl ICONURL/common.puml
-!includeurl ICONURL/devicons2/docker.puml
-!includeurl ICONURL/font-awesome-5/shield-alt.puml
-!includeurl ICONURL/aws/SecurityIdentityCompliance/aws-identity-and-access-management.puml
+
 
 title Container Security Pipeline
 
@@ -757,10 +754,6 @@ The integration of security monitoring with observability platforms creates oppo
 {{< plantuml >}}
 @startuml
 !define ICONURL https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/v2.4.0
-!includeurl ICONURL/common.puml
-!includeurl ICONURL/font-awesome-5/shield-alt.puml
-!includeurl ICONURL/font-awesome-5/eye.puml
-!includeurl ICONURL/aws/Analytics/amazon-kinesis.puml
 
 title Runtime Security Monitoring Architecture
 
