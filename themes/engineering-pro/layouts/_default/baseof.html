@@ -38,7 +38,10 @@
   <meta name="twitter:description" content="{{ with .Description }}{{ . }}{{ else }}{{ .Summary | truncate 160 }}{{ end }}">  <link rel="stylesheet" href="/css/style.css">
   <script src="/js/npm-packages.js" defer></script>
   <script src="/js/search.js" defer></script>
+  <!-- Only load Umami analytics in production -->
+  {{ if hugo.IsProduction }}
   <script defer src="https://cloud.umami.is/script.js" data-website-id="e2461896-021d-422a-b83f-624a8819309b"></script>
+  {{ end }}
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -97,6 +100,9 @@
   <footer class="site-footer">
     <div class="container">
       <p>&copy; {{ now.Year }} {{ .Site.Title }}</p>
+      <p class="disclaimer-text" style="font-size:0.9em; margin-top:0.5em;">
+        The views and opinions expressed on this site are my own. <a href="/disclaimer/" style="color:#0074D9; text-decoration:underline;">Read full disclaimer</a>.
+      </p>
     </div>
   </footer>
 </body>
