@@ -16,9 +16,9 @@ When creating a new blog post, follow these specific guidelines:
 
 ### File Creation and Naming
 
-- Use the Hugo task "Hugo: New Post" or run `hugo new posts/post-name.md` to create a new post with the archetype template.
+- Run `hugo new posts/post-name.md` to create a new post with the archetype template.
 - Name files using lowercase with hyphens (kebab-case): `aws-lambda-typescript.md`, `api-design-patterns.md`.
-- Place all blog posts in `content/posts/` directory.
+- Place all blog posts in `content/posts/` directory in a folder named after the posts year and month (e.g., `content/posts/2025/07/`).
 
 ### Front Matter Requirements
 
@@ -50,6 +50,7 @@ series: "Series Name" # Optional, only if part of a series
 ### Content Structure and Style
 
 - Start with a strong introductory paragraph that explains what the post covers and why it matters.
+- Include a relevant meme or image in the post, if applicable, and place it in `static/images/posts/` with the same filename as the post url.
 - Use paragraph-style prose rather than excessive bullet points or lists.
 - Include practical code examples when relevant, using proper syntax highlighting.
 - Use the PlantUML shortcode for architecture diagrams: `{{< plantuml id="unique-id" >}} ...diagram code... {{< /plantuml >}}`.
@@ -62,12 +63,12 @@ series: "Series Name" # Optional, only if part of a series
 - Follow AWS SDK v3 patterns for AWS-related content.
 - Include error handling and best practices in code examples.
 - Provide context and explanation for code snippets rather than just showing code.
-- Reference official documentation and authoritative sources when appropriate.
+- Reference official documentation and authoritative sources when appropriate, including links to reference materials.
 
 ### Example Post Creation Workflow
 
-1. Run the Hugo task "Hugo: New Post" or `hugo new posts/your-post-name.md`
+1. Run `hugo new posts/your-post-name.md`
 2. Update the front matter with appropriate title, categories, tags, and series (if applicable)
 3. Write the content following the style guidelines above
-4. Test locally using "Hugo: Serve (Development)" task
+4. Test locally using `run npm serve`
 5. Set `draft: false` when ready to publish
