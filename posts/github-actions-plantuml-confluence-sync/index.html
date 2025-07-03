@@ -1,0 +1,566 @@
+<!doctype html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Scott Obert</title><meta name=description content="Maintaining up-to-date documentation is crucial for any software project, but manually updating diagrams and keeping documentation synchronized across platforms …"><link rel=canonical href=https://scottobert.com/posts/github-actions-plantuml-confluence-sync/><meta property="og:title" content="Automating PlantUML Diagrams in GitHub README with Actions and Confluence Sync"><meta property="og:description" content="Maintaining up-to-date documentation is crucial for any software project, but manually updating diagrams and keeping documentation synchronized across platforms …"><meta property="og:type" content="article"><meta property="og:url" content="https://scottobert.com/posts/github-actions-plantuml-confluence-sync/"><meta property="og:site_name" content="Scott Obert"><meta name=twitter:card content="summary"><meta name=twitter:title content="Automating PlantUML Diagrams in GitHub README with Actions and Confluence Sync"><meta name=twitter:description content="Maintaining up-to-date documentation is crucial for any software project, but manually updating diagrams and keeping documentation synchronized across platforms …"><link rel=stylesheet href=/css/style.css><script src=/js/npm-packages.js defer></script><script src=/js/search.js defer></script><script defer src=https://cloud.umami.is/script.js data-website-id=e2461896-021d-422a-b83f-624a8819309b></script><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/site.webmanifest></head><body><header class=site-header><div class=container><div class=header-content><div class=header-left><h1><a href=/>Scott Obert</a></h1><nav><a href=/posts/>Blog</a>
+<a href=/album/>Photo Album</a>
+<button type=button class=search-toggle id=search-toggle-btn aria-label="Open search" title=Search>
+<svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61.0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+<span>Search</span></button></nav></div><div class=social-links><a href=https://www.linkedin.com/in/scott-obert-3a7338b/ target=_blank rel="noopener noreferrer" title="LinkedIn Profile"><svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853.0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601.0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144.0-2.063-.926-2.063-2.065.0-1.138.92-2.063 2.063-2.063 1.14.0 2.064.925 2.064 2.063.0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225.0H1.771C.792.0.0.774.0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2.0 22.222.0h.003z"/></svg>
+<span>LinkedIn</span>
+</a><a href=https://github.com/scottobert target=_blank rel="noopener noreferrer" title="GitHub Profile"><svg viewBox="0 0 24 24"><path d="M12 0C5.37.0.0 5.37.0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577.0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93.0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176.0.0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22.0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22.0 1.605-.015 2.896-.015 3.286.0.315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12"/></svg>
+<span>GitHub</span></a></div></div></div></header><div class=container><nav class=breadcrumbs aria-label="Breadcrumb navigation"><ol class=breadcrumb-list><li class=breadcrumb-item><a href=https://scottobert.com/ title=Home><svg class="breadcrumb-home-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+<span>Home</span></a></li><li class=breadcrumb-item><span class=breadcrumb-separator aria-hidden=true>/</span>
+<a href=https://scottobert.com/posts/ title=Posts>Posts</a></li><li class=breadcrumb-item><span class=breadcrumb-separator aria-hidden=true>/</span>
+<a href=https://scottobert.com/categories/development-tutorials title="Category: Development Tutorials"><svg class="breadcrumb-category-icon" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+<span>Development Tutorials</span></a></li><li class="breadcrumb-item breadcrumb-current"><span class=breadcrumb-separator aria-hidden=true>/</span>
+<span class=breadcrumb-current-page aria-current=page>Automating PlantUML Diagrams in GitHub README with Actions and Confluence Sync</span></li></ol></nav><div class=content-layout><main class=main-content><article class=post><h1>Automating PlantUML Diagrams in GitHub README with Actions and Confluence Sync</h1><div class=post-meta><div class=post-meta-left><span>Jul 2, 2025</span>
+<span>| Tags: GitHub Actions, PlantUML, Confluence, Automation, Documentation, CI/CD</span></div><div class=post-meta-right><div class=quick-social-share><button type=button class=quick-share-toggle id=quick-share-toggle title="Share this post">
+<svg viewBox="0 0 24 24"><path d="M18 16.08c-.76.0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66.0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66.0-3 1.34-3 3s1.34 3 3 3c.79.0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65.0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
+<span>Share</span></button><div class=quick-share-buttons id=quick-share-buttons><a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fscottobert.com%2Fposts%2Fgithub-actions-plantuml-confluence-sync%2F&text=Automating+PlantUML+Diagrams+in+GitHub+README+with+Actions+and+Confluence+Sync" target=_blank rel="noopener noreferrer" class="quick-share-button twitter" title="Share on Twitter"><svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+</a><a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fscottobert.com%2Fposts%2Fgithub-actions-plantuml-confluence-sync%2F" target=_blank rel="noopener noreferrer" class="quick-share-button linkedin" title="Share on LinkedIn"><svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853.0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601.0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144.0-2.063-.926-2.063-2.065.0-1.138.92-2.063 2.063-2.063 1.14.0 2.064.925 2.064 2.063.0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225.0H1.771C.792.0.0.774.0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2.0 22.222.0h.003z"/></svg>
+</a><a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fscottobert.com%2Fposts%2Fgithub-actions-plantuml-confluence-sync%2F" target=_blank rel="noopener noreferrer" class="quick-share-button facebook" title="Share on Facebook"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312.0 2.686.235 2.686.235v2.953H15.83c-1.491.0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+</a><a href="https://reddit.com/submit?url=https%3A%2F%2Fscottobert.com%2Fposts%2Fgithub-actions-plantuml-confluence-sync%2F&title=Automating+PlantUML+Diagrams+in+GitHub+README+with+Actions+and+Confluence+Sync" target=_blank rel="noopener noreferrer" class="quick-share-button reddit" title="Share on Reddit"><svg viewBox="0 0 24 24"><path d="M12 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012 0zm5.01 4.744c.688.0 1.25.561 1.25 1.249a1.25 1.25.0 01-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968.0 1.754.786 1.754 1.754.0.716-.435 1.333-1.01 1.614a3.111 3.111.0 01.042.52c0 2.694-3.13 4.87-7.004 4.87s-7.004-2.176-7.004-4.87c0-.183.015-.366.043-.534A1.748 1.748.0 014.028 12c0-.968.786-1.754 1.754-1.754.463.0.898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342.0 01.14-.197.35.35.0 01.238-.042l2.906.617a1.214 1.214.0 011.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687.0 1.248-.561 1.248-1.249S9.937 12 9.249 12zm5.5.0c-.687.0-1.248.561-1.248 1.25.0.687.561 1.248 1.249 1.248S16 13.937 16 13.249c0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327.0 00-.231.094.33.33.0 000 .463c.842.842 2.484.913 2.961.913s2.105-.056 2.961-.913a.361.361.0 00.029-.463.33.33.0 00-.464.0c-.547.533-1.684.73-2.512.73-.828.0-1.979-.196-2.512-.73a.326.326.0 00-.232-.095z"/></svg>
+</a><a href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fscottobert.com%2Fposts%2Fgithub-actions-plantuml-confluence-sync%2F&t=Automating+PlantUML+Diagrams+in+GitHub+README+with+Actions+and+Confluence+Sync" target=_blank rel="noopener noreferrer" class="quick-share-button hackernews" title="Share on Hacker News"><svg viewBox="0 0 24 24"><path d="M0 24V0h24v24H0zM6.951 5.896l4.112 7.708v5.064h1.583v-4.972l4.148-7.799h-1.749l-2.457 4.875c-.372.745-.688 1.434-.688 1.434s-.297-.708-.651-1.434L8.831 5.896h-1.88z"/></svg>
+</a><a href="https://wa.me/?text=Automating+PlantUML+Diagrams+in+GitHub+README+with+Actions+and+Confluence+Sync+https%3A%2F%2Fscottobert.com%2Fposts%2Fgithub-actions-plantuml-confluence-sync%2F" target=_blank rel="noopener noreferrer" class="quick-share-button whatsapp" title="Share on WhatsApp"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198.0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479.0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87.0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86.0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64.0 5.122 1.03 6.988 2.898a9.825 9.825.0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815.0 0012.05.0C5.495.0.16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882.0 005.683 1.448h.005c6.554.0 11.89-5.335 11.893-11.893A11.821 11.821.0 0020.465 3.488"/></svg>
+</a><a href="mailto:?subject=Automating+PlantUML+Diagrams+in+GitHub+README+with+Actions+and+Confluence+Sync&body=Check+out+this+article%3A+Automating+PlantUML+Diagrams+in+GitHub+README+with+Actions+and+Confluence+Sync+-+https%3A%2F%2Fscottobert.com%2Fposts%2Fgithub-actions-plantuml-confluence-sync%2F" class="quick-share-button email" title="Share via Email"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1.0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1.0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
+</a><button type=button class="quick-share-button copy-link" data-url=https://scottobert.com/posts/github-actions-plantuml-confluence-sync/ title="Copy link to clipboard">
+<svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1.0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1.0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1.0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button></div></div><script>(function(){const i=document.querySelector(".quick-social-share"),e=document.getElementById("quick-share-toggle"),t=document.getElementById("quick-share-buttons");if(!i||!e||!t)return;let n=!1;e.addEventListener("click",function(){n=!n,n?(t.classList.add("visible"),e.classList.add("active")):(t.classList.remove("visible"),e.classList.remove("active"))});const a=document.querySelectorAll(".quick-share-button.copy-link");a.forEach(e=>{e.addEventListener("click",function(){const e=this.getAttribute("data-url");navigator.clipboard&&window.isSecureContext?navigator.clipboard.writeText(e).then(()=>{o(this)}).catch(()=>{s(e,this)}):s(e,this)})});function s(e,t){const n=document.createElement("textarea");n.value=e,n.style.position="fixed",n.style.left="-999999px",n.style.top="-999999px",document.body.appendChild(n),n.focus(),n.select();try{document.execCommand("copy"),o(t)}catch(e){console.error("Fallback: Unable to copy",e),r(t)}document.body.removeChild(n)}function o(e){const n=e.getAttribute("title");e.setAttribute("title","Copied!"),e.classList.add("copied");const t=document.createElement("div");t.textContent="Copied!",t.style.position="absolute",t.style.bottom="100%",t.style.left="50%",t.style.transform="translateX(-50%)",t.style.background="#28a745",t.style.color="white",t.style.padding="4px 8px",t.style.borderRadius="4px",t.style.fontSize="0.75rem",t.style.whiteSpace="nowrap",t.style.zIndex="1000",t.style.marginBottom="5px",e.style.position="relative",e.appendChild(t),setTimeout(()=>{e.setAttribute("title",n),e.classList.remove("copied"),t.parentNode&&e.removeChild(t)},2e3)}function r(e){const t=e.getAttribute("title");e.setAttribute("title","Copy failed"),e.classList.add("error"),setTimeout(()=>{e.setAttribute("title",t),e.classList.remove("error")},2e3)}})()</script></div></div><div class=post-content><p>Maintaining up-to-date documentation is crucial for any software project, but manually updating diagrams and keeping documentation synchronized across platforms can be time-consuming and error-prone. This guide demonstrates how to automate the entire workflow using GitHub Actions to generate PlantUML diagrams directly in your repository&rsquo;s README.md file and automatically synchronize the content to Confluence pages.</p><h2 id=the-complete-automation-pipeline>The Complete Automation Pipeline</h2><p>The solution we&rsquo;ll build consists of three main components: automatic PlantUML diagram generation from source files, embedding those diagrams into the README.md file, and synchronizing the updated content to Confluence. This approach ensures that your documentation stays current with every code change while maintaining consistency across platforms.</p><h2 id=setting-up-plantuml-diagram-generation>Setting Up PlantUML Diagram Generation</h2><p>First, we need to create a GitHub Actions workflow that can process PlantUML source files and generate diagrams. Create a <code>.github/workflows/update-diagrams.yml</code> file in your repository:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>name</span>: <span style=color:#ae81ff>Update PlantUML Diagrams and Sync to Confluence</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>on</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>push</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>branches</span>: [ <span style=color:#ae81ff>main ]</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>paths</span>: 
+</span></span><span style=display:flex><span>      - <span style=color:#e6db74>&#39;**.puml&#39;</span>
+</span></span><span style=display:flex><span>      - <span style=color:#e6db74>&#39;README.md&#39;</span>
+</span></span><span style=display:flex><span>      - <span style=color:#e6db74>&#39;.github/workflows/update-diagrams.yml&#39;</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>pull_request</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>branches</span>: [ <span style=color:#ae81ff>main ]</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>paths</span>:
+</span></span><span style=display:flex><span>      - <span style=color:#e6db74>&#39;**.puml&#39;</span>
+</span></span><span style=display:flex><span>      - <span style=color:#e6db74>&#39;README.md&#39;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>jobs</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>update-diagrams</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>runs-on</span>: <span style=color:#ae81ff>ubuntu-latest</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>permissions</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>contents</span>: <span style=color:#ae81ff>write</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>pull-requests</span>: <span style=color:#ae81ff>write</span>
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#f92672>steps</span>:
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Checkout repository</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>uses</span>: <span style=color:#ae81ff>actions/checkout@v4</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>with</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>token</span>: <span style=color:#ae81ff>${{ secrets.GITHUB_TOKEN }}</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>fetch-depth</span>: <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Setup Java for PlantUML</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>uses</span>: <span style=color:#ae81ff>actions/setup-java@v4</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>with</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>distribution</span>: <span style=color:#e6db74>&#39;temurin&#39;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>java-version</span>: <span style=color:#e6db74>&#39;17&#39;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Install PlantUML</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>run</span>: |<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>        wget -O plantuml.jar https://github.com/plantuml/plantuml/releases/latest/download/plantuml-1.2024.6.jar
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>        echo &#34;PLANTUML_JAR=$PWD/plantuml.jar&#34; &gt;&gt; $GITHUB_ENV</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Generate PlantUML diagrams</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>run</span>: |<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>        find . -name &#34;*.puml&#34; -type f | while read -r file; do
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          echo &#34;Processing $file&#34;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          java -jar $PLANTUML_JAR -tsvg &#34;$file&#34;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          # Also generate PNG for fallback
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          java -jar $PLANTUML_JAR -tpng &#34;$file&#34;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>        done</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Update README with diagram references</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>run</span>: |<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>        python3 scripts/update-readme.py</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Commit and push changes</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>if</span>: <span style=color:#ae81ff>github.event_name == &#39;push&#39;</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>run</span>: |<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>        git config --local user.email &#34;action@github.com&#34;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>        git config --local user.name &#34;GitHub Action&#34;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>        git add -A
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>        if git diff --staged --quiet; then
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          echo &#34;No changes to commit&#34;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>        else
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          git commit -m &#34;Auto-update PlantUML diagrams [skip ci]&#34;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          git push
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>        fi</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>sync-to-confluence</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>needs</span>: <span style=color:#ae81ff>update-diagrams</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>runs-on</span>: <span style=color:#ae81ff>ubuntu-latest</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>if</span>: <span style=color:#ae81ff>github.event_name == &#39;push&#39; &amp;&amp; github.ref == &#39;refs/heads/main&#39;</span>
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#f92672>steps</span>:
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Checkout repository</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>uses</span>: <span style=color:#ae81ff>actions/checkout@v4</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>with</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>ref</span>: <span style=color:#ae81ff>main</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Setup Node.js</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>uses</span>: <span style=color:#ae81ff>actions/setup-node@v4</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>with</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>node-version</span>: <span style=color:#e6db74>&#39;18&#39;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Install dependencies</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>run</span>: |<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>        npm install markdown-it markdown-it-plantuml @atlassian/confluence-api</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Sync to Confluence</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>env</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>CONFLUENCE_URL</span>: <span style=color:#ae81ff>${{ secrets.CONFLUENCE_URL }}</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>CONFLUENCE_USERNAME</span>: <span style=color:#ae81ff>${{ secrets.CONFLUENCE_USERNAME }}</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>CONFLUENCE_API_TOKEN</span>: <span style=color:#ae81ff>${{ secrets.CONFLUENCE_API_TOKEN }}</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>CONFLUENCE_SPACE_KEY</span>: <span style=color:#ae81ff>${{ secrets.CONFLUENCE_SPACE_KEY }}</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>CONFLUENCE_PAGE_ID</span>: <span style=color:#ae81ff>${{ secrets.CONFLUENCE_PAGE_ID }}</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>run</span>: |<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>        node scripts/sync-to-confluence.js</span>
+</span></span></code></pre></div><h2 id=creating-the-readme-update-script>Creating the README Update Script</h2><p>The Python script that updates the README.md file with generated diagrams needs to be intelligent about finding and replacing diagram references. Create <code>scripts/update-readme.py</code>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#75715e>#!/usr/bin/env python3</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> os
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> re
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> sys
+</span></span><span style=display:flex><span><span style=color:#f92672>from</span> pathlib <span style=color:#f92672>import</span> Path
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>find_puml_files</span>():
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;&#34;&#34;Find all .puml files in the repository.&#34;&#34;&#34;</span>
+</span></span><span style=display:flex><span>    puml_files <span style=color:#f92672>=</span> []
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> root, dirs, files <span style=color:#f92672>in</span> os<span style=color:#f92672>.</span>walk(<span style=color:#e6db74>&#39;.&#39;</span>):
+</span></span><span style=display:flex><span>        <span style=color:#75715e># Skip hidden directories and common build directories</span>
+</span></span><span style=display:flex><span>        dirs[:] <span style=color:#f92672>=</span> [d <span style=color:#66d9ef>for</span> d <span style=color:#f92672>in</span> dirs <span style=color:#66d9ef>if</span> <span style=color:#f92672>not</span> d<span style=color:#f92672>.</span>startswith(<span style=color:#e6db74>&#39;.&#39;</span>) <span style=color:#f92672>and</span> d <span style=color:#f92672>not</span> <span style=color:#f92672>in</span> [<span style=color:#e6db74>&#39;node_modules&#39;</span>, <span style=color:#e6db74>&#39;build&#39;</span>, <span style=color:#e6db74>&#39;dist&#39;</span>]]
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>for</span> file <span style=color:#f92672>in</span> files:
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> file<span style=color:#f92672>.</span>endswith(<span style=color:#e6db74>&#39;.puml&#39;</span>):
+</span></span><span style=display:flex><span>                puml_files<span style=color:#f92672>.</span>append(os<span style=color:#f92672>.</span>path<span style=color:#f92672>.</span>join(root, file))
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> puml_files
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>update_readme_with_diagrams</span>(readme_path<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;README.md&#39;</span>):
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;&#34;&#34;Update README.md with generated diagram references.&#34;&#34;&#34;</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> <span style=color:#f92672>not</span> os<span style=color:#f92672>.</span>path<span style=color:#f92672>.</span>exists(readme_path):
+</span></span><span style=display:flex><span>        print(<span style=color:#e6db74>f</span><span style=color:#e6db74>&#34;README.md not found at </span><span style=color:#e6db74>{</span>readme_path<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span>)
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>False</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>with</span> open(readme_path, <span style=color:#e6db74>&#39;r&#39;</span>, encoding<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;utf-8&#39;</span>) <span style=color:#66d9ef>as</span> f:
+</span></span><span style=display:flex><span>        content <span style=color:#f92672>=</span> f<span style=color:#f92672>.</span>read()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    original_content <span style=color:#f92672>=</span> content
+</span></span><span style=display:flex><span>    puml_files <span style=color:#f92672>=</span> find_puml_files()
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> puml_file <span style=color:#f92672>in</span> puml_files:
+</span></span><span style=display:flex><span>        <span style=color:#75715e># Convert file path to relative path from repository root</span>
+</span></span><span style=display:flex><span>        relative_path <span style=color:#f92672>=</span> os<span style=color:#f92672>.</span>path<span style=color:#f92672>.</span>relpath(puml_file, <span style=color:#e6db74>&#39;.&#39;</span>)
+</span></span><span style=display:flex><span>        base_name <span style=color:#f92672>=</span> os<span style=color:#f92672>.</span>path<span style=color:#f92672>.</span>splitext(relative_path)[<span style=color:#ae81ff>0</span>]
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#75715e># Generate both SVG and PNG references</span>
+</span></span><span style=display:flex><span>        svg_path <span style=color:#f92672>=</span> <span style=color:#e6db74>f</span><span style=color:#e6db74>&#34;</span><span style=color:#e6db74>{</span>base_name<span style=color:#e6db74>}</span><span style=color:#e6db74>.svg&#34;</span>
+</span></span><span style=display:flex><span>        png_path <span style=color:#f92672>=</span> <span style=color:#e6db74>f</span><span style=color:#e6db74>&#34;</span><span style=color:#e6db74>{</span>base_name<span style=color:#e6db74>}</span><span style=color:#e6db74>.png&#34;</span>
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#75715e># Look for existing diagram markers in the README</span>
+</span></span><span style=display:flex><span>        diagram_name <span style=color:#f92672>=</span> os<span style=color:#f92672>.</span>path<span style=color:#f92672>.</span>splitext(os<span style=color:#f92672>.</span>path<span style=color:#f92672>.</span>basename(puml_file))[<span style=color:#ae81ff>0</span>]
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#75715e># Pattern to match existing diagram sections</span>
+</span></span><span style=display:flex><span>        pattern <span style=color:#f92672>=</span> <span style=color:#e6db74>rf</span><span style=color:#e6db74>&#39;&lt;!-- DIAGRAM:</span><span style=color:#e6db74>{</span>diagram_name<span style=color:#e6db74>}</span><span style=color:#e6db74>:START --&gt;.*?&lt;!-- DIAGRAM:</span><span style=color:#e6db74>{</span>diagram_name<span style=color:#e6db74>}</span><span style=color:#e6db74>:END --&gt;&#39;</span>
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#75715e># Create the replacement content</span>
+</span></span><span style=display:flex><span>        code_fence <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;```&#34;</span>
+</span></span><span style=display:flex><span>        replacement <span style=color:#f92672>=</span> <span style=color:#e6db74>f</span><span style=color:#e6db74>&#39;&#39;&#39;&lt;!-- DIAGRAM:</span><span style=color:#e6db74>{</span>diagram_name<span style=color:#e6db74>}</span><span style=color:#e6db74>:START --&gt;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>![</span><span style=color:#e6db74>{</span>diagram_name<span style=color:#e6db74>}</span><span style=color:#e6db74>](</span><span style=color:#e6db74>{</span>svg_path<span style=color:#e6db74>}</span><span style=color:#e6db74>)
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>*Diagram: </span><span style=color:#e6db74>{</span>diagram_name<span style=color:#f92672>.</span>replace(<span style=color:#e6db74>&#39;-&#39;</span>, <span style=color:#e6db74>&#39; &#39;</span>)<span style=color:#f92672>.</span>replace(<span style=color:#e6db74>&#39;_&#39;</span>, <span style=color:#e6db74>&#39; &#39;</span>)<span style=color:#f92672>.</span>title()<span style=color:#e6db74>}</span><span style=color:#e6db74>*
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>&lt;details&gt;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>&lt;summary&gt;View PlantUML Source asdf&lt;/summary&gt;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74></span><span style=color:#e6db74>{</span>code_fence<span style=color:#e6db74>}</span><span style=color:#e6db74>plantuml
+</span></span></span><span style=display:flex><span><span style=color:#e6db74></span><span style=color:#e6db74>{</span>read_puml_content(puml_file)<span style=color:#e6db74>}</span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74></span><span style=color:#e6db74>{</span>code_fence<span style=color:#e6db74>}</span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>&lt;/details&gt;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>&lt;!-- DIAGRAM:</span><span style=color:#e6db74>{</span>diagram_name<span style=color:#e6db74>}</span><span style=color:#e6db74>:END --&gt;&#39;&#39;&#39;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> re<span style=color:#f92672>.</span>search(pattern, content, re<span style=color:#f92672>.</span>DOTALL):
+</span></span><span style=display:flex><span>            <span style=color:#75715e># Replace existing diagram section</span>
+</span></span><span style=display:flex><span>            content <span style=color:#f92672>=</span> re<span style=color:#f92672>.</span>sub(pattern, replacement, content, flags<span style=color:#f92672>=</span>re<span style=color:#f92672>.</span>DOTALL)
+</span></span><span style=display:flex><span>            print(<span style=color:#e6db74>f</span><span style=color:#e6db74>&#34;Updated existing diagram section for </span><span style=color:#e6db74>{</span>diagram_name<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span>)
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>else</span>:
+</span></span><span style=display:flex><span>            <span style=color:#75715e># Look for a placeholder to insert the diagram</span>
+</span></span><span style=display:flex><span>            placeholder_pattern <span style=color:#f92672>=</span> <span style=color:#e6db74>rf</span><span style=color:#e6db74>&#39;&lt;!-- DIAGRAM:</span><span style=color:#e6db74>{</span>diagram_name<span style=color:#e6db74>}</span><span style=color:#e6db74> --&gt;&#39;</span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> re<span style=color:#f92672>.</span>search(placeholder_pattern, content):
+</span></span><span style=display:flex><span>                content <span style=color:#f92672>=</span> re<span style=color:#f92672>.</span>sub(placeholder_pattern, replacement, content)
+</span></span><span style=display:flex><span>                print(<span style=color:#e6db74>f</span><span style=color:#e6db74>&#34;Inserted new diagram section for </span><span style=color:#e6db74>{</span>diagram_name<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span>)
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>else</span>:
+</span></span><span style=display:flex><span>                print(<span style=color:#e6db74>f</span><span style=color:#e6db74>&#34;No placeholder found for </span><span style=color:#e6db74>{</span>diagram_name<span style=color:#e6db74>}</span><span style=color:#e6db74>. Add &#39;&lt;!-- DIAGRAM:</span><span style=color:#e6db74>{</span>diagram_name<span style=color:#e6db74>}</span><span style=color:#e6db74> --&gt;&#39; to README.md&#34;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e># Only write if content changed</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> content <span style=color:#f92672>!=</span> original_content:
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>with</span> open(readme_path, <span style=color:#e6db74>&#39;w&#39;</span>, encoding<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;utf-8&#39;</span>) <span style=color:#66d9ef>as</span> f:
+</span></span><span style=display:flex><span>            f<span style=color:#f92672>.</span>write(content)
+</span></span><span style=display:flex><span>        print(<span style=color:#e6db74>&#34;README.md updated successfully&#34;</span>)
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>True</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>else</span>:
+</span></span><span style=display:flex><span>        print(<span style=color:#e6db74>&#34;No changes needed in README.md&#34;</span>)
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>False</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>read_puml_content</span>(puml_file):
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;&#34;&#34;Read and return the content of a PlantUML file.&#34;&#34;&#34;</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>try</span>:
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>with</span> open(puml_file, <span style=color:#e6db74>&#39;r&#39;</span>, encoding<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;utf-8&#39;</span>) <span style=color:#66d9ef>as</span> f:
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> f<span style=color:#f92672>.</span>read()<span style=color:#f92672>.</span>strip()
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>except</span> <span style=color:#a6e22e>Exception</span> <span style=color:#66d9ef>as</span> e:
+</span></span><span style=display:flex><span>        print(<span style=color:#e6db74>f</span><span style=color:#e6db74>&#34;Error reading </span><span style=color:#e6db74>{</span>puml_file<span style=color:#e6db74>}</span><span style=color:#e6db74>: </span><span style=color:#e6db74>{</span>e<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span>)
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#e6db74>f</span><span style=color:#e6db74>&#34;Error reading file: </span><span style=color:#e6db74>{</span>e<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span> __name__ <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;__main__&#34;</span>:
+</span></span><span style=display:flex><span>    success <span style=color:#f92672>=</span> update_readme_with_diagrams()
+</span></span><span style=display:flex><span>    sys<span style=color:#f92672>.</span>exit(<span style=color:#ae81ff>0</span> <span style=color:#66d9ef>if</span> success <span style=color:#66d9ef>else</span> <span style=color:#ae81ff>1</span>)
+</span></span></code></pre></div><h2 id=implementing-confluence-synchronization>Implementing Confluence Synchronization</h2><p>The Confluence synchronization script converts the README.md content to Confluence-compatible markup and updates the specified page. Create <code>scripts/sync-to-confluence.js</code>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>fs</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>require</span>(<span style=color:#e6db74>&#39;fs&#39;</span>).<span style=color:#a6e22e>promises</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>MarkdownIt</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>require</span>(<span style=color:#e6db74>&#39;markdown-it&#39;</span>);
+</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>ConfluenceApi</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>require</span>(<span style=color:#e6db74>&#39;@atlassian/confluence-api&#39;</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>ConfluenceSync</span> {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>constructor</span>() {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>confluence</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>ConfluenceApi</span>({
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>host</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>process</span>.<span style=color:#a6e22e>env</span>.<span style=color:#a6e22e>CONFLUENCE_URL</span>,
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>username</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>process</span>.<span style=color:#a6e22e>env</span>.<span style=color:#a6e22e>CONFLUENCE_USERNAME</span>,
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>password</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>process</span>.<span style=color:#a6e22e>env</span>.<span style=color:#a6e22e>CONFLUENCE_API_TOKEN</span>
+</span></span><span style=display:flex><span>        });
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>spaceKey</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>process</span>.<span style=color:#a6e22e>env</span>.<span style=color:#a6e22e>CONFLUENCE_SPACE_KEY</span>;
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>pageId</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>process</span>.<span style=color:#a6e22e>env</span>.<span style=color:#a6e22e>CONFLUENCE_PAGE_ID</span>;
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>md</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>MarkdownIt</span>({
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>html</span><span style=color:#f92672>:</span> <span style=color:#66d9ef>true</span>,
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>linkify</span><span style=color:#f92672>:</span> <span style=color:#66d9ef>true</span>,
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>typographer</span><span style=color:#f92672>:</span> <span style=color:#66d9ef>true</span>
+</span></span><span style=display:flex><span>        });
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>convertMarkdownToConfluence</span>(<span style=color:#a6e22e>markdown</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// Convert markdown to HTML first
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>html</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>md</span>.<span style=color:#a6e22e>render</span>(<span style=color:#a6e22e>markdown</span>);
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// Convert HTML to Confluence storage format
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#a6e22e>html</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>convertHtmlToConfluence</span>(<span style=color:#a6e22e>html</span>);
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>html</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>convertHtmlToConfluence</span>(<span style=color:#a6e22e>html</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// Convert GitHub-flavored markdown elements to Confluence equivalents
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>confluence</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>html</span>;
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// Convert code blocks
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#a6e22e>confluence</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>confluence</span>.<span style=color:#a6e22e>replace</span>(
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>/&lt;pre&gt;&lt;code class=&#34;language-(\w+)&#34;&gt;([\s\S]*?)&lt;\/code&gt;&lt;\/pre&gt;/g</span>,
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#39;&lt;ac:structured-macro ac:name=&#34;code&#34; ac:schema-version=&#34;1&#34;&gt;&#39;</span> <span style=color:#f92672>+</span>
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#39;&lt;ac:parameter ac:name=&#34;language&#34;&gt;$1&lt;/ac:parameter&gt;&#39;</span> <span style=color:#f92672>+</span>
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#39;&lt;ac:plain-text-body&gt;&lt;![CDATA[$2]]&gt;&lt;/ac:plain-text-body&gt;&#39;</span> <span style=color:#f92672>+</span>
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#39;&lt;/ac:structured-macro&gt;&#39;</span>
+</span></span><span style=display:flex><span>        );
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// Convert inline code
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#a6e22e>confluence</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>confluence</span>.<span style=color:#a6e22e>replace</span>(
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>/&lt;code&gt;(.*?)&lt;\/code&gt;/g</span>,
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#39;&lt;code&gt;$1&lt;/code&gt;&#39;</span>
+</span></span><span style=display:flex><span>        );
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// Convert images to Confluence format
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#a6e22e>confluence</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>confluence</span>.<span style=color:#a6e22e>replace</span>(
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>/&lt;img src=&#34;([^&#34;]+)&#34; alt=&#34;([^&#34;]*)&#34;[^&gt;]*&gt;/g</span>,
+</span></span><span style=display:flex><span>            (<span style=color:#a6e22e>match</span>, <span style=color:#a6e22e>src</span>, <span style=color:#a6e22e>alt</span>) =&gt; {
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>src</span>.<span style=color:#a6e22e>startsWith</span>(<span style=color:#e6db74>&#39;http&#39;</span>)) {
+</span></span><span style=display:flex><span>                    <span style=color:#66d9ef>return</span> <span style=color:#e6db74>`&lt;ac:image&gt;&lt;ri:url ri:value=&#34;</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>src</span><span style=color:#e6db74>}</span><span style=color:#e6db74>&#34; /&gt;&lt;/ac:image&gt;`</span>;
+</span></span><span style=display:flex><span>                } <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>                    <span style=color:#75715e>// For local images, we&#39;ll need to upload them as attachments
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                    <span style=color:#66d9ef>return</span> <span style=color:#e6db74>`&lt;ac:image&gt;&lt;ri:attachment ri:filename=&#34;</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>src</span>.<span style=color:#a6e22e>split</span>(<span style=color:#e6db74>&#39;/&#39;</span>).<span style=color:#a6e22e>pop</span>()<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34; /&gt;&lt;/ac:image&gt;`</span>;
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        );
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// Convert headings
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#a6e22e>confluence</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>confluence</span>.<span style=color:#a6e22e>replace</span>(<span style=color:#e6db74>/&lt;h([1-6])&gt;(.*?)&lt;\/h[1-6]&gt;/g</span>, <span style=color:#e6db74>&#39;&lt;h$1&gt;$2&lt;/h$1&gt;&#39;</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// Convert lists
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#a6e22e>confluence</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>confluence</span>.<span style=color:#a6e22e>replace</span>(<span style=color:#e6db74>/&lt;ul&gt;/g</span>, <span style=color:#e6db74>&#39;&lt;ul&gt;&#39;</span>);
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>confluence</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>confluence</span>.<span style=color:#a6e22e>replace</span>(<span style=color:#e6db74>/&lt;\/ul&gt;/g</span>, <span style=color:#e6db74>&#39;&lt;/ul&gt;&#39;</span>);
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>confluence</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>confluence</span>.<span style=color:#a6e22e>replace</span>(<span style=color:#e6db74>/&lt;ol&gt;/g</span>, <span style=color:#e6db74>&#39;&lt;ol&gt;&#39;</span>);
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>confluence</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>confluence</span>.<span style=color:#a6e22e>replace</span>(<span style=color:#e6db74>/&lt;\/ol&gt;/g</span>, <span style=color:#e6db74>&#39;&lt;/ol&gt;&#39;</span>);
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>confluence</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>confluence</span>.<span style=color:#a6e22e>replace</span>(<span style=color:#e6db74>/&lt;li&gt;/g</span>, <span style=color:#e6db74>&#39;&lt;li&gt;&#39;</span>);
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>confluence</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>confluence</span>.<span style=color:#a6e22e>replace</span>(<span style=color:#e6db74>/&lt;\/li&gt;/g</span>, <span style=color:#e6db74>&#39;&lt;/li&gt;&#39;</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>confluence</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>uploadAttachment</span>(<span style=color:#a6e22e>filePath</span>, <span style=color:#a6e22e>pageId</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>fileContent</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>fs</span>.<span style=color:#a6e22e>readFile</span>(<span style=color:#a6e22e>filePath</span>);
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>fileName</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>filePath</span>.<span style=color:#a6e22e>split</span>(<span style=color:#e6db74>&#39;/&#39;</span>).<span style=color:#a6e22e>pop</span>();
+</span></span><span style=display:flex><span>            
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>result</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>confluence</span>.<span style=color:#a6e22e>putAttachment</span>(
+</span></span><span style=display:flex><span>                <span style=color:#a6e22e>pageId</span>,
+</span></span><span style=display:flex><span>                <span style=color:#a6e22e>fileName</span>,
+</span></span><span style=display:flex><span>                <span style=color:#a6e22e>fileContent</span>,
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#39;image/svg+xml&#39;</span>
+</span></span><span style=display:flex><span>            );
+</span></span><span style=display:flex><span>            
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>`Uploaded attachment: </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>fileName</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>result</span>;
+</span></span><span style=display:flex><span>        } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>error</span>(<span style=color:#e6db74>`Error uploading attachment </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>filePath</span><span style=color:#e6db74>}</span><span style=color:#e6db74>:`</span>, <span style=color:#a6e22e>error</span>.<span style=color:#a6e22e>message</span>);
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>throw</span> <span style=color:#a6e22e>error</span>;
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>syncReadmeToConfluence</span>() {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// Read the README.md file
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>readmeContent</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>fs</span>.<span style=color:#a6e22e>readFile</span>(<span style=color:#e6db74>&#39;README.md&#39;</span>, <span style=color:#e6db74>&#39;utf8&#39;</span>);
+</span></span><span style=display:flex><span>            
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// Convert to Confluence format
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>confluenceContent</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>convertMarkdownToConfluence</span>(<span style=color:#a6e22e>readmeContent</span>);
+</span></span><span style=display:flex><span>            
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// Get current page to preserve version
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>currentPage</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>confluence</span>.<span style=color:#a6e22e>getPage</span>(<span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>pageId</span>);
+</span></span><span style=display:flex><span>            
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// Upload any local images as attachments
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>uploadLocalImages</span>(<span style=color:#a6e22e>readmeContent</span>);
+</span></span><span style=display:flex><span>            
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// Update the page
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>updateData</span> <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex><span>                <span style=color:#a6e22e>id</span><span style=color:#f92672>:</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>pageId</span>,
+</span></span><span style=display:flex><span>                <span style=color:#a6e22e>type</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;page&#39;</span>,
+</span></span><span style=display:flex><span>                <span style=color:#a6e22e>title</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>currentPage</span>.<span style=color:#a6e22e>title</span>,
+</span></span><span style=display:flex><span>                <span style=color:#a6e22e>space</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>                    <span style=color:#a6e22e>key</span><span style=color:#f92672>:</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>spaceKey</span>
+</span></span><span style=display:flex><span>                },
+</span></span><span style=display:flex><span>                <span style=color:#a6e22e>body</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>                    <span style=color:#a6e22e>storage</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>                        <span style=color:#a6e22e>value</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>confluenceContent</span>,
+</span></span><span style=display:flex><span>                        <span style=color:#a6e22e>representation</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;storage&#39;</span>
+</span></span><span style=display:flex><span>                    }
+</span></span><span style=display:flex><span>                },
+</span></span><span style=display:flex><span>                <span style=color:#a6e22e>version</span><span style=color:#f92672>:</span> {
+</span></span><span style=display:flex><span>                    <span style=color:#a6e22e>number</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>currentPage</span>.<span style=color:#a6e22e>version</span>.<span style=color:#a6e22e>number</span> <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>            };
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>result</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>confluence</span>.<span style=color:#a6e22e>putPage</span>(<span style=color:#a6e22e>updateData</span>);
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>`Successfully updated Confluence page: </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>result</span>.<span style=color:#a6e22e>title</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>`Page URL: </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>process</span>.<span style=color:#a6e22e>env</span>.<span style=color:#a6e22e>CONFLUENCE_URL</span><span style=color:#e6db74>}</span><span style=color:#e6db74>/pages/viewpage.action?pageId=</span><span style=color:#e6db74>${</span><span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>pageId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
+</span></span><span style=display:flex><span>            
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>result</span>;
+</span></span><span style=display:flex><span>        } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>error</span>(<span style=color:#e6db74>&#39;Error syncing to Confluence:&#39;</span>, <span style=color:#a6e22e>error</span>.<span style=color:#a6e22e>message</span>);
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>throw</span> <span style=color:#a6e22e>error</span>;
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>uploadLocalImages</span>(<span style=color:#a6e22e>markdownContent</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// Find all local image references
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>imageRegex</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>/!\[([^\]]*)\]\(([^)]+)\)/g</span>;
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>match</span>;
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>while</span> ((<span style=color:#a6e22e>match</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>imageRegex</span>.<span style=color:#a6e22e>exec</span>(<span style=color:#a6e22e>markdownContent</span>)) <span style=color:#f92672>!==</span> <span style=color:#66d9ef>null</span>) {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>imagePath</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>match</span>[<span style=color:#ae81ff>2</span>];
+</span></span><span style=display:flex><span>            
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// Skip external URLs
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>imagePath</span>.<span style=color:#a6e22e>startsWith</span>(<span style=color:#e6db74>&#39;http&#39;</span>) <span style=color:#f92672>&amp;&amp;</span> <span style=color:#f92672>!</span><span style=color:#a6e22e>imagePath</span>.<span style=color:#a6e22e>startsWith</span>(<span style=color:#e6db74>&#39;//&#39;</span>)) {
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>                    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>uploadAttachment</span>(<span style=color:#a6e22e>imagePath</span>, <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>pageId</span>);
+</span></span><span style=display:flex><span>                } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span><span style=display:flex><span>                    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>warn</span>(<span style=color:#e6db74>`Could not upload image </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>imagePath</span><span style=color:#e6db74>}</span><span style=color:#e6db74>:`</span>, <span style=color:#a6e22e>error</span>.<span style=color:#a6e22e>message</span>);
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>async</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>main</span>() {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>sync</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>ConfluenceSync</span>();
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>sync</span>.<span style=color:#a6e22e>syncReadmeToConfluence</span>();
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#39;Synchronization completed successfully&#39;</span>);
+</span></span><span style=display:flex><span>    } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>error</span>(<span style=color:#e6db74>&#39;Synchronization failed:&#39;</span>, <span style=color:#a6e22e>error</span>.<span style=color:#a6e22e>message</span>);
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>process</span>.<span style=color:#a6e22e>exit</span>(<span style=color:#ae81ff>1</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>require</span>.<span style=color:#a6e22e>main</span> <span style=color:#f92672>===</span> <span style=color:#a6e22e>module</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>main</span>();
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=configuring-repository-secrets>Configuring Repository Secrets</h2><p>For the automation to work properly, you need to configure several secrets in your GitHub repository settings. Navigate to your repository&rsquo;s Settings > Secrets and variables > Actions, and add the following secrets:</p><p><strong>CONFLUENCE_URL</strong>: The base URL of your Confluence instance (e.g., <code>https://yourcompany.atlassian.net</code>).</p><p><strong>CONFLUENCE_USERNAME</strong>: Your Confluence username or email address.</p><p><strong>CONFLUENCE_API_TOKEN</strong>: Generate this from your Atlassian account settings under API tokens.</p><p><strong>CONFLUENCE_SPACE_KEY</strong>: The key of the Confluence space where your page resides.</p><p><strong>CONFLUENCE_PAGE_ID</strong>: The ID of the specific page you want to update. You can find this in the page URL or by using the Confluence API.</p><h2 id=using-the-automation-system>Using the Automation System</h2><p>To use this system in your repository, create PlantUML files with the <code>.puml</code> extension anywhere in your repository. For example, create <code>docs/architecture.puml</code>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>@startuml architecture
+</span></span><span style=display:flex><span>!theme plain
+</span></span><span style=display:flex><span>skinparam backgroundColor white
+</span></span><span style=display:flex><span>skinparam defaultTextAlignment center
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>package &#34;Frontend&#34; {
+</span></span><span style=display:flex><span>    [React App]
+</span></span><span style=display:flex><span>    [Redux Store]
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>package &#34;Backend Services&#34; {
+</span></span><span style=display:flex><span>    [API Gateway]
+</span></span><span style=display:flex><span>    [Lambda Functions]
+</span></span><span style=display:flex><span>    [DynamoDB]
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>package &#34;External Services&#34; {
+</span></span><span style=display:flex><span>    [GitHub API]
+</span></span><span style=display:flex><span>    [Confluence API]
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>[React App] --&gt; [Redux Store]
+</span></span><span style=display:flex><span>[React App] --&gt; [API Gateway]
+</span></span><span style=display:flex><span>[API Gateway] --&gt; [Lambda Functions]
+</span></span><span style=display:flex><span>[Lambda Functions] --&gt; [DynamoDB]
+</span></span><span style=display:flex><span>[Lambda Functions] --&gt; [GitHub API]
+</span></span><span style=display:flex><span>[Lambda Functions] --&gt; [Confluence API]
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>@enduml
+</span></span></code></pre></div><p>Then, in your README.md file, add a placeholder where you want the diagram to appear:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-markdown data-lang=markdown><span style=display:flex><span># Project Architecture
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Our system follows a modern serverless architecture pattern:
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>&lt;!-- DIAGRAM:architecture --&gt;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>The architecture demonstrates the flow of data from the frontend React application through our serverless backend to external services.
+</span></span></code></pre></div><p>When you commit and push these changes, the GitHub Action will automatically generate the diagram, update your README.md with the embedded SVG, and synchronize the content to your Confluence page.</p><h2 id=advanced-customization-options>Advanced Customization Options</h2><p>The system can be extended in several ways to meet specific requirements. You can modify the PlantUML generation to use different output formats, add custom styling themes, or include additional metadata in the generated diagrams.</p><p>For more complex documentation workflows, consider adding conditional logic to the Confluence sync script that handles different types of content differently. You might want to preserve certain sections of the Confluence page while only updating the automated portions.</p><p>The workflow can also be enhanced to support multiple Confluence pages, different diagram types, or integration with other documentation platforms like Notion or GitBook.</p><h2 id=troubleshooting-common-issues>Troubleshooting Common Issues</h2><p>The most common issues occur with authentication and permissions. Ensure that your GitHub repository has the necessary permissions to write to the repository, and verify that your Confluence API token has the required permissions to update pages in the target space.</p><p>If diagrams are not generating correctly, check the PlantUML syntax and ensure that the Java environment is properly configured in the GitHub Action. The workflow includes error handling, but you may need to examine the Action logs for specific PlantUML compilation errors.</p><p>For Confluence synchronization issues, verify that the page ID and space key are correct, and that the API token has not expired. The Confluence API has rate limits, so consider adding retry logic for high-frequency updates.</p><p>This automated workflow transforms documentation maintenance from a manual chore into an seamless part of your development process, ensuring that your diagrams and documentation remain current and consistent across platforms.</p></div><div class=social-share><h3 class=social-share-title>Share this post</h3><div class=social-share-buttons><a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fscottobert.com%2Fposts%2Fgithub-actions-plantuml-confluence-sync%2F&text=Automating+PlantUML+Diagrams+in+GitHub+README+with+Actions+and+Confluence+Sync+-+%3Cp%3EMaintaining+up-to-date+documentation+is+crucial+for+any+software+project%2C+but+manually+updating+diagrams+and+keeping+documentation+synchronized+across+platforms+%E2%80%A6%3C%2Fp%3E" target=_blank rel="noopener noreferrer" class="social-share-button twitter" title="Share on Twitter"><svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+<span>Twitter</span>
+</a><a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fscottobert.com%2Fposts%2Fgithub-actions-plantuml-confluence-sync%2F" target=_blank rel="noopener noreferrer" class="social-share-button linkedin" title="Share on LinkedIn"><svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853.0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601.0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144.0-2.063-.926-2.063-2.065.0-1.138.92-2.063 2.063-2.063 1.14.0 2.064.925 2.064 2.063.0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225.0H1.771C.792.0.0.774.0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2.0 22.222.0h.003z"/></svg>
+<span>LinkedIn</span>
+</a><a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fscottobert.com%2Fposts%2Fgithub-actions-plantuml-confluence-sync%2F" target=_blank rel="noopener noreferrer" class="social-share-button facebook" title="Share on Facebook"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312.0 2.686.235 2.686.235v2.953H15.83c-1.491.0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+<span>Facebook</span>
+</a><a href="https://reddit.com/submit?url=https%3A%2F%2Fscottobert.com%2Fposts%2Fgithub-actions-plantuml-confluence-sync%2F&title=Automating+PlantUML+Diagrams+in+GitHub+README+with+Actions+and+Confluence+Sync" target=_blank rel="noopener noreferrer" class="social-share-button reddit" title="Share on Reddit"><svg viewBox="0 0 24 24"><path d="M12 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012 0zm5.01 4.744c.688.0 1.25.561 1.25 1.249a1.25 1.25.0 01-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968.0 1.754.786 1.754 1.754.0.716-.435 1.333-1.01 1.614a3.111 3.111.0 01.042.52c0 2.694-3.13 4.87-7.004 4.87s-7.004-2.176-7.004-4.87c0-.183.015-.366.043-.534A1.748 1.748.0 014.028 12c0-.968.786-1.754 1.754-1.754.463.0.898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342.0 01.14-.197.35.35.0 01.238-.042l2.906.617a1.214 1.214.0 011.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687.0 1.248-.561 1.248-1.249S9.937 12 9.249 12zm5.5.0c-.687.0-1.248.561-1.248 1.25.0.687.561 1.248 1.249 1.248S16 13.937 16 13.249c0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327.0 00-.231.094.33.33.0 000 .463c.842.842 2.484.913 2.961.913s2.105-.056 2.961-.913a.361.361.0 00.029-.463.33.33.0 00-.464.0c-.547.533-1.684.73-2.512.73-.828.0-1.979-.196-2.512-.73a.326.326.0 00-.232-.095z"/></svg>
+<span>Reddit</span>
+</a><a href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fscottobert.com%2Fposts%2Fgithub-actions-plantuml-confluence-sync%2F&t=Automating+PlantUML+Diagrams+in+GitHub+README+with+Actions+and+Confluence+Sync" target=_blank rel="noopener noreferrer" class="social-share-button hackernews" title="Share on Hacker News"><svg viewBox="0 0 24 24"><path d="M0 24V0h24v24H0zM6.951 5.896l4.112 7.708v5.064h1.583v-4.972l4.148-7.799h-1.749l-2.457 4.875c-.372.745-.688 1.434-.688 1.434s-.297-.708-.651-1.434L8.831 5.896h-1.88z"/></svg>
+<span>Hacker News</span>
+</a><a href="https://wa.me/?text=Automating+PlantUML+Diagrams+in+GitHub+README+with+Actions+and+Confluence+Sync+https%3A%2F%2Fscottobert.com%2Fposts%2Fgithub-actions-plantuml-confluence-sync%2F" target=_blank rel="noopener noreferrer" class="social-share-button whatsapp" title="Share on WhatsApp"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198.0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479.0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87.0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86.0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64.0 5.122 1.03 6.988 2.898a9.825 9.825.0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815.0 0012.05.0C5.495.0.16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882.0 005.683 1.448h.005c6.554.0 11.89-5.335 11.893-11.893A11.821 11.821.0 0020.465 3.488"/></svg>
+<span>WhatsApp</span>
+</a><a href="mailto:?subject=Automating+PlantUML+Diagrams+in+GitHub+README+with+Actions+and+Confluence+Sync&body=Check+out+this+article%3A+Automating+PlantUML+Diagrams+in+GitHub+README+with+Actions+and+Confluence+Sync+-+https%3A%2F%2Fscottobert.com%2Fposts%2Fgithub-actions-plantuml-confluence-sync%2F" class="social-share-button email" title="Share via Email"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1.0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1.0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
+<span>Email</span>
+</a><button type=button class="social-share-button copy-link" data-url=https://scottobert.com/posts/github-actions-plantuml-confluence-sync/ title="Copy link to clipboard">
+<svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1.0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1.0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1.0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+<span>Copy Link</span></button></div></div><script>(function(){const n=document.querySelectorAll(".copy-link");n.forEach(n=>{n.addEventListener("click",function(){const n=this.getAttribute("data-url");navigator.clipboard&&window.isSecureContext?navigator.clipboard.writeText(n).then(()=>{t(this)}).catch(()=>{e(n,this)}):e(n,this)})});function e(e,n){const o=document.createElement("textarea");o.value=e,o.style.position="fixed",o.style.left="-999999px",o.style.top="-999999px",document.body.appendChild(o),o.focus(),o.select();try{document.execCommand("copy"),t(n)}catch(e){console.error("Fallback: Unable to copy",e),s(n)}document.body.removeChild(o)}function t(e){const t=e.querySelector("span").textContent;e.querySelector("span").textContent="Copied!",e.classList.add("copied"),setTimeout(()=>{e.querySelector("span").textContent=t,e.classList.remove("copied")},2e3)}function s(e){const t=e.querySelector("span").textContent;e.querySelector("span").textContent="Error",e.classList.add("error"),setTimeout(()=>{e.querySelector("span").textContent=t,e.classList.remove("error")},2e3)}})()</script><div id=comments-section style="margin-top:2rem;padding-top:2rem;border-top:1px solid #e1e5e9"><h3 style=margin-bottom:1rem;color:#586069>Comments</h3><script src=https://giscus.app/client.js data-repo=scottobert/scottobert.github.io data-repo-id=R_kgDOHRSG6A data-category=General data-category-id=DIC_kwDOHRSG6M4CrQaA data-mapping=pathname data-strict=0 data-reactions-enabled=1 data-emit-metadata=1 data-input-position=top data-theme=light data-lang=en data-loading=lazy crossorigin=anonymous async></script></div></article><div class=floating-social-share id=floating-share><div class=floating-share-toggle id=share-toggle title="Share this post"><svg viewBox="0 0 24 24"><path d="M18 16.08c-.76.0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66.0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66.0-3 1.34-3 3s1.34 3 3 3c.79.0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65.0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg></div><div class=floating-share-buttons id=share-buttons><a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fscottobert.com%2Fposts%2Fgithub-actions-plantuml-confluence-sync%2F&text=Automating+PlantUML+Diagrams+in+GitHub+README+with+Actions+and+Confluence+Sync" target=_blank rel="noopener noreferrer" class="floating-share-button twitter" title="Share on Twitter"><svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+</a><a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fscottobert.com%2Fposts%2Fgithub-actions-plantuml-confluence-sync%2F" target=_blank rel="noopener noreferrer" class="floating-share-button linkedin" title="Share on LinkedIn"><svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853.0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601.0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144.0-2.063-.926-2.063-2.065.0-1.138.92-2.063 2.063-2.063 1.14.0 2.064.925 2.064 2.063.0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225.0H1.771C.792.0.0.774.0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2.0 22.222.0h.003z"/></svg>
+</a><a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fscottobert.com%2Fposts%2Fgithub-actions-plantuml-confluence-sync%2F" target=_blank rel="noopener noreferrer" class="floating-share-button facebook" title="Share on Facebook"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312.0 2.686.235 2.686.235v2.953H15.83c-1.491.0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+</a><a href="https://reddit.com/submit?url=https%3A%2F%2Fscottobert.com%2Fposts%2Fgithub-actions-plantuml-confluence-sync%2F&title=Automating+PlantUML+Diagrams+in+GitHub+README+with+Actions+and+Confluence+Sync" target=_blank rel="noopener noreferrer" class="floating-share-button reddit" title="Share on Reddit"><svg viewBox="0 0 24 24"><path d="M12 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012 0zm5.01 4.744c.688.0 1.25.561 1.25 1.249a1.25 1.25.0 01-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968.0 1.754.786 1.754 1.754.0.716-.435 1.333-1.01 1.614a3.111 3.111.0 01.042.52c0 2.694-3.13 4.87-7.004 4.87s-7.004-2.176-7.004-4.87c0-.183.015-.366.043-.534A1.748 1.748.0 014.028 12c0-.968.786-1.754 1.754-1.754.463.0.898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342.0 01.14-.197.35.35.0 01.238-.042l2.906.617a1.214 1.214.0 011.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687.0 1.248-.561 1.248-1.249S9.937 12 9.249 12zm5.5.0c-.687.0-1.248.561-1.248 1.25.0.687.561 1.248 1.249 1.248S16 13.937 16 13.249c0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327.0 00-.231.094.33.33.0 000 .463c.842.842 2.484.913 2.961.913s2.105-.056 2.961-.913a.361.361.0 00.029-.463.33.33.0 00-.464.0c-.547.533-1.684.73-2.512.73-.828.0-1.979-.196-2.512-.73a.326.326.0 00-.232-.095z"/></svg>
+</a><a href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fscottobert.com%2Fposts%2Fgithub-actions-plantuml-confluence-sync%2F&t=Automating+PlantUML+Diagrams+in+GitHub+README+with+Actions+and+Confluence+Sync" target=_blank rel="noopener noreferrer" class="floating-share-button hackernews" title="Share on Hacker News"><svg viewBox="0 0 24 24"><path d="M0 24V0h24v24H0zM6.951 5.896l4.112 7.708v5.064h1.583v-4.972l4.148-7.799h-1.749l-2.457 4.875c-.372.745-.688 1.434-.688 1.434s-.297-.708-.651-1.434L8.831 5.896h-1.88z"/></svg>
+</a><a href="https://wa.me/?text=Automating+PlantUML+Diagrams+in+GitHub+README+with+Actions+and+Confluence+Sync+https%3A%2F%2Fscottobert.com%2Fposts%2Fgithub-actions-plantuml-confluence-sync%2F" target=_blank rel="noopener noreferrer" class="floating-share-button whatsapp" title="Share on WhatsApp"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198.0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479.0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87.0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86.0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64.0 5.122 1.03 6.988 2.898a9.825 9.825.0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815.0 0012.05.0C5.495.0.16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882.0 005.683 1.448h.005c6.554.0 11.89-5.335 11.893-11.893A11.821 11.821.0 0020.465 3.488"/></svg>
+</a><a href="mailto:?subject=Automating+PlantUML+Diagrams+in+GitHub+README+with+Actions+and+Confluence+Sync&body=Check+out+this+article%3A+Automating+PlantUML+Diagrams+in+GitHub+README+with+Actions+and+Confluence+Sync+-+https%3A%2F%2Fscottobert.com%2Fposts%2Fgithub-actions-plantuml-confluence-sync%2F" class="floating-share-button email" title="Share via Email"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1.0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1.0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
+</a><button type=button class="floating-share-button copy-link" data-url=https://scottobert.com/posts/github-actions-plantuml-confluence-sync/ title="Copy link">
+<svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1.0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1.0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1.0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button></div></div><script>(function(){const s=document.getElementById("floating-share"),t=document.getElementById("share-toggle"),n=document.getElementById("share-buttons");if(!s||!t||!n)return;let e=!1,o;t.addEventListener("click",function(){e=!e,e?(n.classList.add("visible"),t.classList.add("active"),clearTimeout(o)):(n.classList.remove("visible"),t.classList.remove("active"))});function i(){clearTimeout(o),o=setTimeout(()=>{e&&(n.classList.remove("visible"),t.classList.remove("active"),e=!1)},5e3)}s.addEventListener("mouseenter",()=>{clearTimeout(o)}),s.addEventListener("mouseleave",()=>{e&&i()}),t.addEventListener("click",()=>{e&&i()});let l=0;const d=300;window.addEventListener("scroll",function(){const o=window.pageYOffset||document.documentElement.scrollTop;o>d?s.classList.add("visible"):(s.classList.remove("visible"),e&&(n.classList.remove("visible"),t.classList.remove("active"),e=!1)),l=o});const a=n.querySelector(".copy-link");a&&a.addEventListener("click",function(){const e=this.getAttribute("data-url");navigator.clipboard&&window.isSecureContext?navigator.clipboard.writeText(e).then(()=>{c(this)}).catch(()=>{r(e,this)}):r(e,this)});function r(e,t){const n=document.createElement("textarea");n.value=e,n.style.position="fixed",n.style.left="-999999px",n.style.top="-999999px",document.body.appendChild(n),n.focus(),n.select();try{document.execCommand("copy"),c(t)}catch(e){console.error("Fallback: Unable to copy",e)}document.body.removeChild(n)}function c(e){e.classList.add("copied"),setTimeout(()=>{e.classList.remove("copied")},2e3)}})()</script></main><aside class=blog-sidebar><div class=sidebar-widget><h3>Recent Posts</h3><ul class=recent-posts><li><a href=/posts/github-actions-plantuml-confluence-sync/>Automating PlantUML Diagrams in GitHub README with Actions and Confluence Sync</a>
+<span class=post-date>Jul 2, 2025</span></li><li><a href=/posts/cross-account-lambda-s3-access/>Cross-Account Lambda Access to S3: A Complete Implementation Guide</a>
+<span class=post-date>Jun 25, 2025</span></li><li><a href=/posts/lambda-to-lambda-vs-sns-chaining/>Lambda-to-Lambda Calls vs. SNS Chaining in AWS: When and How to Use Each</a>
+<span class=post-date>Jun 19, 2025</span></li><li><a href=/posts/advanced-cloudformation-patterns/>Infrastructure as Code: Advanced CloudFormation Patterns</a>
+<span class=post-date>Jun 13, 2025</span></li><li><a href=/posts/reverting-git-commits-safely/>Reverting Git Commits Safely: Undoing Changes Without Losing History</a>
+<span class=post-date>Jun 11, 2025</span></li></ul></div><div class=sidebar-widget><h3>Post Series</h3><ul class=recent-posts><li><a href=/posts/cross-account-lambda-s3-access/>AWS Cross-Account Patterns: Cross-Account Lambda Access to S3: A Complete Implementation Guide</a>
+<span class=post-date>Jun 25, 2025</span><div class=series-meta><a href=/series/aws-cross-account-patterns/ class=series-link>View all 1 posts in series →</a></div></li><li><a href=/posts/lambda-to-lambda-vs-sns-chaining/>AWS and Typescript: Lambda-to-Lambda Calls vs. SNS Chaining in AWS: When and How to Use Each</a>
+<span class=post-date>Jun 19, 2025</span><div class=series-meta><a href=/series/aws-and-typescript/ class=series-link>View all 8 posts in series →</a></div></li><li><a href=/posts/real-time-processing-architectures/>Cloud Architecture Patterns: Real-time Processing Architectures</a>
+<span class=post-date>Apr 11, 2021</span><div class=series-meta><a href=/series/cloud-architecture-patterns/ class=series-link>View all 7 posts in series →</a></div></li><li><a href=/posts/technical-debt-management-growing-codebases/>Modern Development Practices: Technical Debt Management in Growing Codebases: Strategies for Sustainable Development</a>
+<span class=post-date>Dec 19, 2021</span><div class=series-meta><a href=/series/modern-development-practices/ class=series-link>View all 7 posts in series →</a></div></li><li><a href=/posts/threat-modeling-cloud-applications/>Security in Cloud-Native Applications: Threat Modeling for Cloud Applications: A Comprehensive Approach to Security Design</a>
+<span class=post-date>Oct 19, 2019</span><div class=series-meta><a href=/series/security-in-cloud-native-applications/ class=series-link>View all 7 posts in series →</a></div></li></ul></div><div class=sidebar-widget><h3>Categories</h3><ul class=categories><li><a href=/categories/api-development>api development (2)</a></li><li><a href=/categories/architecture>architecture (2)</a></li><li><a href=/categories/architecture-and-design>architecture and design (10)</a></li><li><a href=/categories/artificial-intelligence>artificial intelligence (1)</a></li><li><a href=/categories/aws>aws (1)</a></li><li><a href=/categories/ci/cd>ci/cd (1)</a></li><li><a href=/categories/cloud-computing>cloud computing (23)</a></li><li><a href=/categories/code-quality>code quality (1)</a></li><li><a href=/categories/compliance>compliance (1)</a></li><li><a href=/categories/cost-optimization>cost optimization (1)</a></li><li><a href=/categories/data-engineering>data-engineering (3)</a></li><li><a href=/categories/database>database (1)</a></li><li><a href=/categories/database-design>database design (1)</a></li><li><a href=/categories/debugging-and-troubleshooting>debugging and troubleshooting (1)</a></li><li><a href=/categories/developer-experience>developer experience (1)</a></li><li><a href=/categories/development-tools>development tools (3)</a></li><li><a href=/categories/development-tutorials>development tutorials (2)</a></li><li><a href=/categories/infrastructure-as-code>infrastructure as code (1)</a></li><li><a href=/categories/microservices>microservices (1)</a></li><li><a href=/categories/performance>performance (1)</a></li><li><a href=/categories/quality-assurance>quality assurance (1)</a></li><li><a href=/categories/real-time-applications>real-time applications (1)</a></li><li><a href=/categories/security>security (8)</a></li><li><a href=/categories/serverless>serverless (2)</a></li><li><a href=/categories/software-development>software development (8)</a></li><li><a href=/categories/technical-debt>technical debt (1)</a></li><li><a href=/categories/testing>testing (2)</a></li><li><a href=/categories/version-control>version control (2)</a></li></ul></div><div class=sidebar-widget><h3>Tags</h3><div class=tag-cloud><a href=/tags/ai class=tag-cloud-item style=font-size:1rem>ai
+</a><a href=/tags/api-design class=tag-cloud-item style=font-size:1rem>api design
+</a><a href=/tags/api-gateway class=tag-cloud-item style=font-size:1rem>api gateway
+</a><a href=/tags/api-security class=tag-cloud-item style=font-size:1rem>api security
+</a><a href=/tags/architecture class=tag-cloud-item style=font-size:2rem>architecture
+</a><a href=/tags/athena class=tag-cloud-item style=font-size:1rem>athena
+</a><a href=/tags/authentication class=tag-cloud-item style=font-size:1rem>authentication
+</a><a href=/tags/authorization class=tag-cloud-item style=font-size:1rem>authorization
+</a><a href=/tags/automation class=tag-cloud-item style=font-size:1rem>automation
+</a><a href=/tags/aws class=tag-cloud-item style=font-size:4rem>aws
+</a><a href=/tags/aws-lambda class=tag-cloud-item style=font-size:1rem>aws lambda
+</a><a href=/tags/best-practices class=tag-cloud-item style=font-size:2rem>best practices
+</a><a href=/tags/cdk class=tag-cloud-item style=font-size:1rem>cdk
+</a><a href=/tags/chaos-engineering class=tag-cloud-item style=font-size:1rem>chaos engineering
+</a><a href=/tags/ci/cd class=tag-cloud-item style=font-size:1rem>ci/cd
+</a><a href=/tags/cloud-native class=tag-cloud-item style=font-size:1rem>cloud native
+</a><a href=/tags/cloudformation class=tag-cloud-item style=font-size:1rem>cloudformation
+</a><a href=/tags/cloudnative class=tag-cloud-item style=font-size:1rem>cloudnative
+</a><a href=/tags/code-quality class=tag-cloud-item style=font-size:1rem>code quality
+</a><a href=/tags/communication-patterns class=tag-cloud-item style=font-size:1rem>communication patterns
+</a><a href=/tags/compliance class=tag-cloud-item style=font-size:1rem>compliance
+</a><a href=/tags/confluence class=tag-cloud-item style=font-size:1rem>confluence
+</a><a href=/tags/containers class=tag-cloud-item style=font-size:1rem>containers
+</a><a href=/tags/cost-optimization class=tag-cloud-item style=font-size:1rem>cost optimization
+</a><a href=/tags/cqrs class=tag-cloud-item style=font-size:1rem>cqrs
+</a><a href=/tags/cross-account class=tag-cloud-item style=font-size:1rem>cross-account
+</a><a href=/tags/data-architecture class=tag-cloud-item style=font-size:1rem>data architecture
+</a><a href=/tags/data-lake class=tag-cloud-item style=font-size:1rem>data lake
+</a><a href=/tags/data-modeling class=tag-cloud-item style=font-size:1rem>data modeling
+</a><a href=/tags/database class=tag-cloud-item style=font-size:1rem>database
+</a><a href=/tags/database-design class=tag-cloud-item style=font-size:1rem>database design
+</a><a href=/tags/debugging class=tag-cloud-item style=font-size:1rem>debugging
+</a><a href=/tags/debugging-and-troubleshooting class=tag-cloud-item style=font-size:1rem>debugging and troubleshooting
+</a><a href=/tags/developer-tips class=tag-cloud-item style=font-size:1rem>developer tips
+</a><a href=/tags/development class=tag-cloud-item style=font-size:2rem>development
+</a><a href=/tags/devops class=tag-cloud-item style=font-size:1rem>devops
+</a><a href=/tags/devsecops class=tag-cloud-item style=font-size:1rem>devsecops
+</a><a href=/tags/distributed-systems class=tag-cloud-item style=font-size:1rem>distributed systems
+</a><a href=/tags/docker class=tag-cloud-item style=font-size:1rem>docker
+</a><a href=/tags/documentation class=tag-cloud-item style=font-size:1rem>documentation
+</a><a href=/tags/dynamodb class=tag-cloud-item style=font-size:1rem>dynamodb
+</a><a href=/tags/encryption class=tag-cloud-item style=font-size:1rem>encryption
+</a><a href=/tags/enterprise-architecture class=tag-cloud-item style=font-size:1rem>enterprise architecture
+</a><a href=/tags/event-sourcing class=tag-cloud-item style=font-size:1rem>event sourcing
+</a><a href=/tags/event-driven-architecture class=tag-cloud-item style=font-size:1rem>event-driven architecture
+</a><a href=/tags/eventbridge class=tag-cloud-item style=font-size:1rem>eventbridge
+</a><a href=/tags/fault-tolerance class=tag-cloud-item style=font-size:1rem>fault tolerance
+</a><a href=/tags/gdpr class=tag-cloud-item style=font-size:1rem>gdpr
+</a><a href=/tags/git class=tag-cloud-item style=font-size:1rem>git
+</a><a href=/tags/github-actions class=tag-cloud-item style=font-size:1rem>github actions
+</a><a href=/tags/glue class=tag-cloud-item style=font-size:1rem>glue
+</a><a href=/tags/governance class=tag-cloud-item style=font-size:1rem>governance
+</a><a href=/tags/graphql class=tag-cloud-item style=font-size:1rem>graphql
+</a><a href=/tags/hipaa class=tag-cloud-item style=font-size:1rem>hipaa
+</a><a href=/tags/iam class=tag-cloud-item style=font-size:1rem>iam
+</a><a href=/tags/identity-management class=tag-cloud-item style=font-size:1rem>identity management
+</a><a href=/tags/infrastructure class=tag-cloud-item style=font-size:1rem>infrastructure
+</a><a href=/tags/infrastructure-as-code class=tag-cloud-item style=font-size:1rem>infrastructure as code
+</a><a href=/tags/jwt class=tag-cloud-item style=font-size:1rem>jwt
+</a><a href=/tags/kinesis class=tag-cloud-item style=font-size:1rem>kinesis
+</a><a href=/tags/kubernetes class=tag-cloud-item style=font-size:1rem>kubernetes
+</a><a href=/tags/lambda class=tag-cloud-item style=font-size:1rem>lambda
+</a><a href=/tags/load-testing class=tag-cloud-item style=font-size:1rem>load testing
+</a><a href=/tags/metrics class=tag-cloud-item style=font-size:1rem>metrics
+</a><a href=/tags/microservices class=tag-cloud-item style=font-size:1rem>microservices
+</a><a href=/tags/monitoring class=tag-cloud-item style=font-size:1rem>monitoring
+</a><a href=/tags/multi-account class=tag-cloud-item style=font-size:1rem>multi-account
+</a><a href=/tags/nosql class=tag-cloud-item style=font-size:1rem>nosql
+</a><a href=/tags/oauth class=tag-cloud-item style=font-size:1rem>oauth
+</a><a href=/tags/octave class=tag-cloud-item style=font-size:1rem>octave
+</a><a href=/tags/opensearch class=tag-cloud-item style=font-size:1rem>opensearch
+</a><a href=/tags/pasta class=tag-cloud-item style=font-size:1rem>pasta
+</a><a href=/tags/patterns class=tag-cloud-item style=font-size:1rem>patterns
+</a><a href=/tags/pci-dss class=tag-cloud-item style=font-size:1rem>pci-dss
+</a><a href=/tags/performance-testing class=tag-cloud-item style=font-size:1rem>performance testing
+</a><a href=/tags/plantuml class=tag-cloud-item style=font-size:1rem>plantuml
+</a><a href=/tags/productivity class=tag-cloud-item style=font-size:1rem>productivity
+</a><a href=/tags/rate-limiting class=tag-cloud-item style=font-size:1rem>rate limiting
+</a><a href=/tags/real-time class=tag-cloud-item style=font-size:1rem>real-time
+</a><a href=/tags/refactoring class=tag-cloud-item style=font-size:1rem>refactoring
+</a><a href=/tags/reliability class=tag-cloud-item style=font-size:1rem>reliability
+</a><a href=/tags/resilience class=tag-cloud-item style=font-size:1rem>resilience
+</a><a href=/tags/rest class=tag-cloud-item style=font-size:1rem>rest
+</a><a href=/tags/rest-api class=tag-cloud-item style=font-size:1rem>rest api
+</a><a href=/tags/riskassessment class=tag-cloud-item style=font-size:1rem>riskassessment
+</a><a href=/tags/s3 class=tag-cloud-item style=font-size:1rem>s3
+</a><a href=/tags/search class=tag-cloud-item style=font-size:1rem>search
+</a><a href=/tags/secrets-management class=tag-cloud-item style=font-size:1rem>secrets management
+</a><a href=/tags/security class=tag-cloud-item style=font-size:2rem>security
+</a><a href=/tags/securitydesign class=tag-cloud-item style=font-size:1rem>securitydesign
+</a><a href=/tags/serverless class=tag-cloud-item style=font-size:2rem>serverless
+</a><a href=/tags/soc2 class=tag-cloud-item style=font-size:1rem>soc2
+</a><a href=/tags/software-engineering class=tag-cloud-item style=font-size:1rem>software engineering
+</a><a href=/tags/standards class=tag-cloud-item style=font-size:1rem>standards
+</a><a href=/tags/stream-processing class=tag-cloud-item style=font-size:1rem>stream processing
+</a><a href=/tags/streams class=tag-cloud-item style=font-size:1rem>streams
+</a><a href=/tags/stride class=tag-cloud-item style=font-size:1rem>stride
+</a><a href=/tags/tdd class=tag-cloud-item style=font-size:1rem>tdd
+</a><a href=/tags/technical-debt class=tag-cloud-item style=font-size:1rem>technical debt
+</a><a href=/tags/testing class=tag-cloud-item style=font-size:1rem>testing
+</a><a href=/tags/threatmodeling class=tag-cloud-item style=font-size:1rem>threatmodeling
+</a><a href=/tags/typescript class=tag-cloud-item style=font-size:3rem>typescript
+</a><a href=/tags/version-control class=tag-cloud-item style=font-size:1rem>version control
+</a><a href=/tags/websockets class=tag-cloud-item style=font-size:1rem>websockets
+</a><a href=/tags/zero-trust class=tag-cloud-item style=font-size:1rem>zero trust</a></div></div><div class=sidebar-widget><h3>Subscribe</h3><div class=subscribe-links><a href=/index.xml class=rss-link><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 019 9"/><path d="M4 4a16 16 0 0116 16"/><circle cx="5" cy="19" r="1"/></svg>
+RSS Feed</a></div></div><div class="sidebar-widget npm-packages"><h3>My NPM Packages</h3><div id=npm-list></div></div></aside></div></div><footer class=site-footer><div class=container><p>&copy; 2025 Scott Obert</p><p class=disclaimer-text style=font-size:.9em;margin-top:.5em>The views and opinions expressed on this site are my own. <a href=/disclaimer/ style=color:#0074d9;text-decoration:underline>Read full disclaimer</a>.</p></div></footer></body></html>
