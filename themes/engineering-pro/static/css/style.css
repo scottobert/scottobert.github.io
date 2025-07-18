@@ -390,6 +390,13 @@ body {
   color: #34495e;
   text-decoration: underline;
 }
+.post-summary img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+  border: 2px solid #edf2f7;
+}
 
 .post-meta {
   display: flex;
