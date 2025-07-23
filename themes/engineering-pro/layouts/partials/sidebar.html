@@ -36,7 +36,7 @@
         <span class="post-date">{{ $latestPost.Date.Format "Jan 2, 2006" }}</span>
         <div class="series-meta">
           <a href="{{ "/series/" | relLangURL }}{{ $seriesName | urlize }}/" class="series-link">
-            View all {{ len $posts }} posts in series →
+            View {{ len $posts }} posts in series →
           </a>
         </div>
       </li>
@@ -62,9 +62,11 @@
     <h3>Tags</h3>
     <div class="tag-cloud">
       {{ range $name, $taxonomy := .Site.Taxonomies.tags }}
-      <a href="{{ "/tags/" | relLangURL }}{{ $name | urlize }}" 
-         class="tag-cloud-item" 
-         style="font-size: {{ math.Round (add 0.8 (mul (div .Count 3.0) 0.3)) }}rem">
+      {{ $rawSize := math.Round (add 0.4 (mul (div .Count 3.0) 0.3)) }}
+      {{ $fontSize := cond (gt $rawSize 2.0) 2.0 $rawSize }}
+      <a href="{{ "/tags/" | relLangURL }}{{ $name | urlize }}"
+         class="tag-cloud-item"
+         style="font-size: {{ $fontSize }}rem">
         {{ $name }}
       </a>
       {{ end }}

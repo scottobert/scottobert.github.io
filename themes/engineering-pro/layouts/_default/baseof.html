@@ -35,7 +35,10 @@
   <!-- Twitter Card Tags -->
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="{{ if .IsPage }}{{ .Title }}{{ else }}{{ .Site.Title }}{{ end }}">
-  <meta name="twitter:description" content="{{ with .Description }}{{ . }}{{ else }}{{ .Summary | truncate 160 }}{{ end }}">  <link rel="stylesheet" href="/css/style.css">
+  <meta name="twitter:description" content="{{ with .Description }}{{ . }}{{ else }}{{ .Summary | truncate 160 }}{{ end }}">
+  {{/* Use Hugo Pipes to process SCSS for main stylesheet. Updated for Hugo v0.128.0+: use css.Sass instead of resources.ToCSS. */}}
+  {{ $style := resources.Get "css/style.scss" | css.Sass | resources.Minify | resources.Fingerprint }}
+  <link rel="stylesheet" href="{{ $style.Permalink }}">
   <script src="/js/npm-packages.js" defer></script>
   <script src="/js/search.js" defer></script>
   <!-- Only load Umami analytics in production -->
