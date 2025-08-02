@@ -1,4 +1,5 @@
 public
+resources/_gen
 
 # Node.js and npm
 node_modules/
