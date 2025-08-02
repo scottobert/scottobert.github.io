@@ -1,5 +1,21 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Cost Optimization on Scott Obert</title><link>https://scottobert.com/tags/cost-optimization/</link><description>Recent content in Cost Optimization on Scott Obert</description><generator>Hugo</generator><language>en</language><copyright>&amp;copy;2022 Scott Obert</copyright><lastBuildDate>Wed, 16 Jul 2025 09:00:00 -0700</lastBuildDate><atom:link href="https://scottobert.com/tags/cost-optimization/index.xml" rel="self" type="application/rss+xml"/><item><title>Right Sizing in AWS: Maximizing Efficiency and Cost Savings</title><link>https://scottobert.com/posts/2025/07/16/right-sizing-in-aws/</link><pubDate>Wed, 16 Jul 2025 09:00:00 -0700</pubDate><guid>https://scottobert.com/posts/2025/07/16/right-sizing-in-aws/</guid><description>&lt;p>&lt;img src="https://scottobert.com/images/posts/right-sizing-in-aws.png" alt="Right Sizing in AWS: Meme illustrating cloud cost optimization">
-&lt;em>Figure: Right sizing in AWS helps avoid over-provisioning and wasted spend.&lt;/em>&lt;/p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Cost Optimization on Scott Obert</title><link>https://scottobert.com/tags/cost-optimization/</link><description>Recent content in Cost Optimization on Scott Obert</description><generator>Hugo</generator><language>en</language><copyright>&amp;copy;2022 Scott Obert</copyright><lastBuildDate>Wed, 16 Jul 2025 09:00:00 -0700</lastBuildDate><atom:link href="https://scottobert.com/tags/cost-optimization/index.xml" rel="self" type="application/rss+xml"/><item><title>Right Sizing in AWS: Maximizing Efficiency and Cost Savings</title><link>https://scottobert.com/posts/2025/07/16/right-sizing-in-aws/</link><pubDate>Wed, 16 Jul 2025 09:00:00 -0700</pubDate><guid>https://scottobert.com/posts/2025/07/16/right-sizing-in-aws/</guid><description>&lt;figure class="image-figure ">
+ 
+ 
+ &lt;img 
+ src="https://scottobert.com/posts/2025/07/16/right-sizing-in-aws.png" 
+ alt="Right Sizing in AWS: Meme illustrating cloud cost optimization" 
+ width="800"
+ 
+ loading="lazy"
+ decoding="async"
+ />
+ 
+ 
+ 
+ &lt;figcaption>Right sizing in AWS helps avoid over-provisioning and wasted spend.&lt;/figcaption>
+ 
+&lt;/figure>
+
 &lt;p>Right sizing in AWS is the practice of matching cloud resources—such as compute, storage, and memory—to the actual needs of your workloads. This approach is essential for organizations seeking to maximize efficiency and minimize unnecessary costs in the cloud. In this post, we’ll explore why right sizing matters, how to approach it, and practical strategies for implementation.&lt;/p></description></item><item><title>Cost Optimization Strategies for AWS Serverless Applications</title><link>https://scottobert.com/posts/aws-serverless-cost-optimization/</link><pubDate>Sat, 17 Jun 2023 00:00:00 +0000</pubDate><guid>https://scottobert.com/posts/aws-serverless-cost-optimization/</guid><description>&lt;h2 id="introduction">Introduction&lt;/h2>
 &lt;p>While serverless architectures can significantly reduce operational costs, they require thoughtful design and configuration to maximize cost efficiency. This guide explores practical strategies for optimizing costs in AWS serverless applications, based on real-world experience and proven patterns.&lt;/p>
 &lt;h2 id="lambda-function-optimization">Lambda Function Optimization&lt;/h2>
