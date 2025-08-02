@@ -1,0 +1,20 @@
+{
+  "development": {
+    "accountId": "111111111111",
+    "region": "us-east-1",
+    "githubRepository": "your-org/your-repo",
+    "email": "dev-team@example.com"
+  },
+  "staging": {
+    "accountId": "222222222222",
+    "region": "us-east-1",
+    "githubRepository": "your-org/your-repo",
+    "email": "staging-team@example.com"
+  },
+  "production": {
+    "accountId": "333333333333",
+    "region": "us-east-1",
+    "githubRepository": "your-org/your-repo",
+    "email": "prod-team@example.com"
+  }
+}

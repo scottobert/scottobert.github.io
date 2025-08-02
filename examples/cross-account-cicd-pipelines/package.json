@@ -1,0 +1,66 @@
+{
+  "name": "cross-account-cicd-solution",
+  "version": "1.0.0",
+  "description": "Complete deployable solution for cross-account CI/CD pipelines using AWS CDK and GitHub Actions",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "cdk": "cdk",
+    "deploy:dev": "cdk deploy --context environment=development --profile dev",
+    "deploy:staging": "cdk deploy --context environment=staging --profile staging",
+    "deploy:prod": "cdk deploy --context environment=production --profile prod",
+    "destroy:dev": "cdk destroy --context environment=development --profile dev",
+    "destroy:staging": "cdk destroy --context environment=staging --profile staging",
+    "destroy:prod": "cdk destroy --context environment=production --profile prod",
+    "synth": "cdk synth",
+    "setup:github-secrets": "node scripts/setup-github-secrets.js",
+    "validate:setup": "node scripts/validate-setup.js",
+    "deploy:all": "node scripts/deploy-all.js",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix"
+  },
+  "keywords": [
+    "aws",
+    "cdk",
+    "cicd",
+    "cross-account",
+    "github-actions",
+    "oidc",
+    "typescript"
+  ],
+  "author": "Scott Obert",
+  "license": "MIT",
+  "dependencies": {
+    "@aws-sdk/client-cloudformation": "^3.600.0",
+    "@aws-sdk/client-cloudtrail": "^3.600.0",
+    "@aws-sdk/client-cloudwatch": "^3.600.0",
+    "@aws-sdk/client-route-53": "^3.600.0",
+    "@aws-sdk/client-secrets-manager": "^3.600.0",
+    "@aws-sdk/client-sns": "^3.600.0",
+    "@aws-sdk/client-sts": "^3.600.0",
+    "aws-cdk-lib": "^2.150.0",
+    "constructs": "^10.3.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.14.10",
+    "@typescript-eslint/eslint-plugin": "^7.16.0",
+    "@typescript-eslint/parser": "^7.16.0",
+    "aws-cdk": "^2.150.0",
+    "eslint": "^8.57.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/cross-account-cicd-solution"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

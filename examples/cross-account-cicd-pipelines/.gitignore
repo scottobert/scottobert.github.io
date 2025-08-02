@@ -1,0 +1,54 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# CDK
+cdk.out/
+.cdk.staging/
+cdk.context.json
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Environment and configuration
+.env
+.env.local
+config/accounts.json
+
+# Logs
+logs/
+*.log
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Test results
+test-results/
+playwright-report/
+junit.xml
+
+# Temporary files
+tmp/
+temp/
+*.tmp

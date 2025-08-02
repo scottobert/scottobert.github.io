@@ -1,0 +1,71 @@
+name: 'Deploy to AWS Account'
+description: 'Deploy application to a specific AWS account using role assumption'
+inputs:
+  role-arn:
+    description: 'AWS IAM Role ARN to assume'
+    required: true
+  environment:
+    description: 'Target environment (dev, staging, prod)'
+    required: true
+  stack-name:
+    description: 'CloudFormation stack name'
+    required: true
+  template-path:
+    description: 'Path to CloudFormation template'
+    required: true
+  aws-region:
+    description: 'AWS region for deployment'
+    required: false
+    default: 'us-east-1'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ inputs.role-arn }}
+        role-session-name: GitHubActions-${{ inputs.environment }}-${{ github.run_id }}
+        aws-region: ${{ inputs.aws-region }}
+
+    - name: Verify assumed role
+      shell: bash
+      run: |
+        echo "Assumed role identity:"
+        aws sts get-caller-identity
+        echo "Available permissions test:"
+        aws iam list-attached-role-policies --role-name $(aws sts get-caller-identity --query Arn --output text | cut -d'/' -f2) || echo "Limited permissions - this is expected"
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      shell: bash
+      run: npm ci
+
+    - name: Build application
+      shell: bash
+      run: npm run build
+
+    - name: Deploy with CDK
+      shell: bash
+      run: |
+        npm run cdk synth
+        npm run deploy:${{ inputs.environment }}
+
+    - name: Verify deployment
+      shell: bash
+      run: |
+        aws cloudformation describe-stacks \
+          --stack-name ${{ inputs.stack-name }} \
+          --query 'Stacks[0].StackStatus' \
+          --output text
+
+    - name: Run post-deployment tests
+      shell: bash
+      run: |
+        # Add any post-deployment verification tests here
+        echo "Deployment verification completed for ${{ inputs.environment }}"

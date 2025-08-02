@@ -1,0 +1,64 @@
+name: Cross-Account Deployment
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy-dev:
+    name: Deploy to Development
+    runs-on: ubuntu-latest
+    environment: development
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Development Account
+        uses: ./.github/actions/deploy-to-account
+        with:
+          role-arn: ${{ secrets.AWS_ROLE_ARN_DEV }}
+          environment: development
+          stack-name: Application-development
+          template-path: ./infrastructure/lib/application-stack.ts
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    environment: staging
+    needs: deploy-dev
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Staging Account
+        uses: ./.github/actions/deploy-to-account
+        with:
+          role-arn: ${{ secrets.AWS_ROLE_ARN_STAGING }}
+          environment: staging
+          stack-name: Application-staging
+          template-path: ./infrastructure/lib/application-stack.ts
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    environment: production
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Production Account
+        uses: ./.github/actions/deploy-to-account
+        with:
+          role-arn: ${{ secrets.AWS_ROLE_ARN_PROD }}
+          environment: production
+          stack-name: Application-production
+          template-path: ./infrastructure/lib/application-stack.ts
