@@ -1,0 +1,39 @@
+// _footer.scss
+// Purpose: Styles for site footer and footer content. Imported by main style.scss.
+
+@import "sections/variables";
+@import "sections/mixins";
+
+.site-footer {
+  background: $primary-color url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"%3E%3Cpath fill="%23ffffff" fill-opacity="0.05" d="M1 1h2v2H1V1zm4 0h2v2H5V1zm4 0h2v2H9V1zm4 0h2v2h-2V1zm4 0h2v2h-2V1zm-16 4h2v2H1V5zm4 0h2v2H5V5zm4 0h2v2H9V5zm4 0h2v2h-2V5zm4 0h2v2h-2V5zm-16 4h2v2H1V9zm4 0h2v2H5V9zm4 0h2v2H9V9zm4 0h2v2h-2V9zm4 0h2v2h-2V9zm-16 4h2v2H1v-2zm4 0h2v2H5v-2zm4 0h2v2H9v-2zm4 0h2v2h-2v-2zm4 0h2v2h-2v-2z"%3E%3C/path%3E%3C/svg%3E');;
+  color: $white;
+  padding: 1.5rem 0;
+  margin-top: 2rem;
+  border-top: 2px solid rgba($white, 0.15);
+  @include box-shadow(0 -2px 10px rgba(0, 0, 0, 0.1));
+
+  p {
+    margin: 0;
+  }
+
+  a {
+    @include transition;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    &::before {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 1px;
+      background-color: $white;
+      @include transition(width, 0.3s);
+      z-index: -1;
+    }
+    &:hover::before {
+      width: 100%;
+    }
+  }
+}

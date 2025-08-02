@@ -1,0 +1,43 @@
+// _social.scss
+// Purpose: Styles for social sharing components. Imported by main style.scss.
+
+@import "sections/variables";
+@import "sections/mixins";
+
+.social-share {
+  margin: 3rem 0 2rem;
+  padding: 2rem;
+  background: $lighter-bg;
+  border-radius: $border-radius-large;
+  border: 2px solid $border-color-light;
+  @include box-shadow(0 2px 8px rgba(0, 0, 0, 0.05));
+}
+
+.social-links {
+  display: flex;
+  align-items: center;
+
+  a {
+    color: $white;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    border-radius: $border-radius-small;
+    @include transition(background-color);
+
+    &:hover {
+      background-color: rgba($white, 0.1); // Use $white variable
+    }
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+  }
+
+  span {
+    display: none;
+  }
+}

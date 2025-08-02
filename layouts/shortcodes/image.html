@@ -1,0 +1,64 @@
+{{/* 
+  Custom image shortcode that uses Hugo's built-in image processing
+  Usage: {{< image src="image.png" alt="Alt text" caption="Optional caption" width="800" >}}
+*/}}
+
+{{ $src := .Get "src" }}
+{{ $alt := .Get "alt" }}
+{{ $caption := .Get "caption" }}
+{{ $width := .Get "width" | default "800" }}
+{{ $height := .Get "height" | default "" }}
+{{ $class := .Get "class" | default "" }}
+
+{{/* Try to find the image in the page bundle first */}}
+{{ $image := "" }}
+{{ $imageResource := .Page.Resources.GetMatch $src }}
+
+{{ if $imageResource }}
+  {{/* Image found in page bundle */}}
+  {{ $image = $imageResource }}
+{{ else }}
+  {{/* Try to find the image in static folder or other locations */}}
+  {{ $staticPath := printf "static/%s" $src }}
+  {{ if fileExists $staticPath }}
+    {{ $image = resources.Get $src }}
+  {{ else }}
+    {{/* Fallback: use the src as-is for static images */}}
+    {{ $image = false }}
+  {{ end }}
+{{ end }}
+
+<figure class="image-figure {{ $class }}">
+  {{ if $image }}
+    {{/* Process the image if it's a resource */}}
+    {{ $processed := $image }}
+    {{ if $height }}
+      {{ $processed = $image.Resize (printf "%sx%s" $width $height) }}
+    {{ else }}
+      {{ $processed = $image.Resize (printf "%sx" $width) }}
+    {{ end }}
+    
+    <img 
+      src="{{ $processed.RelPermalink }}" 
+      alt="{{ $alt }}" 
+      width="{{ $processed.Width }}" 
+      height="{{ $processed.Height }}"
+      loading="lazy"
+      decoding="async"
+    />
+  {{ else }}
+    {{/* Fallback for static images */}}
+    <img 
+      src="{{ $src }}" 
+      alt="{{ $alt }}" 
+      {{ with $width }}width="{{ . }}"{{ end }}
+      {{ with $height }}height="{{ . }}"{{ end }}
+      loading="lazy"
+      decoding="async"
+    />
+  {{ end }}
+  
+  {{ with $caption }}
+    <figcaption>{{ . | markdownify }}</figcaption>
+  {{ end }}
+</figure>

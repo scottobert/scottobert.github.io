@@ -1,0 +1,16 @@
+// _breadcrumbs.scss
+// Purpose: Styles for breadcrumbs navigation. Imported by main style.scss.
+
+@import "sections/variables";
+@import "sections/mixins";
+
+.breadcrumbs {
+  background: linear-gradient(135deg, $lighter-bg 0%, $border-color-light 100%);
+  border: 1px solid $border-color;
+  border-radius: $border-radius-large;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+  @include box-shadow(0 1px 3px rgba(0, 0, 0, 0.05));
+  font-size: 0.9rem;
+  animation: breadcrumbSlideIn 0.3s ease-out;
+}

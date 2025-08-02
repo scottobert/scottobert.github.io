@@ -14,6 +14,8 @@ tags:
 series: AWS Cross-Account Patterns
 ---
 
+{{< image src="/posts/2025/07/30/cross-account-eventbridge-integration.png" alt="Overview of cross-account EventBridge integration architecture showing events flowing from one AWS account to another" width="800" >}}
+
 Event-driven architectures have become the backbone of modern distributed systems, enabling loose coupling between services and supporting scalable, resilient applications. When implementing these patterns across multiple AWS accounts, Amazon EventBridge provides powerful capabilities for cross-account event routing while maintaining security boundaries and organizational isolation.
 
 Cross-account EventBridge integration enables events generated in one AWS account to trigger processing in another account, supporting complex enterprise workflows where different business units or environments operate in separate accounts. This pattern is essential for building comprehensive event-driven systems that span organizational boundaries while maintaining proper security controls.

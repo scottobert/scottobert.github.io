@@ -12,8 +12,7 @@ tags:
 - Best Practices
 ---
 
-![Right Sizing in AWS: Meme illustrating cloud cost optimization](/images/posts/right-sizing-in-aws.png)
-*Figure: Right sizing in AWS helps avoid over-provisioning and wasted spend.*
+{{< image src="/posts/2025/07/16/right-sizing-in-aws.png" alt="Right Sizing in AWS: Meme illustrating cloud cost optimization" caption="Right sizing in AWS helps avoid over-provisioning and wasted spend." width="800" >}}
 
 Right sizing in AWS is the practice of matching cloud resources—such as compute, storage, and memory—to the actual needs of your workloads. This approach is essential for organizations seeking to maximize efficiency and minimize unnecessary costs in the cloud. In this post, we’ll explore why right sizing matters, how to approach it, and practical strategies for implementation.
 

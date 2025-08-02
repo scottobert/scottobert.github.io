@@ -1,0 +1,27 @@
+// _variables.scss
+// Purpose: Theme variables for colors, spacing, fonts, and more. Imported by main style.scss.
+
+$primary-bg: #f7f9fa;
+$primary-color: #0d2440;
+$secondary-color: #005f87;
+$accent-color: #007acc;
+$text-color: #222;
+$text-color-alt: #2c3e50;
+$text-color-light: #34495e;
+$muted-color: #495057;
+$light-muted: #6c757d;
+$very-light: #888;
+$border-radius: 6px;
+$border-radius-large: 8px;
+$border-radius-small: 4px;
+$box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+$box-shadow-light: 0 2px 5px rgba(0, 0, 0, 0.05);
+$box-shadow-medium: 0 3px 8px rgba(0, 0, 0, 0.1);
+$font-stack: "Segoe UI", "Liberation Sans", Arial, sans-serif;
+$font-mono: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", monospace;
+$white: #fff;
+$light-bg: #f0f5fa;
+$lighter-bg: #f9fbfd;
+$border-color: #e9ecef;
+$border-color-light: #edf2f7;
+$border-color-dark: #cad6e1;

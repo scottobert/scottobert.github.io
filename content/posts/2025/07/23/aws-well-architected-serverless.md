@@ -12,14 +12,13 @@ tags:
 - Cloud Architecture
 ---
 
-![AWS Well-Architected Framework: Meme illustrating serverless best practices](/images/posts/aws-well-architected-serverless.png)
-*Figure: Applying the AWS Well-Architected Framework helps you build robust, efficient serverless solutions.*
+{{< image src="/posts/2025/07/23/aws-well-architected-serverless.png" alt="AWS Well-Architected Framework: Meme illustrating serverless best practices" caption="Applying the AWS Well-Architected Framework helps you build robust, efficient serverless solutions." width="800" >}}
 
-The AWS Well-Architected Framework is a set of best practices designed to help cloud architects build secure, high-performing, resilient, and efficient infrastructure for their applications. While the framework applies to all workloads on AWS, its principles are especially valuable for serverless architectures, where managed services like AWS Lambda, API Gateway, and DynamoDB abstract away much of the underlying infrastructure.
+AWS Well-Architected Framework represents a collection of best practices aimed to assist cloud architects in creating secure, high-performing, resilient, and efficient infrastructure within their applications. Although the framework is applicable to every workload within AWS, its principles are particularly useful within serverless architectures, where a number of managed services such as AWS Lambda, API Gateway, and DynamoDB eliminate a significant amount of underlying infrastructure.
 
 ## Introduction: Why Well-Architected Matters for Serverless
 
-Serverless architectures promise scalability, reduced operational overhead, and cost efficiency. However, without a structured approach, teams can still encounter pitfalls such as security gaps, performance bottlenecks, or runaway costs. The AWS Well-Architected Framework provides a blueprint for building and operating reliable serverless applications by focusing on five key pillars: Operational Excellence, Security, Reliability, Performance Efficiency, and Cost Optimization.
+Serverless architectures hold the promise of scalability, lower operational overhead, and cost-effectiveness. Without a formal approach, though, teams may still find themselves succumbing to risks such as security holes, bottlenecks, or unintended costs. The AWS Well-Architected Framework gives a pattern to design and deploy robust serverless applications by considering five key pillars: Operational Excellence, Security, Reliability, Performance Efficiency, and Cost Optimization.
 
 ## The Five Pillars in a Serverless Context
 
@@ -52,7 +51,7 @@ async function createErrorAlarm(functionName: string) {
 
 ### Security
 
-Serverless security is about least privilege, secure secrets management, and monitoring. Use IAM roles with minimal permissions, store secrets in AWS Secrets Manager, and enable AWS X-Ray for tracing. Always validate and sanitize inputs in Lambda functions to prevent injection attacks.
+Serverless security comes down to least privilege, secure management of secrets, and monitoring. It's about using IAM roles with restricted permissions, securing secrets with AWS Secrets Manager, and AWS X-Ray as a tracing solution. Validate and sanitize inputs consistently within the Lambda functions to avoid injection vulnerability.
 
 ### Reliability
 
@@ -60,12 +59,11 @@ Reliability in serverless involves designing for failure and graceful degradatio
 
 ### Performance Efficiency
 
-Optimize performance by choosing the right memory and timeout settings for Lambda, using asynchronous invocations where possible, and leveraging managed services like DynamoDB for low-latency data access. Monitor cold starts and use provisioned concurrency for latency-sensitive workloads.
+Tune performance by selecting appropriate memory and timeout settings for Lambda, taking advantage of asynchronous invocations where applicable, and utilizing managed services such as DynamoDB to achieve low-latency data access. Keep an eye on cold starts and utilize provisioned concurrency to work with latency-sensitive workloads.
 
 ### Cost Optimization
 
-Cost optimization in serverless is about monitoring usage, right sizing Lambda memory, and avoiding unnecessary invocations. Use AWS Cost Explorer and Lambda Power Tuning to find the optimal configuration. Prefer event-driven designs to reduce idle compute costs.
-
+Serverless cost optimization includes monitoring usage, right-sizing Lambda's memory, and minimizing unwarranted invocations. Take advantage of AWS Cost Explorer and Lambda Power Tuning to find the optimal configuration. Prefer event-driven architectures to help avoid idle compute costs.
 ## Practical Example: Secure and Efficient Lambda Function
 
 Here’s a TypeScript example using AWS SDK v3, following best practices for security and efficiency:
@@ -93,9 +91,9 @@ export const handler: Handler = async (event) => {
 
 ## Resources and Next Steps
 
-- Review the [AWS Well-Architected Framework documentation](https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html).
+- Read through the [AWS Well-Architected Framework documentation](https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html).
 - Explore the [Serverless Lens](https://docs.aws.amazon.com/wellarchitected/latest/serverless-applications-lens/welcome.html) for serverless-specific guidance.
 - Use the [AWS Well-Architected Tool](https://aws.amazon.com/well-architected-tool/) to assess your workloads.
-- Regularly review your architecture against the five pillars and automate compliance where possible.
+- Periodically assess your architecture against the five pillars and automate compliance to the extent feasible.
 
-By applying the AWS Well-Architected Framework to your serverless workloads, you can build applications that are secure, reliable, efficient, and cost-effective—while taking full advantage of the benefits of serverless computing.
+Used with your serverless applications, the AWS Well-Architected Framework allows you to build applications that are cost-effective, efficient, dependable, and secure—and achieve all the advantages of serverless computing.

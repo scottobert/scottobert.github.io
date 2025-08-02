@@ -12,7 +12,8 @@
     "test:install": "playwright install",
     "serve": "hugo server --bind 0.0.0.0 --baseURL http://localhost:1313 --buildDrafts --buildFuture",
     "build": "hugo --buildDrafts --buildFuture",
-    "test:ci": "npm run build && npm run test"
+    "test:ci": "npm run build && npm run test",
+    "clean": "npx rimraf public"
   },
   "devDependencies": {
     "@playwright/test": "^1.40.0",

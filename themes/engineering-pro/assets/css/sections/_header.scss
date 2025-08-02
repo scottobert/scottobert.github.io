@@ -1,0 +1,63 @@
+// _header.scss
+// Purpose: Styles for site header, navigation, and header content. Imported by main style.scss.
+
+@import "sections/variables";
+@import "sections/mixins";
+
+.site-header {
+  background: $primary-color url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"%3E%3Cpath fill="%23ffffff" fill-opacity="0.05" d="M1 1h2v2H1V1zm4 0h2v2H5V1zm4 0h2v2H9V1zm4 0h2v2h-2V1zm4 0h2v2h-2V1zm-16 4h2v2H1V5zm4 0h2v2H5V5zm4 0h2v2H9V5zm4 0h2v2h-2V5zm4 0h2v2h-2V5zm-16 4h2v2H1V9zm4 0h2v2H5V9zm4 0h2v2H9V9zm4 0h2v2h-2V9zm4 0h2v2h-2V9zm-16 4h2v2H1v-2zm4 0h2v2H5v-2zm4 0h2v2H9v-2zm4 0h2v2h-2v-2zm4 0h2v2h-2v-2z"%3E%3C/path%3E%3C/svg%3E');
+  color: $white;
+  padding: 1.5rem 0;
+  @include box-shadow($box-shadow-medium);
+  margin-bottom: 2rem;
+
+  h1 {
+    margin: 0;
+    a {
+      color: $white;
+      text-decoration: none;
+      font-weight: 600;
+      &:hover {
+        color: $light-bg;
+      }
+    }
+  }
+
+  nav {
+    a {
+      color: rgba($white, 0.9);
+      margin-right: 1.5rem;
+      text-decoration: none;
+      font-weight: 500;
+      @include transition;
+      &:hover {
+        color: $white;
+        text-decoration: none;
+      }
+    }
+  }
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+
+// Header layout and search
+.header-content {
+  @include flex-between;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+
+  nav {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+}

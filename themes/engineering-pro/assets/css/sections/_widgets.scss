@@ -1,0 +1,26 @@
+// _widgets.scss
+// Purpose: Styles for subscribe, tag cloud, and other sidebar widgets. Imported by main style.scss.
+
+@import "sections/variables";
+@import "sections/mixins";
+
+.tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tag-cloud-item {
+  color: $muted-color;
+  text-decoration: none;
+  padding: 0.2rem 0.8rem;
+  border-radius: 20px;
+  background: $light-bg;
+  border: 2px solid $border-color;
+  @include transition;
+  @include box-shadow(0 1px 2px rgba(0, 0, 0, 0.02));
+  &:hover {
+    background: $border-color;
+    border-color: $border-color-light;
+  }
+}

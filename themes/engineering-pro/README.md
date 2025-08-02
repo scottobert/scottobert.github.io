@@ -21,6 +21,7 @@ A professional, engineering-inspired Hugo theme with a focus on clean typography
 
 ### Shortcodes
 
+- `{{< image src="image.png" alt="Alt text" caption="Optional caption" width="800" >}}` — Display and process images with Hugo's built-in image processing. Supports automatic resizing, lazy loading, and responsive images.
 - `{{< image-gallery gallery_dir="/album" >}}` — Display an image gallery from a static directory.
 - `{{< plantuml id="diagram-id" >}} ...PlantUML code... {{< /plantuml >}}` — Render PlantUML diagrams inline.
 
@@ -29,6 +30,34 @@ A professional, engineering-inspired Hugo theme with a focus on clean typography
 - `breadcrumbs.html` — Renders breadcrumbs for navigation.
 - `series-navigation.html` — Adds navigation for post series.
 - `social-share.html`, `floating-social-share.html`, `quick-social-share.html` — Multiple social sharing UI options.
+
+## Image Processing
+
+The theme includes an `image` shortcode that leverages Hugo's built-in image processing capabilities:
+
+**Basic usage:**
+```markdown
+{{< image src="my-image.png" alt="Description" >}}
+```
+
+**With caption and custom width:**
+```markdown
+{{< image src="diagram.png" alt="Architecture diagram" caption="System overview showing microservices architecture" width="600" >}}
+```
+
+**Parameters:**
+- `src` (required): Image filename (must be in the same directory as the content file for processing)
+- `alt` (required): Alt text for accessibility
+- `caption` (optional): Caption displayed below the image
+- `width` (optional): Maximum width in pixels (default: 800)
+- `height` (optional): Maximum height in pixels (auto if not specified)
+- `class` (optional): Additional CSS classes
+
+The shortcode automatically handles:
+- Image resizing and optimization
+- Lazy loading
+- Responsive images
+- Proper semantic markup with `<figure>` and `<figcaption>`
 
 ## Contributing
 

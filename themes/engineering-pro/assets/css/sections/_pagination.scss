@@ -1,0 +1,36 @@
+// _pagination.scss
+// Purpose: Styles for pagination system. Imported by main style.scss.
+
+@import "sections/variables";
+@import "sections/mixins";
+
+.pagination {
+  contain: layout style;
+  margin: 3rem 0 2rem 0;
+  text-align: center;
+
+  &-item {
+    margin: 0;
+    &.disabled {
+      .pagination-link {
+        color: $light-muted;
+        cursor: not-allowed;
+        background: $light-bg;
+        border-color: $border-color;
+      }
+      .pagination-link:hover {
+        background: $light-bg;
+        border-color: $border-color;
+        color: $light-muted;
+        transform: none;
+        box-shadow: none;
+      }
+    }
+  }
+
+  &-stats {
+    color: $very-light;
+    font-size: 0.9rem;
+    font-style: italic;
+  }
+}

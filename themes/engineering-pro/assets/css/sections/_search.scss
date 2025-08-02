@@ -1,0 +1,82 @@
+// _search.scss
+// Purpose: Styles for search modal, search box, and search results. Imported by main style.scss.
+
+@import "sections/variables";
+@import "sections/mixins";
+
+.search-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+
+  &-content {
+    position: relative;
+    background: $white;
+    border-radius: $border-radius-large;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 90vw;
+    max-height: 90vh;
+    width: 800px;
+    height: 600px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideIn 0.3s ease;
+    @media (max-width: 900px) {
+      width: 98vw;
+      height: 90vh;
+      border-radius: 0;
+    }
+  }
+}
+/* ================================================
+ * SEARCH TOGGLE
+ * ================================================ */
+
+.search-toggle {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  @include transition;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  font-family: inherit;
+  margin-left: auto;
+
+  &:hover {
+    background: rgba($white, 0.2); // Use $white variable for background
+    color: rgba($white, 0.8); // Use $white variable for color
+  }
+
+  svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+  }
+}
+
+.search-shortcut {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.75rem;
+  font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", monospace;
+  margin-left: 0.5rem;
+  color: rgba(255, 255, 255, 0.8);
+}

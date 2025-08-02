@@ -1,0 +1,33 @@
+// _sidebar.scss
+// Purpose: Styles for sidebar widgets, recent posts, categories, and tag cloud. Imported by main style.scss.
+
+@import "sections/variables";
+@import "sections/mixins";
+
+.blog-sidebar {
+  min-width: 0;
+}
+
+.sidebar-widget {
+  @include widget-style;
+  &:last-child {
+    margin-bottom: 0;
+  }
+  h3 {
+    font-size: 1.1rem;
+    color: $text-color-alt;
+    margin: 0 0 1rem 0;
+    padding-bottom: 0.75rem;
+    border-bottom: 3px solid $border-color-light;
+    position: relative;
+    &::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -3px;
+      width: 50px;
+      height: 3px;
+      background-color: $primary-color;
+    }
+  }
+}
