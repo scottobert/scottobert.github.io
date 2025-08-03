@@ -49,7 +49,7 @@ series: "Series Name" # Optional, only if part of a series
 
 ### Content Structure and Style
 
-- Start with a strong introductory paragraph that explains what the post covers and why it matters.
+- Start with a strong introductory paragraph that explains what the post covers and why it matters, make this engaging by starting with a compelling hook.
 - Include a relevant meme or image in the post, if applicable, and place it in `static/images/posts/` with the same filename as the post url.
 - Use paragraph-style prose rather than excessive bullet points or lists.
 - Include practical code examples when relevant, using proper syntax highlighting.

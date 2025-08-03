@@ -14,15 +14,33 @@ tags:
 series: AWS Cross-Account Patterns
 ---
 
+Picture this: Your e-commerce platform processes thousands of orders daily across multiple AWS accounts. The Orders team manages customer transactions in Account A, while the Fulfillment team handles inventory and shipping from Account B. Without proper integration, these teams resort to polling APIs, batch file transfers, or worse—manual processes that introduce delays and potential data inconsistencies.
+
+This is where Amazon EventBridge's cross-account capabilities shine. Instead of building complex point-to-point integrations, you can create elegant event-driven workflows that automatically route order events from the producer account to consumer systems in real-time, all while maintaining strict security boundaries.
+
 {{< image src="/posts/2025/07/30/cross-account-eventbridge-integration.png" alt="Overview of cross-account EventBridge integration architecture showing events flowing from one AWS account to another" width="800" >}}
 
-Event-driven architectures have become the backbone of modern distributed systems, enabling loose coupling between services and supporting scalable, resilient applications. When implementing these patterns across multiple AWS accounts, Amazon EventBridge provides powerful capabilities for cross-account event routing while maintaining security boundaries and organizational isolation.
+Cross-account EventBridge integration transforms how enterprise applications communicate across organizational boundaries. Events generated in one AWS account seamlessly trigger processing in another, enabling complex workflows while preserving the security isolation that separate accounts provide. This pattern has become essential for large organizations where different business units or environments operate independently but need to share critical business events.
 
-Cross-account EventBridge integration enables events generated in one AWS account to trigger processing in another account, supporting complex enterprise workflows where different business units or environments operate in separate accounts. This pattern is essential for building comprehensive event-driven systems that span organizational boundaries while maintaining proper security controls.
+## When You Need Cross-Account Event Integration
 
-## Architecture Overview
+Before diving into the technical implementation, let's explore the scenarios where cross-account EventBridge becomes invaluable:
 
-Cross-account EventBridge integration involves several key components working together to route events securely between AWS accounts. **Account A** (the producer) generates events and publishes them to a custom event bus. **Account B** (the consumer) receives these events through cross-account permissions and processes them with Lambda functions or other AWS services. **Resource-based policies** control which accounts can send events to specific event buses.
+**Multi-team organizations** often separate concerns by AWS account—the Platform team manages shared infrastructure in one account while individual product teams operate in their own accounts. When a user signs up in the Auth account, multiple downstream systems need notification: the Marketing account for campaign attribution, the Analytics account for user tracking, and the Billing account for subscription setup.
+
+**Environment separation** becomes critical when you need production events to trigger staging or development processes. Security teams might run vulnerability scanning in a separate account that needs notification when new container images are pushed to production registries.
+
+**Compliance requirements** frequently mandate data segregation, but business processes still need coordination. A healthcare application might store patient data in a HIPAA-compliant account while processing billing events in a separate financial systems account.
+
+**Vendor integrations** work seamlessly when third-party SaaS providers need access to specific events without broad account permissions. You can route sanitized events to a dedicated integration account that partners can access without exposing your core infrastructure.
+
+## The Architecture: Simple Yet Powerful
+
+The beauty of cross-account EventBridge lies in its simplicity. Three core components work together to create a secure, scalable event pipeline:
+
+The **Producer Account** (let's call it Account A) generates business events—new orders, user registrations, payment confirmations—and publishes them to a custom EventBridge bus. The **Consumer Account** (Account B) receives these events through carefully configured cross-account permissions and processes them with Lambda functions, Step Functions, or any other AWS service. **Resource-based policies** act as the security gatekeepers, controlling exactly which accounts can send events to which buses.
+
+Think of it like a secure postal system between buildings. The producer account drops events into a specific mailbox (custom event bus), the EventBridge service routes them across account boundaries, and the consumer account processes them according to predefined rules.
 
 {{< plantuml id="cross-account-eventbridge-architecture" >}}
 @startuml
@@ -66,431 +84,146 @@ end note
 @enduml
 {{< /plantuml >}}
 
-## Step 1: Setting Up Custom Event Buses
+## Implementation: Building Your Event Pipeline
 
-The foundation of cross-account EventBridge integration starts with creating custom event buses in both producer and consumer accounts. Custom event buses provide isolation from the default event bus and enable fine-grained access control for cross-account scenarios.
+Let's build this step by step using our e-commerce example. We'll create custom event buses, configure secure cross-account access, and implement both event publishers and consumers.
 
-Create a custom event bus in the producer account that will receive events from your applications:
+### Step 1: Custom Event Buses - Your Foundation
 
-```typescript
-import { EventBridgeClient, CreateEventBusCommand } from '@aws-sdk/client-eventbridge';
+Custom event buses provide the isolation and access control necessary for cross-account scenarios. Unlike the default event bus, custom buses allow fine-grained permissions and cleaner event organization.
 
-const eventBridgeClient = new EventBridgeClient({ region: 'us-east-1' });
-
-async function createProducerEventBus(): Promise<void> {
-  const command = new CreateEventBusCommand({
-    Name: 'orders-events',
-    EventSourceName: 'mycompany.orders'
-  });
-
-  try {
-    const response = await eventBridgeClient.send(command);
-    console.log('Created producer event bus:', {
-      eventBusArn: response.EventBusArn,
-      name: 'orders-events'
-    });
-  } catch (error) {
-    console.error('Failed to create producer event bus:', error);
-    throw error;
-  }
-}
-```
-
-Create the event bus using AWS CLI for quick setup:
-
-```bash
-# Create custom event bus in producer account
-aws events create-event-bus \
-    --name orders-events \
-    --event-source-name mycompany.orders
-
-# Create custom event bus in consumer account
-aws events create-event-bus \
-    --name consumer-events \
-    --event-source-name mycompany.processing
-```
-
-For Infrastructure as Code deployments, use AWS CDK to define the event buses:
+Here's the most straightforward approach using AWS CDK (though I'll show CLI alternatives for those who prefer them):
 
 ```typescript
 import * as events from 'aws-cdk-lib/aws-events';
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
-export class ProducerAccountStack extends cdk.Stack {
+export class EventBusStack extends cdk.Stack {
   public readonly ordersEventBus: events.EventBus;
-
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
-    super(scope, id, props);
-
-    // Create custom event bus for orders
-    this.ordersEventBus = new events.EventBus(this, 'OrdersEventBus', {
-      eventBusName: 'orders-events',
-      description: 'Custom event bus for order processing events'
-    });
-
-    // Output the event bus ARN for cross-account reference
-    new cdk.CfnOutput(this, 'OrdersEventBusArn', {
-      value: this.ordersEventBus.eventBusArn,
-      description: 'ARN of the orders event bus',
-      exportName: 'OrdersEventBusArn'
-    });
-  }
-}
-
-export class ConsumerAccountStack extends cdk.Stack {
   public readonly consumerEventBus: events.EventBus;
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // Create custom event bus for consumer processing
+    // Producer account: Create event bus for orders
+    this.ordersEventBus = new events.EventBus(this, 'OrdersEventBus', {
+      eventBusName: 'orders-events',
+      description: 'Cross-account event bus for order processing'
+    });
+
+    // Consumer account: Create event bus for processing
     this.consumerEventBus = new events.EventBus(this, 'ConsumerEventBus', {
       eventBusName: 'consumer-events',
-      description: 'Custom event bus for processing cross-account events'
+      description: 'Receives and processes cross-account events'
+    });
+
+    // Export the ARN for cross-account reference
+    new cdk.CfnOutput(this, 'OrdersEventBusArn', {
+      value: this.ordersEventBus.eventBusArn,
+      exportName: 'OrdersEventBusArn'
     });
   }
 }
 ```
 
-Document the event bus ARNs as you'll need them for configuring cross-account permissions and rules. The ARN format follows the pattern: `arn:aws:events:region:account-id:event-bus/event-bus-name`.
+> **Quick Alternative**: If you prefer CLI commands, you can create these buses with:
+>
+> ```bash
+> aws events create-event-bus --name orders-events
+> aws events create-event-bus --name consumer-events
+> ```
 
-## Step 2: Configuring Cross-Account Permissions
+### Step 2: Cross-Account Permissions - The Security Layer
 
-Cross-account EventBridge access requires resource-based policies that explicitly grant permission for the consumer account to receive events from the producer account's event bus. These policies work similarly to S3 bucket policies but apply to EventBridge resources.
+This is where the magic happens. We need to tell the producer account's event bus that it's okay to receive rules and targets from the consumer account. Think of this as giving the consumer account a key to the producer's mailbox.
 
-Create a resource-based policy for the producer account's event bus that allows the consumer account to create rules and receive events:
-
-```typescript
-// event-bus-policy.json - Grants cross-account access to event bus
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "AllowCrossAccountEventAccess",
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "arn:aws:iam::987654321098:root"
-      },
-      "Action": [
-        "events:PutRule",
-        "events:DeleteRule",
-        "events:DescribeRule",
-        "events:DisableRule",
-        "events:EnableRule",
-        "events:ListTargetsByRule",
-        "events:PutTargets",
-        "events:RemoveTargets"
-      ],
-      "Resource": "arn:aws:events:us-east-1:123456789012:event-bus/orders-events"
-    },
-    {
-      "Sid": "AllowCrossAccountRuleTargets",
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "arn:aws:iam::987654321098:root"
-      },
-      "Action": [
-        "events:PutRule",
-        "events:PutTargets"
-      ],
-      "Resource": "arn:aws:events:us-east-1:123456789012:rule/orders-events/*"
-    }
-  ]
-}
-```
-
-Apply the resource-based policy to the event bus:
-
-```bash
-# Apply cross-account policy to the producer event bus
-aws events put-permission \
-    --principal arn:aws:iam::987654321098:root \
-    --action "events:PutRule" \
-    --statement-id "CrossAccountAccess" \
-    --source-arn arn:aws:events:us-east-1:123456789012:event-bus/orders-events
-```
-
-Using AWS CDK, you can define the cross-account permissions declaratively:
+The cleanest approach uses CDK to set up these permissions declaratively:
 
 ```typescript
-import * as events from 'aws-cdk-lib/aws-events';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import * as cdk from 'aws-cdk-lib';
 
 export class ProducerAccountStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps & { 
-    consumerAccountId: string 
-  }) {
-    super(scope, id, props);
+  constructor(scope: Construct, id: string, props: { consumerAccountId: string }) {
+    super(scope, id);
 
     const ordersEventBus = new events.EventBus(this, 'OrdersEventBus', {
       eventBusName: 'orders-events'
     });
 
-    // Grant cross-account permissions to consumer account
+    // Grant the consumer account permission to create rules and targets
     ordersEventBus.addToResourcePolicy(new iam.PolicyStatement({
-      sid: 'AllowCrossAccountEventAccess',
+      sid: 'AllowCrossAccountAccess',
       effect: iam.Effect.ALLOW,
       principals: [new iam.AccountPrincipal(props.consumerAccountId)],
       actions: [
         'events:PutRule',
-        'events:DeleteRule',
-        'events:DescribeRule',
-        'events:DisableRule',
-        'events:EnableRule',
-        'events:ListTargetsByRule',
         'events:PutTargets',
+        'events:DeleteRule',
         'events:RemoveTargets'
       ],
       resources: [ordersEventBus.eventBusArn]
     }));
-
-    // Allow consumer account to create rules targeting this event bus
-    ordersEventBus.addToResourcePolicy(new iam.PolicyStatement({
-      sid: 'AllowCrossAccountRuleTargets',
-      effect: iam.Effect.ALLOW,
-      principals: [new iam.AccountPrincipal(props.consumerAccountId)],
-      actions: [
-        'events:PutRule',
-        'events:PutTargets'
-      ],
-      resources: [`${ordersEventBus.eventBusArn.replace(':event-bus/', ':rule/')}/orders-events/*`]
-    }));
   }
 }
 ```
 
-For more granular control, create IAM roles in the consumer account with specific permissions for EventBridge operations:
+This resource policy essentially says: "Consumer account 987654321098, you're allowed to create rules on my event bus and tell me where to send matching events."
+
+### Step 3: Creating the Event Flow
+
+Now we connect the dots. The consumer account creates a rule on the producer's event bus that says "when you see order events, send them to my event bus." Here's how that works:
 
 ```typescript
-// cross-account-eventbridge-role-policy.json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "events:PutRule",
-        "events:PutTargets",
-        "events:DeleteRule",
-        "events:RemoveTargets",
-        "events:DescribeRule",
-        "events:ListTargetsByRule"
-      ],
-      "Resource": [
-        "arn:aws:events:us-east-1:123456789012:event-bus/orders-events",
-        "arn:aws:events:us-east-1:123456789012:rule/orders-events/*",
-        "arn:aws:events:us-east-1:987654321098:event-bus/consumer-events",
-        "arn:aws:events:us-east-1:987654321098:rule/consumer-events/*"
-      ]
-    }
-  ]
-}
-```
-
-Create the IAM role using AWS CDK for better maintainability:
-
-```typescript
-export class ConsumerAccountStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps & {
-    producerAccountId: string
-  }) {
-    super(scope, id, props);
-
-    const consumerEventBus = new events.EventBus(this, 'ConsumerEventBus', {
-      eventBusName: 'consumer-events'
-    });
-
-    // Create IAM role for EventBridge cross-account operations
-    const eventBridgeRole = new iam.Role(this, 'EventBridgeCrossAccountRole', {
-      roleName: 'EventBridgeCrossAccountRole',
-      assumedBy: new iam.ServicePrincipal('events.amazonaws.com'),
-      inlinePolicies: {
-        CrossAccountEventBridgePolicy: new iam.PolicyDocument({
-          statements: [
-            new iam.PolicyStatement({
-              effect: iam.Effect.ALLOW,
-              actions: [
-                'events:PutRule',
-                'events:PutTargets',
-                'events:DeleteRule',
-                'events:RemoveTargets',
-                'events:DescribeRule',
-                'events:ListTargetsByRule'
-              ],
-              resources: [
-                `arn:aws:events:${this.region}:${props.producerAccountId}:event-bus/orders-events`,
-                `arn:aws:events:${this.region}:${props.producerAccountId}:rule/orders-events/*`,
-                consumerEventBus.eventBusArn,
-                `${consumerEventBus.eventBusArn.replace(':event-bus/', ':rule/')}/consumer-events/*`
-              ]
-            })
-          ]
-        })
-      }
-    });
-
-    // Output the role ARN for use in cross-account rules
-    new cdk.CfnOutput(this, 'EventBridgeRoleArn', {
-      value: eventBridgeRole.roleArn,
-      description: 'IAM Role ARN for EventBridge cross-account operations'
-    });
-  }
-}
-```
-
-## Step 3: Creating Cross-Account EventBridge Rules
-
-EventBridge rules define which events should be routed between accounts and where they should be delivered. Create rules in the consumer account that listen for events from the producer account's event bus and route them to appropriate targets.
-
-Create a rule in the consumer account that matches events from the producer account:
-
-```typescript
-import { 
-  EventBridgeClient, 
-  PutRuleCommand, 
-  PutTargetsCommand 
-} from '@aws-sdk/client-eventbridge';
-
-async function createCrossAccountRule(): Promise<void> {
-  const eventBridgeClient = new EventBridgeClient({ region: 'us-east-1' });
-
-  // Create rule that matches order events from producer account
-  const ruleCommand = new PutRuleCommand({
-    Name: 'cross-account-order-processing',
-    EventBusName: 'arn:aws:events:us-east-1:123456789012:event-bus/orders-events',
-    EventPattern: JSON.stringify({
-      source: ['mycompany.orders'],
-      'detail-type': ['Order Created', 'Order Updated', 'Order Cancelled'],
-      detail: {
-        status: ['pending', 'confirmed', 'cancelled']
-      }
-    }),
-    State: 'ENABLED',
-    Description: 'Routes order events from producer account to consumer processing'
-  });
-
-  try {
-    await eventBridgeClient.send(ruleCommand);
-    console.log('Created cross-account EventBridge rule');
-
-    // Add targets to the rule
-    const targetsCommand = new PutTargetsCommand({
-      Rule: 'cross-account-order-processing',
-      EventBusName: 'arn:aws:events:us-east-1:123456789012:event-bus/orders-events',
-      Targets: [
-        {
-          Id: '1',
-          Arn: 'arn:aws:events:us-east-1:987654321098:event-bus/consumer-events',
-          RoleArn: 'arn:aws:iam::987654321098:role/EventBridgeExecutionRole'
-        }
-      ]
-    });
-
-    await eventBridgeClient.send(targetsCommand);
-    console.log('Added targets to cross-account rule');
-  } catch (error) {
-    console.error('Failed to create cross-account rule:', error);
-    throw error;
-  }
-}
-```
-
-Create rules using AWS CLI for simpler scenarios:
-
-```bash
-# Create rule in consumer account that listens to producer account's event bus
-aws events put-rule \
-    --event-bus-name arn:aws:events:us-east-1:123456789012:event-bus/orders-events \
-    --name cross-account-order-processing \
-    --event-pattern '{
-        "source": ["mycompany.orders"],
-        "detail-type": ["Order Created", "Order Updated"],
-        "detail": {
-            "status": ["pending", "confirmed"]
-        }
-    }' \
-    --state ENABLED
-
-# Add target to route events to consumer account's event bus
-aws events put-targets \
-    --event-bus-name arn:aws:events:us-east-1:123456789012:event-bus/orders-events \
-    --rule cross-account-order-processing \
-    --targets "Id"="1","Arn"="arn:aws:events:us-east-1:987654321098:event-bus/consumer-events"
-```
-
-Use AWS CDK to define cross-account rules with type safety and better maintainability:
-
-```typescript
-import * as events from 'aws-cdk-lib/aws-events';
 import * as events_targets from 'aws-cdk-lib/aws-events-targets';
-import * as iam from 'aws-cdk-lib/aws-iam';
-import * as cdk from 'aws-cdk-lib';
-import { Construct } from 'constructs';
 
 export class ConsumerAccountStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps & {
+  constructor(scope: Construct, id: string, props: {
     producerAccountId: string;
     producerEventBusArn: string;
   }) {
-    super(scope, id, props);
+    super(scope, id);
 
+    // Consumer's event bus for processing
     const consumerEventBus = new events.EventBus(this, 'ConsumerEventBus', {
       eventBusName: 'consumer-events'
     });
 
-    // Import the producer account's event bus
+    // Import the producer's event bus
     const producerEventBus = events.EventBus.fromEventBusArn(
-      this, 
-      'ProducerEventBus', 
-      props.producerEventBusArn
+      this, 'ProducerEventBus', props.producerEventBusArn
     );
 
-    // Create cross-account rule that routes to consumer event bus
-    const crossAccountRule = new events.Rule(this, 'CrossAccountOrderProcessing', {
-      ruleName: 'cross-account-order-processing',
+    // Create rule on producer's bus that routes to our bus
+    const crossAccountRule = new events.Rule(this, 'CrossAccountOrderRule', {
       eventBus: producerEventBus,
-      description: 'Routes order events from producer account to consumer processing',
-      eventPattern: {
-        source: ['mycompany.orders'],
-        detailType: ['Order Created', 'Order Updated', 'Order Cancelled'],
-        detail: {
-          status: ['pending', 'confirmed', 'cancelled']
-        }
-      },
-      enabled: true
-    });
-
-    // Add consumer event bus as target
-    crossAccountRule.addTarget(new events_targets.EventBusTarget(consumerEventBus, {
-      role: iam.Role.fromRoleArn(this, 'EventBridgeExecutionRole', 
-        'arn:aws:iam::987654321098:role/EventBridgeExecutionRole'
-      )
-    }));
-
-    // Create local rule in consumer account to process events
-    const localProcessingRule = new events.Rule(this, 'LocalOrderProcessing', {
-      ruleName: 'local-order-processing',
-      eventBus: consumerEventBus,
-      description: 'Processes cross-account order events locally',
       eventPattern: {
         source: ['mycompany.orders'],
         detailType: ['Order Created', 'Order Updated', 'Order Cancelled']
       }
     });
 
-    // Add Lambda function as target (we'll define this in Step 5)
-    // localProcessingRule.addTarget(new events_targets.LambdaFunction(orderProcessorFunction));
+    // Route matching events to our consumer bus
+    crossAccountRule.addTarget(new events_targets.EventBusTarget(consumerEventBus));
+    
+    // Now create a local rule to process events in our account
+    const localRule = new events.Rule(this, 'ProcessOrdersLocally', {
+      eventBus: consumerEventBus,
+      eventPattern: {
+        source: ['mycompany.orders']
+      }
+    });
+    
+    // We'll add targets like Lambda functions here in the next step
   }
 }
 ```
 
-## Step 4: Implementing Event Publishers
+The beauty of this setup is that the consumer account controls its own destiny. It decides which events it wants from the producer and where those events should go locally.
 
-Event publishers in the producer account generate and send events to the custom event bus. These publishers should follow consistent event schemas and include appropriate metadata for routing and processing.
+### Step 4: Publishers and Consumers - The Business Logic
 
-Create an event publisher that sends structured events to the custom event bus:
+Now for the fun part—actually sending and receiving events. Let's start with a clean, reusable event publisher:
 
 ```typescript
 import { EventBridgeClient, PutEventsCommand } from '@aws-sdk/client-eventbridge';
@@ -501,174 +234,41 @@ interface OrderEvent {
   status: 'pending' | 'confirmed' | 'cancelled';
   amount: number;
   timestamp: string;
-  metadata?: Record<string, any>;
 }
 
 class OrderEventPublisher {
-  private eventBridgeClient: EventBridgeClient;
-  private eventBusName: string;
-
-  constructor(eventBusName: string) {
-    this.eventBridgeClient = new EventBridgeClient({ region: 'us-east-1' });
-    this.eventBusName = eventBusName;
-  }
-
+  private eventBridge = new EventBridgeClient({ region: 'us-east-1' });
+  
   async publishOrderEvent(event: OrderEvent, eventType: string): Promise<void> {
-    const putEventsCommand = new PutEventsCommand({
-      Entries: [
-        {
-          Source: 'mycompany.orders',
-          DetailType: eventType,
-          Detail: JSON.stringify(event),
-          EventBusName: this.eventBusName,
-          Time: new Date(),
-          Resources: [
-            `arn:aws:orders:us-east-1:123456789012:order/${event.orderId}`
-          ]
-        }
-      ]
-    });
-
-    try {
-      const response = await this.eventBridgeClient.send(putEventsCommand);
-      
-      if (response.FailedEntryCount && response.FailedEntryCount > 0) {
-        console.error('Failed to publish some events:', response.Entries);
-        throw new Error(`Failed to publish ${response.FailedEntryCount} events`);
-      }
-
-      console.log('Successfully published order event:', {
-        orderId: event.orderId,
-        eventType,
-        status: event.status
-      });
-    } catch (error) {
-      console.error('Failed to publish order event:', {
-        error: error.message,
-        orderId: event.orderId,
-        eventType
-      });
-      throw error;
-    }
+    await this.eventBridge.send(new PutEventsCommand({
+      Entries: [{
+        Source: 'mycompany.orders',
+        DetailType: eventType,
+        Detail: JSON.stringify(event),
+        EventBusName: 'orders-events',
+        Time: new Date()
+      }]
+    }));
   }
 }
 
-// Usage example in Lambda function
-export const handler = async (event: any): Promise<void> => {
-  const publisher = new OrderEventPublisher('orders-events');
+// Usage in your order processing Lambda
+export const handleOrderCreated = async (orderData: any) => {
+  const publisher = new OrderEventPublisher();
   
-  const orderEvent: OrderEvent = {
-    orderId: event.orderId,
-    customerId: event.customerId,
-    status: event.status,
-    amount: event.amount,
-    timestamp: new Date().toISOString(),
-    metadata: {
-      region: 'us-east-1',
-      version: '1.0'
-    }
-  };
-
-  await publisher.publishOrderEvent(orderEvent, 'Order Created');
+  await publisher.publishOrderEvent({
+    orderId: orderData.id,
+    customerId: orderData.customerId,
+    status: 'pending',
+    amount: orderData.totalAmount,
+    timestamp: new Date().toISOString()
+  }, 'Order Created');
 };
 ```
 
-Implement batch publishing for high-throughput scenarios:
+The key insight here is maintaining consistent event schemas. Every order event should have the same basic structure, making it easier for consumers to process them reliably.
 
-```typescript
-async function publishBatchEvents(events: OrderEvent[]): Promise<void> {
-  const eventBridgeClient = new EventBridgeClient({ region: 'us-east-1' });
-  
-  // EventBridge supports up to 10 events per batch
-  const batchSize = 10;
-  const batches = [];
-  
-  for (let i = 0; i < events.length; i += batchSize) {
-    batches.push(events.slice(i, i + batchSize));
-  }
-
-  for (const batch of batches) {
-    const entries = batch.map(event => ({
-      Source: 'mycompany.orders',
-      DetailType: 'Order Batch Update',
-      Detail: JSON.stringify(event),
-      EventBusName: 'orders-events',
-      Time: new Date()
-    }));
-
-    const command = new PutEventsCommand({ Entries: entries });
-    await eventBridgeClient.send(command);
-  }
-}
-```
-
-Deploy the event publisher infrastructure using AWS CDK:
-
-```typescript
-import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as events from 'aws-cdk-lib/aws-events';
-import * as iam from 'aws-cdk-lib/aws-iam';
-
-export class EventPublisherStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
-    super(scope, id, props);
-
-    // Create event bus
-    const ordersEventBus = new events.EventBus(this, 'OrdersEventBus', {
-      eventBusName: 'orders-events'
-    });
-
-    // Create Lambda function for publishing events
-    const eventPublisherFunction = new lambda.Function(this, 'EventPublisherFunction', {
-      functionName: 'OrderEventPublisher',
-      runtime: lambda.Runtime.NODEJS_18_X,
-      handler: 'index.handler',
-      code: lambda.Code.fromAsset('lambda-publisher'), // Publisher code directory
-      timeout: cdk.Duration.seconds(30),
-      environment: {
-        EVENT_BUS_NAME: ordersEventBus.eventBusName
-      }
-    });
-
-    // Grant Lambda permission to publish to event bus
-    ordersEventBus.grantPutEventsTo(eventPublisherFunction);
-
-    // Create IAM role for EventBridge execution
-    const eventBridgeExecutionRole = new iam.Role(this, 'EventBridgeExecutionRole', {
-      roleName: 'EventBridgeExecutionRole',
-      assumedBy: new iam.ServicePrincipal('events.amazonaws.com'),
-      inlinePolicies: {
-        EventBridgeExecutionPolicy: new iam.PolicyDocument({
-          statements: [
-            new iam.PolicyStatement({
-              effect: iam.Effect.ALLOW,
-              actions: ['events:PutEvents'],
-              resources: ['*']
-            })
-          ]
-        })
-      }
-    });
-
-    // Output important values
-    new cdk.CfnOutput(this, 'EventPublisherFunctionArn', {
-      value: eventPublisherFunction.functionArn,
-      description: 'Lambda function ARN for event publishing'
-    });
-
-    new cdk.CfnOutput(this, 'EventBusArn', {
-      value: ordersEventBus.eventBusArn,
-      description: 'Event bus ARN for cross-account sharing'
-    });
-  }
-}
-```
-
-## Step 5: Building Event Consumers
-
-Event consumers in the consumer account process events routed from the producer account. These consumers should be designed to handle events idempotently and include proper error handling for failed processing scenarios.
-
-Create an event consumer Lambda function that processes cross-account events:
+**On the consumer side**, we process these cross-account events with clean, focused Lambda functions:
 
 ```typescript
 import { EventBridgeEvent } from 'aws-lambda';
@@ -680,519 +280,175 @@ interface OrderEventDetail {
   status: string;
   amount: number;
   timestamp: string;
-  metadata?: Record<string, any>;
 }
 
-const dynamoDbClient = new DynamoDBClient({ region: 'us-east-1' });
+const dynamodb = new DynamoDBClient({ region: 'us-east-1' });
 
-export const handler = async (
+export const processOrderEvent = async (
   event: EventBridgeEvent<string, OrderEventDetail>
 ): Promise<void> => {
-  console.log('Received cross-account event:', {
-    source: event.source,
-    detailType: event['detail-type'],
-    account: event.account,
-    region: event.region
-  });
+  const { detail, 'detail-type': eventType, account } = event;
+  
+  console.log(`Processing ${eventType} from account ${account}:`, detail.orderId);
 
-  try {
-    // Validate event structure
-    if (!event.detail || !event.detail.orderId) {
-      throw new Error('Invalid event structure: missing orderId');
-    }
-
-    // Process the event based on type
-    switch (event['detail-type']) {
-      case 'Order Created':
-        await processOrderCreated(event.detail);
-        break;
-      case 'Order Updated':
-        await processOrderUpdated(event.detail);
-        break;
-      case 'Order Cancelled':
-        await processOrderCancelled(event.detail);
-        break;
-      default:
-        console.warn('Unknown event type:', event['detail-type']);
-    }
-
-    console.log('Successfully processed cross-account event:', {
-      orderId: event.detail.orderId,
-      eventType: event['detail-type']
-    });
-  } catch (error) {
-    console.error('Failed to process cross-account event:', {
-      error: error.message,
-      event: event.detail,
-      eventType: event['detail-type']
-    });
-    throw error;
+  // Route to appropriate handler based on event type
+  switch (eventType) {
+    case 'Order Created':
+      await handleNewOrder(detail);
+      break;
+    case 'Order Updated':
+      await handleOrderUpdate(detail);
+      break;
+    case 'Order Cancelled':
+      await handleOrderCancellation(detail);
+      break;
+    default:
+      console.warn(`Unknown event type: ${eventType}`);
   }
 };
 
-async function processOrderCreated(orderDetail: OrderEventDetail): Promise<void> {
-  const putItemCommand = new PutItemCommand({
+async function handleNewOrder(order: OrderEventDetail): Promise<void> {
+  // Idempotent processing - only create if doesn't exist
+  await dynamodb.send(new PutItemCommand({
     TableName: 'ProcessedOrders',
     Item: {
-      orderId: { S: orderDetail.orderId },
-      customerId: { S: orderDetail.customerId },
-      status: { S: orderDetail.status },
-      amount: { N: orderDetail.amount.toString() },
-      processedAt: { S: new Date().toISOString() },
-      originalTimestamp: { S: orderDetail.timestamp },
-      eventType: { S: 'Order Created' }
+      orderId: { S: order.orderId },
+      customerId: { S: order.customerId },
+      status: { S: order.status },
+      amount: { N: order.amount.toString() },
+      processedAt: { S: new Date().toISOString() }
     },
-    ConditionExpression: 'attribute_not_exists(orderId)' // Ensure idempotency
-  });
-
-  await dynamoDbClient.send(putItemCommand);
-}
-
-async function processOrderUpdated(orderDetail: OrderEventDetail): Promise<void> {
-  // Update existing order record
-  const putItemCommand = new PutItemCommand({
-    TableName: 'ProcessedOrders',
-    Item: {
-      orderId: { S: orderDetail.orderId },
-      customerId: { S: orderDetail.customerId },
-      status: { S: orderDetail.status },
-      amount: { N: orderDetail.amount.toString() },
-      lastUpdatedAt: { S: new Date().toISOString() },
-      originalTimestamp: { S: orderDetail.timestamp },
-      eventType: { S: 'Order Updated' }
-    }
-  });
-
-  await dynamoDbClient.send(putItemCommand);
-}
-
-async function processOrderCancelled(orderDetail: OrderEventDetail): Promise<void> {
-  // Mark order as cancelled and trigger cleanup processes
-  const putItemCommand = new PutItemCommand({
-    TableName: 'ProcessedOrders',
-    Item: {
-      orderId: { S: orderDetail.orderId },
-      customerId: { S: orderDetail.customerId },
-      status: { S: 'cancelled' },
-      amount: { N: orderDetail.amount.toString() },
-      cancelledAt: { S: new Date().toISOString() },
-      originalTimestamp: { S: orderDetail.timestamp },
-      eventType: { S: 'Order Cancelled' }
-    }
-  });
-
-  await dynamoDbClient.send(putItemCommand);
+    ConditionExpression: 'attribute_not_exists(orderId)'
+  }));
+  
+  // Trigger downstream processes like inventory allocation, shipping prep, etc.
+  // await allocateInventory(order);
+  // await notifyWarehouse(order);
 }
 ```
 
-Deploy the event consumer infrastructure using AWS CDK:
+The consumer pattern emphasizes **idempotency** and **error handling**. Since events might be delivered more than once, your processing logic should be safe to run multiple times without side effects.
+
+## Advanced Patterns That Matter
+
+### Content-Based Routing
+
+You can create sophisticated routing rules that filter events based on their content. For example, high-value orders might need special handling:
 
 ```typescript
-import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as events from 'aws-cdk-lib/aws-events';
-import * as events_targets from 'aws-cdk-lib/aws-events-targets';
-import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
-import * as sqs from 'aws-cdk-lib/aws-sqs';
-import * as iam from 'aws-cdk-lib/aws-iam';
-
-export class EventConsumerStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps & {
-    producerAccountId: string;
-    producerEventBusArn: string;
-  }) {
-    super(scope, id, props);
-
-    // Create DynamoDB table for processed orders
-    const processedOrdersTable = new dynamodb.Table(this, 'ProcessedOrdersTable', {
-      tableName: 'ProcessedOrders',
-      partitionKey: { name: 'orderId', type: dynamodb.AttributeType.STRING },
-      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      pointInTimeRecovery: true,
-      removalPolicy: cdk.RemovalPolicy.RETAIN // Use RETAIN for production
-    });
-
-    // Create consumer event bus
-    const consumerEventBus = new events.EventBus(this, 'ConsumerEventBus', {
-      eventBusName: 'consumer-events'
-    });
-
-    // Create Dead Letter Queue for failed processing
-    const dlqQueue = new sqs.Queue(this, 'OrderProcessingDLQ', {
-      queueName: 'order-processing-dlq',
-      retentionPeriod: cdk.Duration.days(14)
-    });
-
-    // Create Lambda function for processing events
-    const orderProcessorFunction = new lambda.Function(this, 'OrderProcessorFunction', {
-      functionName: 'CrossAccountEventProcessor',
-      runtime: lambda.Runtime.NODEJS_18_X,
-      handler: 'index.handler',
-      code: lambda.Code.fromAsset('lambda-consumer'), // Consumer code directory
-      timeout: cdk.Duration.seconds(30),
-      environment: {
-        DYNAMODB_TABLE_NAME: processedOrdersTable.tableName
-      },
-      deadLetterQueue: dlqQueue
-    });
-
-    // Grant Lambda permission to write to DynamoDB
-    processedOrdersTable.grantWriteData(orderProcessorFunction);
-
-    // Import producer event bus for cross-account rule
-    const producerEventBus = events.EventBus.fromEventBusArn(
-      this, 
-      'ProducerEventBus', 
-      props.producerEventBusArn
-    );
-
-    // Create cross-account rule that routes to consumer event bus
-    const crossAccountRule = new events.Rule(this, 'CrossAccountOrderProcessing', {
-      ruleName: 'cross-account-order-processing',
-      eventBus: producerEventBus,
-      description: 'Routes order events from producer account to consumer processing',
-      eventPattern: {
-        source: ['mycompany.orders'],
-        detailType: ['Order Created', 'Order Updated', 'Order Cancelled'],
-        detail: {
-          status: ['pending', 'confirmed', 'cancelled']
-        }
-      }
-    });
-
-    // Add consumer event bus as target for cross-account rule
-    crossAccountRule.addTarget(new events_targets.EventBusTarget(consumerEventBus));
-
-    // Create local rule in consumer account to process events
-    const localProcessingRule = new events.Rule(this, 'LocalOrderProcessing', {
-      ruleName: 'local-order-processing',
-      eventBus: consumerEventBus,
-      description: 'Processes cross-account order events locally',
-      eventPattern: {
-        source: ['mycompany.orders'],
-        detailType: ['Order Created', 'Order Updated', 'Order Cancelled']
-      }
-    });
-
-    // Add Lambda function as target with error handling
-    localProcessingRule.addTarget(new events_targets.LambdaFunction(orderProcessorFunction, {
-      deadLetterQueue: dlqQueue,
-      maxEventAge: cdk.Duration.hours(2),
-      retryAttempts: 3
-    }));
-
-    // Output important values
-    new cdk.CfnOutput(this, 'OrderProcessorFunctionArn', {
-      value: orderProcessorFunction.functionArn,
-      description: 'Lambda function ARN for order processing'
-    });
-
-    new cdk.CfnOutput(this, 'ProcessedOrdersTableName', {
-      value: processedOrdersTable.tableName,
-      description: 'DynamoDB table name for processed orders'
-    });
-
-    new cdk.CfnOutput(this, 'ConsumerEventBusArn', {
-      value: consumerEventBus.eventBusArn,
-      description: 'Consumer event bus ARN'
-    });
+// Route only high-value orders to premium processing
+const highValueOrderRule = new events.Rule(this, 'HighValueOrders', {
+  eventBus: producerEventBus,
+  eventPattern: {
+    source: ['mycompany.orders'],
+    detailType: ['Order Created'],
+    detail: {
+      amount: [{ numeric: ['>=', 1000] }], // Orders >= $1000
+      status: ['confirmed']
+    }
   }
-}
-```
-
-## Step 6: Event Filtering and Routing Patterns
-
-Advanced EventBridge configurations support sophisticated event filtering and routing patterns that enable fine-grained control over which events are processed by specific consumers.
-
-Implement content-based filtering to route events based on their payload content:
-
-```typescript
-// Complex event pattern for content-based routing
-const advancedEventPattern = {
-  source: ['mycompany.orders'],
-  'detail-type': ['Order Created', 'Order Updated'],
-  detail: {
-    status: ['confirmed'],
-    amount: [{ numeric: ['>=', 1000] }], // Orders over $1000
-    metadata: {
-      priority: ['high', 'critical']
-    }
-  },
-  region: ['us-east-1', 'us-west-2']
-};
-
-// Create rule with advanced filtering
-const ruleCommand = new PutRuleCommand({
-  Name: 'high-value-order-processing',
-  EventBusName: 'arn:aws:events:us-east-1:123456789012:event-bus/orders-events',
-  EventPattern: JSON.stringify(advancedEventPattern),
-  State: 'ENABLED'
 });
 ```
 
-Implement transformation patterns to modify events before delivery:
+### Event Transformation
+
+EventBridge can transform events before delivery, which is incredibly useful for cross-account scenarios where you want to sanitize or reshape data:
 
 ```typescript
-// EventBridge rule with input transformation
-const transformedTargetsCommand = new PutTargetsCommand({
-  Rule: 'high-value-order-processing',
-  EventBusName: 'orders-events',
-  Targets: [
-    {
-      Id: '1',
-      Arn: 'arn:aws:lambda:us-east-1:987654321098:function:ProcessHighValueOrders',
-      InputTransformer: {
-        InputPathsMap: {
-          orderId: '$.detail.orderId',
-          amount: '$.detail.amount',
-          timestamp: '$.time'
-        },
-        InputTemplate: JSON.stringify({
-          processedOrderId: '<orderId>',
-          orderValue: '<amount>',
-          receivedAt: '<timestamp>',
-          priority: 'high',
-          crossAccountSource: true
-        })
-      }
-    }
-  ]
-});
+crossAccountRule.addTarget(new events_targets.LambdaFunction(processorFunction, {
+  event: events.RuleTargetInput.fromObject({
+    orderId: events.EventField.fromPath('$.detail.orderId'),
+    value: events.EventField.fromPath('$.detail.amount'),
+    timestamp: events.EventField.fromPath('$.time'),
+    priority: 'high',
+    source: 'cross-account'
+  })
+}));
 ```
 
-## Testing and Monitoring
+## Testing and Monitoring: Don't Skip This
 
-Comprehensive testing and monitoring ensure reliable cross-account event delivery and processing. Implement both synthetic testing and real-time monitoring to detect issues quickly.
-
-Create test events to validate cross-account routing:
+Testing cross-account EventBridge requires a different approach than single-account testing. Here's a pragmatic testing strategy:
 
 ```typescript
-// Test event publisher for validation
-async function publishTestEvent(): Promise<void> {
-  const testEvent = {
-    orderId: `test-${Date.now()}`,
-    customerId: 'test-customer',
-    status: 'pending' as const,
-    amount: 100,
-    timestamp: new Date().toISOString(),
-    metadata: {
-      test: true,
-      environment: 'staging'
-    }
-  };
-
-  const publisher = new OrderEventPublisher('orders-events');
-  await publisher.publishOrderEvent(testEvent, 'Test Order Created');
-}
-
-// Automated test to verify cross-account delivery
-export const testCrossAccountDelivery = async (): Promise<boolean> => {
+// Create synthetic test events to validate your pipeline
+async function validateCrossAccountFlow(): Promise<boolean> {
   const testOrderId = `test-${Date.now()}`;
   
   // Publish test event
-  await publishTestEvent();
+  await publisher.publishOrderEvent({
+    orderId: testOrderId,
+    customerId: 'test-customer',
+    status: 'pending',
+    amount: 100,
+    timestamp: new Date().toISOString()
+  }, 'Order Created');
   
-  // Wait for processing
-  await new Promise(resolve => setTimeout(resolve, 5000));
+  // Wait a moment for processing
+  await new Promise(resolve => setTimeout(resolve, 3000));
   
-  // Verify event was processed in consumer account
-  // Implementation depends on your storage/logging setup
-  return true; // Replace with actual verification logic
-};
+  // Verify the event was processed in consumer account
+  // (Check your DynamoDB table, logs, or other indicators)
+  return true;
+}
 ```
 
-Set up CloudWatch monitoring for cross-account EventBridge operations:
+Set up CloudWatch alarms for the metrics that matter:
+
+- **Failed invocations** on your EventBridge rules
+- **Dead letter queue depth** for your Lambda consumers  
+- **Cross-account delivery failures** using EventBridge metrics
+
+## Security Considerations for Production
+
+**Principle of least privilege** becomes critical in cross-account scenarios. Only grant the minimum permissions necessary:
 
 ```typescript
-// CloudWatch alarm for failed cross-account events
-const failedEventsAlarm = {
-  AlarmName: 'CrossAccountEventBridgeFailures',
-  MetricName: 'FailedInvocations',
-  Namespace: 'AWS/Events',
-  Statistic: 'Sum',
-  Period: 300,
-  EvaluationPeriods: 2,
-  Threshold: 5,
-  ComparisonOperator: 'GreaterThanThreshold',
-  Dimensions: [
-    {
-      Name: 'RuleName',
-      Value: 'cross-account-order-processing'
+// Restrict permissions to specific event patterns
+ordersEventBus.addToResourcePolicy(new iam.PolicyStatement({
+  effect: iam.Effect.ALLOW,
+  principals: [new iam.AccountPrincipal(consumerAccountId)],
+  actions: ['events:PutRule'],
+  resources: [ordersEventBus.eventBusArn],
+  conditions: {
+    StringEquals: {
+      'events:source': 'mycompany.orders'
     }
-  ]
-};
+  }
+}));
 ```
 
-## Security Best Practices
-
-Cross-account EventBridge integration requires careful security considerations to prevent unauthorized access and ensure event integrity. Implement multiple layers of security controls to protect sensitive event data.
-
-**Event payload encryption** protects sensitive data in transit between accounts:
+For sensitive data, consider **event payload encryption**:
 
 ```typescript
-import { KMSClient, EncryptCommand, DecryptCommand } from '@aws-sdk/client-kms';
+import { KMSClient, EncryptCommand } from '@aws-sdk/client-kms';
 
-class SecureEventPublisher {
-  private kmsClient: KMSClient;
-  private keyId: string;
-
-  constructor(keyId: string) {
-    this.kmsClient = new KMSClient({ region: 'us-east-1' });
-    this.keyId = keyId;
-  }
-
-  async publishSecureEvent(event: OrderEvent, eventType: string): Promise<void> {
-    // Encrypt sensitive data before publishing
-    const encryptCommand = new EncryptCommand({
-      KeyId: this.keyId,
+class SecureOrderPublisher extends OrderEventPublisher {
+  private kms = new KMSClient({ region: 'us-east-1' });
+  
+  async publishSecureOrderEvent(event: OrderEvent, eventType: string): Promise<void> {
+    const encrypted = await this.kms.send(new EncryptCommand({
+      KeyId: 'arn:aws:kms:us-east-1:123456789012:key/your-key-id',
       Plaintext: Buffer.from(JSON.stringify(event))
-    });
-
-    const encryptedResult = await this.kmsClient.send(encryptCommand);
+    }));
     
-    const secureEvent = {
-      encryptedPayload: Buffer.from(encryptedResult.CiphertextBlob!).toString('base64'),
-      keyId: this.keyId,
-      algorithm: 'AWS_KMS'
-    };
-
-    // Publish encrypted event
-    const putEventsCommand = new PutEventsCommand({
-      Entries: [{
-        Source: 'mycompany.orders.secure',
-        DetailType: eventType,
-        Detail: JSON.stringify(secureEvent),
-        EventBusName: 'orders-events'
-      }]
-    });
-
-    await this.eventBridgeClient.send(putEventsCommand);
+    // Publish encrypted payload
+    await this.publishOrderEvent({
+      ...event,
+      encryptedData: Buffer.from(encrypted.CiphertextBlob!).toString('base64')
+    }, eventType);
   }
 }
 ```
 
-## Deploying with AWS CDK
+## Putting It All Together
 
-To deploy the complete cross-account EventBridge infrastructure, create a CDK application that coordinates both producer and consumer stacks:
+Cross-account EventBridge integration solves real business problems elegantly. Instead of building complex API integrations between teams and accounts, you create a clean event-driven architecture that scales naturally and maintains security boundaries.
 
-```typescript
-// app.ts - Main CDK application
-import * as cdk from 'aws-cdk-lib';
-import { ProducerAccountStack } from './producer-stack';
-import { ConsumerAccountStack } from './consumer-stack';
-import { EventPublisherStack } from './event-publisher-stack';
-import { EventConsumerStack } from './event-consumer-stack';
+The pattern works particularly well when you have:
+- **Clear event schemas** that multiple consumers can understand
+- **Idempotent processing** that handles duplicate events gracefully  
+- **Comprehensive monitoring** that alerts you to delivery issues quickly
+- **Security policies** that follow least-privilege principles
 
-const app = new cdk.App();
-
-// Get account IDs from context or environment variables
-const producerAccountId = app.node.tryGetContext('producerAccountId') || process.env.PRODUCER_ACCOUNT_ID;
-const consumerAccountId = app.node.tryGetContext('consumerAccountId') || process.env.CONSUMER_ACCOUNT_ID;
-
-// Deploy to producer account
-const producerStack = new ProducerAccountStack(app, 'ProducerStack', {
-  env: { account: producerAccountId, region: 'us-east-1' },
-  consumerAccountId: consumerAccountId
-});
-
-const publisherStack = new EventPublisherStack(app, 'EventPublisherStack', {
-  env: { account: producerAccountId, region: 'us-east-1' }
-});
-
-// Deploy to consumer account
-const consumerStack = new ConsumerAccountStack(app, 'ConsumerStack', {
-  env: { account: consumerAccountId, region: 'us-east-1' },
-  producerAccountId: producerAccountId
-});
-
-const eventConsumerStack = new EventConsumerStack(app, 'EventConsumerStack', {
-  env: { account: consumerAccountId, region: 'us-east-1' },
-  producerAccountId: producerAccountId,
-  producerEventBusArn: producerStack.ordersEventBus.eventBusArn
-});
-
-// Add dependencies
-eventConsumerStack.addDependency(producerStack);
-```
-
-Deploy the stacks with proper account targeting:
-
-```bash
-# Set up environment variables
-export PRODUCER_ACCOUNT_ID=123456789012
-export CONSUMER_ACCOUNT_ID=987654321098
-
-# Bootstrap CDK in both accounts (if not already done)
-npx cdk bootstrap aws://123456789012/us-east-1 --profile producer-account
-npx cdk bootstrap aws://987654321098/us-east-1 --profile consumer-account
-
-# Deploy producer account infrastructure
-npx cdk deploy ProducerStack EventPublisherStack \
-    --profile producer-account \
-    --context producerAccountId=123456789012 \
-    --context consumerAccountId=987654321098
-
-# Deploy consumer account infrastructure
-npx cdk deploy ConsumerStack EventConsumerStack \
-    --profile consumer-account \
-    --context producerAccountId=123456789012 \
-    --context consumerAccountId=987654321098
-```
-
-Create a `cdk.json` configuration file for consistent deployments:
-
-```json
-{
-  "app": "npx ts-node --prefer-ts-exts app.ts",
-  "watch": {
-    "include": [
-      "**"
-    ],
-    "exclude": [
-      "README.md",
-      "cdk*.json",
-      "**/*.d.ts",
-      "**/*.js",
-      "tsconfig.json",
-      "package*.json",
-      "yarn.lock",
-      "node_modules",
-      "test"
-    ]
-  },
-  "context": {
-    "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
-    "@aws-cdk/core:checkSecretUsage": true,
-    "@aws-cdk/core:target": "aws-cdk-lib",
-    "@aws-cdk-containers/ecs-service-extensions:enableDefaultLogDriver": true,
-    "@aws-cdk/aws-ec2:uniqueImdsv2TemplateName": true,
-    "@aws-cdk/aws-ecs:arnFormatIncludesClusterName": true,
-    "@aws-cdk/core:validateSnapshotRemovalPolicy": true,
-    "@aws-cdk/aws-codepipeline:crossAccountKeyAliasStackSafeResourceName": true,
-    "@aws-cdk/aws-s3:createDefaultLoggingPolicy": true,
-    "@aws-cdk/aws-sns-subscriptions:restrictSqsDescryption": true,
-    "@aws-cdk/aws-apigateway:disableCloudWatchRole": true,
-    "@aws-cdk/core:enablePartitionLiterals": true,
-    "@aws-cdk/aws-events:eventsTargetQueueSameAccount": true,
-    "@aws-cdk/aws-iam:minimizePolicies": true,
-    "@aws-cdk/core:disableStackIdSuffix": true,
-    "@aws-cdk/aws-lambda:recognizeVersionProps": true,
-    "@aws-cdk/aws-cloudfront:defaultSecurityPolicyTLSv1.2_2021": true
-  }
-}
-```
-
-**Network isolation** using VPC endpoints provides additional security for EventBridge operations:
-
-```bash
-# Create VPC endpoint for EventBridge
-aws ec2 create-vpc-endpoint \
-    --vpc-id vpc-12345678 \
-    --service-name com.amazonaws.us-east-1.events \
-    --vpc-endpoint-type Interface \
-    --subnet-ids subnet-12345678 subnet-87654321 \
-    --security-group-ids sg-12345678
-```
-
-Cross-account EventBridge integration enables powerful event-driven architectures that span organizational boundaries while maintaining security and isolation. By implementing proper IAM policies, event filtering, and monitoring, you can build robust systems that process events reliably across multiple AWS accounts. Start with basic cross-account rules and gradually add security enhancements and advanced routing patterns as your requirements evolve.
-
-The patterns demonstrated in this guide provide a foundation for implementing sophisticated event-driven workflows in enterprise environments where different teams and applications operate in separate AWS accounts while maintaining seamless integration capabilities.
+Start simple with basic cross-account event routing, then add advanced features like content filtering, transformation, and encryption as your needs evolve. The foundational patterns demonstrated here will support sophisticated event-driven workflows that span organizational boundaries while maintaining the security and isolation that separate AWS accounts provide.
