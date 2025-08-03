@@ -33,6 +33,245 @@
       border-radius: 3px;
     }
   }
+
+  .post-summary {
+    background: $white
+      url('data:image/svg+xml,%3Csvg width="20" height="20" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M1 1h2v2H1V1zm4 0h2v2H5V1zm4 0h2v2H9V1zm4 0h2v2h-2V1z" fill="%23f8fafc" fill-rule="evenodd"/%3E%3C/svg%3E');
+    border-radius: $border-radius;
+    @include box-shadow(0 2px 5px rgba(0, 0, 0, 0.04));
+    padding: 2rem;
+    @include transition(all, 0.2s, ease-in-out);
+    border: 2px solid $border-color-light;
+    position: relative;
+
+    &:hover {
+      border-color: $border-color-dark;
+      background-color: $lighter-bg; // Use variable for light background
+    }
+
+    &:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      bottom: -2rem;
+      left: 10%;
+      right: 10%;
+      height: 1px;
+      background: linear-gradient(to right, transparent, $border-color, transparent);
+    }
+
+    header {
+      background: none;
+      padding: 0;
+      margin-bottom: 1rem;
+    }
+
+    h2 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.5rem;
+
+      a {
+        color: $text-color-alt;
+        text-decoration: none;
+        font-family: $font-stack;
+        @include transition;
+
+        &:hover {
+          color: $text-color-light;
+          text-decoration: underline;
+        }
+      }
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      border-radius: $border-radius;
+      @include box-shadow($box-shadow-medium);
+      border: 2px solid $border-color-light;
+    }
+  }
+  .post-content {
+    font-family: $font-stack;
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: $text-color;
+
+    pre {
+      padding: 1.2rem;
+      margin: 1.5rem 0;
+      border-radius: $border-radius;
+      border: 2px solid $border-color-light; // Use variable for border color
+      overflow-x: auto;
+      @include box-shadow(0 2px 5px rgba(0, 0, 0, 0.06));
+    }
+
+    blockquote {
+      background: $lighter-bg
+        url('data:image/svg+xml,%3Csvg width="52" height="26" viewBox="0 0 52 26" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M10 10c0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6h2c0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4v2c-3.314 0-6-2.686-6-6 0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6zm25.464-1.95l8.486 8.486-1.414 1.414-8.486-8.486 1.414-1.414z" fill="%23e4eaf2" fill-opacity="0.4" fill-rule="evenodd"/%3E%3C/svg%3E');
+      padding: 1.2rem 1.5rem;
+      margin: 1.5rem 0;
+      border-left: 4px solid $primary-color;
+      border-radius: 0 $border-radius $border-radius 0;
+      font-style: italic;
+      color: $muted-color;
+    }
+
+    // Enhanced styling for horizontal rules and headings
+    hr {
+      border: none;
+      height: 2px;
+      background: linear-gradient(to right, transparent, $border-color-dark, transparent); // Already uses variable
+      margin: 2.5rem 0;
+      position: relative;
+
+      &::before {
+        content: "§";
+        display: block;
+        text-align: center;
+        line-height: 0;
+        position: absolute;
+        top: -2px;
+        left: 0;
+        right: 0;
+        background: $white;
+        width: 30px;
+        margin: 0 auto;
+        color: $light-muted;
+        font-size: 1.2rem;
+      }
+    }
+
+    h2 {
+      margin-top: 2.5rem;
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid $border-color-light; // Use variable for border color
+      position: relative;
+      color: $primary-color;
+
+      &::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: -2px;
+        width: 60px;
+        height: 2px;
+        background-color: $primary-color;
+      }
+    }
+
+    h3 {
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+      color: $text-color-alt;
+    }
+
+    // Table styling
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin: 1.5rem 0;
+      border-radius: $border-radius;
+      overflow: hidden;
+      border: 2px solid #e4eaf2;
+      @include box-shadow($box-shadow-light);
+    }
+
+    th {
+      background: $light-bg
+        url('data:image/svg+xml,%3Csvg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M0 0h2v2H0V0zm0 8h2v2H0V8zm8 8h2v2H8v-2zm8 0h2v2h-2v-2zm0-8h2v2h-2V8zm0-8h2v2h-2V0z" fill="%23e4eaf2" fill-opacity="0.5" fill-rule="evenodd"/%3E%3C/svg%3E');
+      color: $text-color-alt;
+      padding: 0.8rem 1rem;
+      text-align: left;
+      border-bottom: 2px solid #e4eaf2;
+    }
+
+    td {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid $border-color-light;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:nth-child(even) {
+      background-color: $lighter-bg;
+    }
+
+    // Image styling
+    img {
+      max-width: 100%;
+      height: auto;
+      border-radius: $border-radius;
+      @include box-shadow($box-shadow-medium);
+      border: 2px solid $border-color-light;
+    }
+
+    // Figure styling for image shortcode
+    .image-figure {
+      margin: 2em 0;
+      text-align: center;
+
+      img {
+        display: block;
+        margin: 0 auto;
+        max-width: 100%;
+        height: auto;
+      }
+
+      figcaption {
+        margin-top: 0.5em;
+        font-style: italic;
+        color: $text-color-light;
+        font-size: 0.9em;
+        line-height: 1.4;
+      }
+    }
+
+    // Inline code styling
+    code:not([class*="language-"]) {
+      background-color: $light-bg;
+      padding: 0.2rem 0.4rem;
+      border-radius: 3px;
+      font-family: $font-stack;
+      font-size: 0.9em;
+      color: $primary-color;
+      border: 1px solid $border-color-light; // Use variable for border color
+    }
+
+    // Post content lists
+    ul,
+    ol {
+      padding-left: 1.5rem;
+      margin: 1.2rem 0;
+    }
+
+    li {
+      margin-bottom: 0.5rem;
+    }
+  }
+  // Post meta and tags
+  .post-meta {
+    @include flex-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+
+    &-left {
+      flex: 1;
+    }
+
+    &-right {
+      flex-shrink: 0;
+    }
+  }
+}
+
+.posts {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 
 .post-summary {
@@ -49,3 +288,11 @@
   }
 }
 
+@media (max-width: 768px) {
+  .post {
+    padding: 1rem;
+  }
+  .post-summary {
+    padding: 1rem;
+  }
+}

@@ -11,17 +11,19 @@
 
   &-item {
     margin: 0;
+
     &.disabled {
       .pagination-link {
-        color: $light-muted;
+        color: #ccc;
         cursor: not-allowed;
-        background: $light-bg;
-        border-color: $border-color;
+        background: #f8f9fa;
+        border-color: #e9ecef;
       }
+
       .pagination-link:hover {
-        background: $light-bg;
-        border-color: $border-color;
-        color: $light-muted;
+        background: #f8f9fa;
+        border-color: #e9ecef;
+        color: #ccc;
         transform: none;
         box-shadow: none;
       }
@@ -29,8 +31,89 @@
   }
 
   &-stats {
-    color: $very-light;
+    color: #666;
     font-size: 0.9rem;
     font-style: italic;
+  }
+
+  &-info {
+    margin-bottom: 1rem;
+  }
+
+  &-ellipsis {
+    display: inline-block;
+    padding: 0.75rem 0.5rem;
+    color: #666;
+    font-weight: bold;
+  }
+
+  /* Performance optimizations */
+  &-list {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    gap: 0.25rem;
+    will-change: auto;
+  }
+
+  &-link {
+    display: inline-block;
+    padding: 0.75rem 1rem;
+    color: #0d2440;
+    text-decoration: none;
+    border: 1px solid #dde5ed;
+    border-radius: 4px;
+    background: #ffffff;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    min-width: 44px;
+    text-align: center;
+    box-sizing: border-box;
+    will-change: transform, box-shadow;
+
+    &.current {
+      background: #0d2440;
+      color: #ffffff;
+      border-color: #0d2440;
+      font-weight: 600;
+      cursor: default;
+    }
+  }
+}
+
+/* Responsive pagination */
+@media (max-width: 768px) {
+  .pagination-list {
+    gap: 0.1rem;
+  }
+
+  .pagination-link {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+    min-width: 36px;
+  }
+
+  .pagination-info {
+    font-size: 0.8rem;
+  }
+
+  .pagination-stats {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .pagination-list {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+
+  .pagination-link {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
+    min-width: 32px;
   }
 }

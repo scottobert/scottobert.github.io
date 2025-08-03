@@ -41,3 +41,426 @@
     display: none;
   }
 }
+
+
+.social-share-title {
+  font-size: 1.2rem;
+  color: $text-color-alt;
+  margin: 0 0 1.5rem 0;
+  font-weight: 600;
+  text-align: center;
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: -0.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50px;
+    height: 2px;
+    background: linear-gradient(to right, $accent-color, $primary-color);
+  }
+}
+
+.social-share-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.social-share-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.6rem 0.8rem;
+  text-decoration: none;
+  color: $white;
+  border-radius: $border-radius;
+  font-weight: 500;
+  font-size: 0.85rem;
+  @include transition(all, 0.3s, ease);
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    @include transition(left, 0.5s, ease);
+  }
+
+  &:hover::before {
+    left: 100%;
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+  }
+
+  span {
+    font-weight: 500;
+  }
+
+  // Platform-specific colors
+  &.twitter {
+    background: linear-gradient(135deg, #1da1f2, #0d8bd9);
+
+    &:hover {
+      background: linear-gradient(135deg, #0d8bd9, #1da1f2);
+      transform: translateY(-2px);
+      @include box-shadow(0 6px 16px rgba(29, 161, 242, 0.3));
+    }
+  }
+
+  &.linkedin {
+    background: linear-gradient(135deg, #0077b5, #005885);
+
+    &:hover {
+      background: linear-gradient(135deg, #005885, #0077b5);
+      transform: translateY(-2px);
+      @include box-shadow(0 6px 16px rgba(0, 119, 181, 0.3));
+    }
+  }
+
+  &.facebook {
+    background: linear-gradient(135deg, #1877f2, #166fe5);
+
+    &:hover {
+      background: linear-gradient(135deg, #166fe5, #1877f2);
+      transform: translateY(-2px);
+      @include box-shadow(0 6px 16px rgba(24, 119, 242, 0.3));
+    }
+  }
+
+  &.reddit {
+    background: linear-gradient(135deg, #ff4500, #e03d00);
+
+    &:hover {
+      background: linear-gradient(135deg, #e03d00, #ff4500);
+      transform: translateY(-2px);
+      @include box-shadow(0 6px 16px rgba(255, 69, 0, 0.3));
+    }
+  }
+
+  &.email {
+    background: linear-gradient(135deg, #34495e, #2c3e50);
+
+    &:hover {
+      background: linear-gradient(135deg, #2c3e50, #34495e);
+      transform: translateY(-2px);
+      @include box-shadow(0 6px 16px rgba(52, 73, 94, 0.3));
+    }
+  }
+
+  &.whatsapp {
+    background: linear-gradient(135deg, #25d366, #20b858);
+
+    &:hover {
+      background: linear-gradient(135deg, #20b858, #25d366);
+      transform: translateY(-2px);
+      @include box-shadow(0 6px 16px rgba(37, 211, 102, 0.3));
+    }
+  }
+
+  &.hackernews {
+    background: linear-gradient(135deg, #ff6600, #e55a00);
+
+    &:hover {
+      background: linear-gradient(135deg, #e55a00, #ff6600);
+      transform: translateY(-2px);
+      @include box-shadow(0 6px 16px rgba(255, 102, 0, 0.3));
+    }
+  }
+
+  &.copy-link {
+    background: linear-gradient(135deg, #6c757d, #495057);
+
+    &:hover {
+      background: #5a6268;
+    }
+  }
+
+  &.copied {
+    background: #28a745 !important;
+  }
+
+  &.error {
+    background: #dc3545 !important;
+  }
+
+  &:focus {
+    outline: 3px solid rgba(13, 36, 64, 0.3);
+    outline-offset: 2px;
+  }
+}
+
+// Floating Social Share Widget
+.floating-social-share {
+  position: fixed;
+  right: 2rem;
+  bottom: 2rem;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(20px);
+  @include transition(all, 0.3s, ease);
+
+  &.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+}
+
+.floating-share-toggle {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, $accent-color, $primary-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  @include box-shadow(0 4px 20px rgba(0, 122, 204, 0.3));
+  @include transition(all, 0.3s, ease);
+  border: none;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    @include transition(left, 0.5s, ease);
+  }
+
+  &:hover {
+    transform: scale(1.1);
+    @include box-shadow(0 6px 25px rgba(0, 122, 204, 0.4));
+
+    &::before {
+      left: 100%;
+    }
+  }
+
+  &.active {
+    background: linear-gradient(135deg, $primary-color, $accent-color);
+    transform: rotate(45deg);
+
+    svg {
+      transform: rotate(-45deg);
+    }
+  }
+
+  svg {
+    width: 24px;
+    height: 24px;
+    fill: $white;
+    @include transition(transform, 0.3s, ease);
+  }
+}
+
+.floating-share-buttons {
+  position: absolute;
+  bottom: 70px;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  @include transition(all, 0.3s, ease);
+
+  &.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+}
+
+.floating-share-button {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: $white;
+  @include transition(all, 0.3s, ease);
+  border: none;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  animation: slideUp 0.3s ease forwards;
+
+  &:nth-child(1) {
+    animation-delay: 0.1s;
+  }
+  &:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+  &:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+  &:nth-child(4) {
+    animation-delay: 0.4s;
+  }
+  &:nth-child(5) {
+    animation-delay: 0.5s;
+  }
+  &:nth-child(6) {
+    animation-delay: 0.6s;
+  }
+  &:nth-child(7) {
+    animation-delay: 0.7s;
+  }
+  &:nth-child(8) {
+    animation-delay: 0.8s;
+  }
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    @include transition(left, 0.5s, ease);
+  }
+
+  &:hover {
+    transform: scale(1.1);
+    @include box-shadow(0 4px 15px rgba(0, 0, 0, 0.2));
+
+    &::before {
+      left: 100%;
+    }
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+  }
+
+  // Platform-specific colors for floating buttons
+  &.twitter {
+    background: linear-gradient(135deg, #1da1f2, #0d8bd9);
+  }
+
+  &.linkedin {
+    background: linear-gradient(135deg, #0077b5, #005885);
+  }
+
+  &.facebook {
+    background: linear-gradient(135deg, #1877f2, #166fe5);
+  }
+
+  &.reddit {
+    background: linear-gradient(135deg, #ff4500, #e03d00);
+  }
+
+  &.email {
+    background: linear-gradient(135deg, #34495e, #2c3e50);
+  }
+
+  &.whatsapp {
+    background: linear-gradient(135deg, #25d366, #20b858);
+  }
+
+  &.hackernews {
+    background: linear-gradient(135deg, #ff6600, #e55a00);
+  }
+
+  &.copy-link {
+    background: linear-gradient(135deg, #6c757d, #495057);
+  }
+}
+
+
+// Responsive adjustments for social share
+@media (max-width: 768px) {
+  .social-share {
+    margin: 2rem 0 1.5rem;
+    padding: 1.5rem;
+  }
+
+  .social-share-buttons {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .social-share-button {
+    padding: 0.65rem 0.8rem;
+    font-size: 0.85rem;
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  .floating-social-share {
+    right: 1rem;
+    bottom: 1rem;
+  }
+
+  .floating-share-toggle {
+    width: 50px;
+    height: 50px;
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .floating-share-button {
+    width: 40px;
+    height: 40px;
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .social-share-buttons {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .social-share-button {
+    padding: 0.6rem;
+    font-size: 0.8rem;
+
+    span {
+      display: none;
+    }
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+}
