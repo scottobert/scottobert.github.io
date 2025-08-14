@@ -1,3 +1,21 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Monitoring on Scott Obert</title><link>https://scottobert.com/tags/monitoring/</link><description>Recent content in Monitoring on Scott Obert</description><generator>Hugo</generator><language>en</language><copyright>&amp;copy;2022 Scott Obert</copyright><lastBuildDate>Sun, 28 Nov 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://scottobert.com/tags/monitoring/index.xml" rel="self" type="application/rss+xml"/><item><title>Performance Testing Strategies for Cloud Applications: Load Testing at Scale</title><link>https://scottobert.com/posts/performance-testing-strategies-cloud-applications/</link><pubDate>Sun, 28 Nov 2021 00:00:00 +0000</pubDate><guid>https://scottobert.com/posts/performance-testing-strategies-cloud-applications/</guid><description>&lt;h2 id="introduction">Introduction&lt;/h2>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Monitoring on Scott Obert</title><link>https://scottobert.com/tags/monitoring/</link><description>Recent content in Monitoring on Scott Obert</description><generator>Hugo</generator><language>en</language><copyright>&amp;copy;2022 Scott Obert</copyright><lastBuildDate>Wed, 13 Aug 2025 09:00:00 -0700</lastBuildDate><atom:link href="https://scottobert.com/tags/monitoring/index.xml" rel="self" type="application/rss+xml"/><item><title>Cross-Account Monitoring and Observability: Building Enterprise-Grade Visibility Across AWS Accounts</title><link>https://scottobert.com/posts/cross-account-monitoring-observability/</link><pubDate>Wed, 13 Aug 2025 09:00:00 -0700</pubDate><guid>https://scottobert.com/posts/cross-account-monitoring-observability/</guid><description>&lt;figure class="image-figure ">
+ 
+ 
+ &lt;img 
+ src="https://scottobert.com/posts/2025/08/13/cross-account-monitoring-observability.png" 
+ alt="Meme showing a person looking at multiple monitors with different AWS account dashboards" 
+ width="600"
+ 
+ loading="lazy"
+ decoding="async"
+ />
+ 
+ 
+ 
+ &lt;figcaption>When you realize you need to check 47 different CloudWatch dashboards to understand one transaction&lt;/figcaption>
+ 
+&lt;/figure>
+
+&lt;p>The alert fires at 3 AM. Your critical e-commerce platform is down, customers are complaining, and revenue is bleeding. You race to your laptop and immediately hit the wall that haunts every enterprise AWS architect: monitoring fragmentation. The API Gateway logs live in the production account, Lambda functions span three different accounts, and database metrics hide in yet another. Forty-seven browser tabs later, you&amp;rsquo;re still piecing together the puzzle while your application burns.&lt;/p></description></item><item><title>Performance Testing Strategies for Cloud Applications: Load Testing at Scale</title><link>https://scottobert.com/posts/performance-testing-strategies-cloud-applications/</link><pubDate>Sun, 28 Nov 2021 00:00:00 +0000</pubDate><guid>https://scottobert.com/posts/performance-testing-strategies-cloud-applications/</guid><description>&lt;h2 id="introduction">Introduction&lt;/h2>
 &lt;p>In our Modern Development Practices series, we&amp;rsquo;ve explored test-driven development, code quality gates, API design patterns, microservices communication, and database design. Today, we&amp;rsquo;re focusing on performance testing strategies for cloud applications – a critical practice for ensuring your systems can handle real-world load and scale gracefully.&lt;/p>
 &lt;p>Cloud applications present unique challenges for performance testing: auto-scaling behaviors, distributed architectures, and pay-per-use pricing models all require specialized testing approaches. We&amp;rsquo;ll explore comprehensive strategies from unit-level performance tests to large-scale load testing and chaos engineering.&lt;/p></description></item></channel></rss>
