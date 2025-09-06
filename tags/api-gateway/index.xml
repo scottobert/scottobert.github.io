@@ -1,12 +1,12 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>API Gateway on Scott Obert</title><link>https://scottobert.com/tags/api-gateway/</link><description>Recent content in API Gateway on Scott Obert</description><generator>Hugo</generator><language>en</language><copyright>&amp;copy;2022 Scott Obert</copyright><lastBuildDate>Sun, 13 Aug 2023 17:00:00 +0000</lastBuildDate><atom:link href="https://scottobert.com/tags/api-gateway/index.xml" rel="self" type="application/rss+xml"/><item><title>Real-time Applications with AWS WebSockets and TypeScript</title><link>https://scottobert.com/posts/aws-websockets-typescript/</link><pubDate>Sun, 13 Aug 2023 17:00:00 +0000</pubDate><guid>https://scottobert.com/posts/aws-websockets-typescript/</guid><description>&lt;p>Modern applications increasingly demand real-time capabilities—from live chat systems and collaborative editing to real-time dashboards and gaming. In this final post of our AWS and TypeScript series, we&amp;rsquo;ll explore how to build scalable real-time applications using AWS API Gateway WebSocket APIs, Lambda functions, and TypeScript to create robust, type-safe real-time communication systems.&lt;/p>
-&lt;div class="plantuml-container">
- &lt;img id="plantuml-websocket-architecture" class="plantuml-diagram"/>
- &lt;a id="plantuml-link-websocket-architecture" href="#" target="_blank" class="plantuml-link" title="Open diagram in new window">
- &lt;span class="plantuml-link-icon">🔍&lt;/span>
- &lt;/a>
-&lt;/div>
-&lt;script src="https://scottobert.com/js/rawdeflate.js">&lt;/script>
-&lt;script>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>API Gateway on Scott Obert</title><link>https://scottobert.com/tags/api-gateway/</link><description>Recent content in API Gateway on Scott Obert</description><generator>Hugo</generator><language>en</language><copyright>&amp;copy;2022 Scott Obert</copyright><lastBuildDate>Sun, 13 Aug 2023 17:00:00 +0000</lastBuildDate><atom:link href="https://scottobert.com/tags/api-gateway/index.xml" rel="self" type="application/rss+xml"/><item><title>Real-time Applications with AWS WebSockets and TypeScript</title><link>https://scottobert.com/posts/aws-websockets-typescript/</link><pubDate>Sun, 13 Aug 2023 17:00:00 +0000</pubDate><guid>https://scottobert.com/posts/aws-websockets-typescript/</guid><description>&lt;p&gt;Modern applications increasingly demand real-time capabilities—from live chat systems and collaborative editing to real-time dashboards and gaming. In this final post of our AWS and TypeScript series, we&amp;rsquo;ll explore how to build scalable real-time applications using AWS API Gateway WebSocket APIs, Lambda functions, and TypeScript to create robust, type-safe real-time communication systems.&lt;/p&gt;
+&lt;div class="plantuml-container"&gt;
+ &lt;img id="plantuml-websocket-architecture" class="plantuml-diagram"/&gt;
+ &lt;a id="plantuml-link-websocket-architecture" href="#" target="_blank" class="plantuml-link" title="Open diagram in new window"&gt;
+ &lt;span class="plantuml-link-icon"&gt;🔍&lt;/span&gt;
+ &lt;/a&gt;
+&lt;/div&gt;
+&lt;script src="https://scottobert.com/js/rawdeflate.js"&gt;&lt;/script&gt;
+&lt;script&gt;
  
 
  function encode64(data) {
@@ -25,9 +25,9 @@
  }
 
  function append3bytes(b1, b2, b3) {
- c1 = b1 >> 2;
- c2 = ((b1 &amp; 0x3) &lt;&lt; 4) | (b2 >> 4);
- c3 = ((b2 &amp; 0xF) &lt;&lt; 2) | (b3 >> 6);
+ c1 = b1 &gt;&gt; 2;
+ c2 = ((b1 &amp; 0x3) &lt;&lt; 4) | (b2 &gt;&gt; 4);
+ c3 = ((b2 &amp; 0xF) &lt;&lt; 2) | (b3 &gt;&gt; 6);
  c4 = b3 &amp; 0x3F;
  r = "";
  r += encode6bit(c1 &amp; 0x3F);
@@ -98,17 +98,17 @@
  }
 
  compress("\n@startuml WebSocket Architecture\n!define RECTANGLE class\n\ncloud \u0022Client Applications\u0022 as clients\npackage \u0022AWS Cloud\u0022 {\n rectangle \u0022API Gateway WebSocket\u0022 as apigw {\n rectangle \u0022Connect Route\u0022 as connect\n rectangle \u0022Disconnect Route\u0022 as disconnect\n rectangle \u0022Message Routes\u0022 as routes\n }\n \n package \u0022Lambda Functions\u0022 {\n rectangle \u0022Connection Handler\u0022 as conn_handler\n rectangle \u0022Message Handler\u0022 as msg_handler\n rectangle \u0022Room Manager\u0022 as room_handler\n rectangle \u0022Broadcast Service\u0022 as broadcast\n }\n \n database \u0022DynamoDB\u0022 as dynamo {\n rectangle \u0022Connections Table\u0022 as conn_table\n rectangle \u0022Messages Table\u0022 as msg_table\n rectangle \u0022Rooms Table\u0022 as room_table\n }\n \n rectangle \u0022API Gateway Management API\u0022 as mgmt_api\n}\n\nclients \u003c--\u003e connect : WebSocket Connection\nclients \u003c--\u003e disconnect : WebSocket Disconnection\nclients \u003c--\u003e routes : Real-time Messages\n\nconnect --\u003e conn_handler : $connect\ndisconnect --\u003e conn_handler : $disconnect\nroutes --\u003e msg_handler : Custom Routes\nroutes --\u003e room_handler : Room Operations\n\nconn_handler --\u003e conn_table : Store Connection\nmsg_handler --\u003e msg_table : Store Message\nroom_handler --\u003e room_table : Manage Rooms\n\nbroadcast --\u003e mgmt_api : Send to Connections\nmgmt_api --\u003e clients : Real-time Updates\n\nnote right of apigw\n • Persistent connections\n • Bidirectional communication • Auto-scaling\n • Route-based message handling\nend note\n\nnote right of dynamo\n • Connection state storage\n • Message persistence\n • Room membership\n • TTL for cleanup\nend note\n@enduml\n")
-&lt;/script>
-&lt;h2 id="understanding-websocket-apis-with-aws">Understanding WebSocket APIs with AWS&lt;/h2>
-&lt;p>AWS API Gateway WebSocket APIs provide a fully managed service for building real-time, bidirectional communication applications. Key advantages include:&lt;/p></description></item><item><title>Building Type-Safe APIs with AWS API Gateway and TypeScript</title><link>https://scottobert.com/posts/aws-api-gateway-typescript/</link><pubDate>Sun, 11 Jun 2023 17:00:00 +0000</pubDate><guid>https://scottobert.com/posts/aws-api-gateway-typescript/</guid><description>&lt;p>Building robust APIs requires more than just handling HTTP requests—it demands type safety, proper validation, and clear documentation. In this post, we&amp;rsquo;ll explore how to build production-ready APIs using AWS API Gateway with TypeScript, ensuring type safety from request to response while maintaining excellent developer experience.&lt;/p>
-&lt;div class="plantuml-container">
- &lt;img id="plantuml-api-gateway-architecture" class="plantuml-diagram"/>
- &lt;a id="plantuml-link-api-gateway-architecture" href="#" target="_blank" class="plantuml-link" title="Open diagram in new window">
- &lt;span class="plantuml-link-icon">🔍&lt;/span>
- &lt;/a>
-&lt;/div>
-&lt;script src="https://scottobert.com/js/rawdeflate.js">&lt;/script>
-&lt;script>
+&lt;/script&gt;
+&lt;h2 id="understanding-websocket-apis-with-aws"&gt;Understanding WebSocket APIs with AWS&lt;/h2&gt;
+&lt;p&gt;AWS API Gateway WebSocket APIs provide a fully managed service for building real-time, bidirectional communication applications. Key advantages include:&lt;/p&gt;</description></item><item><title>Building Type-Safe APIs with AWS API Gateway and TypeScript</title><link>https://scottobert.com/posts/aws-api-gateway-typescript/</link><pubDate>Sun, 11 Jun 2023 17:00:00 +0000</pubDate><guid>https://scottobert.com/posts/aws-api-gateway-typescript/</guid><description>&lt;p&gt;Building robust APIs requires more than just handling HTTP requests—it demands type safety, proper validation, and clear documentation. In this post, we&amp;rsquo;ll explore how to build production-ready APIs using AWS API Gateway with TypeScript, ensuring type safety from request to response while maintaining excellent developer experience.&lt;/p&gt;
+&lt;div class="plantuml-container"&gt;
+ &lt;img id="plantuml-api-gateway-architecture" class="plantuml-diagram"/&gt;
+ &lt;a id="plantuml-link-api-gateway-architecture" href="#" target="_blank" class="plantuml-link" title="Open diagram in new window"&gt;
+ &lt;span class="plantuml-link-icon"&gt;🔍&lt;/span&gt;
+ &lt;/a&gt;
+&lt;/div&gt;
+&lt;script src="https://scottobert.com/js/rawdeflate.js"&gt;&lt;/script&gt;
+&lt;script&gt;
  
 
  function encode64(data) {
@@ -127,9 +127,9 @@
  }
 
  function append3bytes(b1, b2, b3) {
- c1 = b1 >> 2;
- c2 = ((b1 &amp; 0x3) &lt;&lt; 4) | (b2 >> 4);
- c3 = ((b2 &amp; 0xF) &lt;&lt; 2) | (b3 >> 6);
+ c1 = b1 &gt;&gt; 2;
+ c2 = ((b1 &amp; 0x3) &lt;&lt; 4) | (b2 &gt;&gt; 4);
+ c3 = ((b2 &amp; 0xF) &lt;&lt; 2) | (b3 &gt;&gt; 6);
  c4 = b3 &amp; 0x3F;
  r = "";
  r += encode6bit(c1 &amp; 0x3F);
@@ -200,6 +200,6 @@
  }
 
  compress("\n@startuml API Gateway Architecture\n!define RECTANGLE class\n\ncloud \u0022Client Applications\u0022 as clients\npackage \u0022AWS Cloud\u0022 {\n rectangle \u0022API Gateway\u0022 as apigw {\n rectangle \u0022REST API\u0022 as restapi\n rectangle \u0022Request Validation\u0022 as validation\n rectangle \u0022CORS\u0022 as cors\n }\n \n package \u0022Lambda Functions\u0022 {\n rectangle \u0022Create User\u0022 as create\n rectangle \u0022Get User\u0022 as get\n rectangle \u0022Update User\u0022 as update\n rectangle \u0022Delete User\u0022 as delete\n }\n \n database \u0022DynamoDB\u0022 as dynamo {\n rectangle \u0022Users Table\u0022 as table\n }\n}\n\nclients --\u003e restapi : HTTPS Requests\nrestapi --\u003e validation : Validate Schema\nvalidation --\u003e cors : Apply CORS\ncors --\u003e create : POST \/users\ncors --\u003e get : GET \/users\/{id}\ncors --\u003e update : PUT \/users\/{id}\ncors --\u003e delete : DELETE \/users\/{id}\n\ncreate --\u003e table : Store User\nget --\u003e table : Retrieve User\nupdate --\u003e table : Update User\ndelete --\u003e table : Remove User\n\nnote right of validation\n • Request validation\n • Type checking\n • Schema enforcement\nend note\n\nnote right of table\n • Primary Key: id\n • Attributes: name, email,\n department, timestamps\nend note\n@enduml\n")
-&lt;/script>
-&lt;h2 id="why-type-safe-apis-matter">Why Type-Safe APIs Matter&lt;/h2>
-&lt;p>Type safety in API development provides several critical advantages:&lt;/p></description></item></channel></rss>
+&lt;/script&gt;
+&lt;h2 id="why-type-safe-apis-matter"&gt;Why Type-Safe APIs Matter&lt;/h2&gt;
+&lt;p&gt;Type safety in API development provides several critical advantages:&lt;/p&gt;</description></item></channel></rss>

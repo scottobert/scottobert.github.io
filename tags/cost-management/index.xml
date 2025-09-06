@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Cost Management on Scott Obert</title><link>https://scottobert.com/tags/cost-management/</link><description>Recent content in Cost Management on Scott Obert</description><generator>Hugo</generator><language>en</language><copyright>&amp;copy;2022 Scott Obert</copyright><lastBuildDate>Wed, 13 Aug 2025 09:00:00 -0700</lastBuildDate><atom:link href="https://scottobert.com/tags/cost-management/index.xml" rel="self" type="application/rss+xml"/><item><title>Cross-Account Monitoring and Observability: Building Enterprise-Grade Visibility Across AWS Accounts</title><link>https://scottobert.com/posts/cross-account-monitoring-observability/</link><pubDate>Wed, 13 Aug 2025 09:00:00 -0700</pubDate><guid>https://scottobert.com/posts/cross-account-monitoring-observability/</guid><description>&lt;figure class="image-figure ">
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Cost Management on Scott Obert</title><link>https://scottobert.com/tags/cost-management/</link><description>Recent content in Cost Management on Scott Obert</description><generator>Hugo</generator><language>en</language><copyright>&amp;copy;2022 Scott Obert</copyright><lastBuildDate>Wed, 13 Aug 2025 09:00:00 -0700</lastBuildDate><atom:link href="https://scottobert.com/tags/cost-management/index.xml" rel="self" type="application/rss+xml"/><item><title>Cross-Account Monitoring and Observability: Building Enterprise-Grade Visibility Across AWS Accounts</title><link>https://scottobert.com/posts/cross-account-monitoring-observability/</link><pubDate>Wed, 13 Aug 2025 09:00:00 -0700</pubDate><guid>https://scottobert.com/posts/cross-account-monitoring-observability/</guid><description>&lt;figure class="image-figure "&gt;
  
  
  &lt;img 
@@ -8,12 +8,12 @@
  
  loading="lazy"
  decoding="async"
- />
+ /&gt;
  
  
  
- &lt;figcaption>When you realize you need to check 47 different CloudWatch dashboards to understand one transaction&lt;/figcaption>
+ &lt;figcaption&gt;When you realize you need to check 47 different CloudWatch dashboards to understand one transaction&lt;/figcaption&gt;
  
-&lt;/figure>
+&lt;/figure&gt;
 
-&lt;p>The alert fires at 3 AM. Your critical e-commerce platform is down, customers are complaining, and revenue is bleeding. You race to your laptop and immediately hit the wall that haunts every enterprise AWS architect: monitoring fragmentation. The API Gateway logs live in the production account, Lambda functions span three different accounts, and database metrics hide in yet another. Forty-seven browser tabs later, you&amp;rsquo;re still piecing together the puzzle while your application burns.&lt;/p></description></item></channel></rss>
+&lt;p&gt;The alert fires at 3 AM. Your critical e-commerce platform is down, customers are complaining, and revenue is bleeding. You race to your laptop and immediately hit the wall that haunts every enterprise AWS architect: monitoring fragmentation. The API Gateway logs live in the production account, Lambda functions span three different accounts, and database metrics hide in yet another. Forty-seven browser tabs later, you&amp;rsquo;re still piecing together the puzzle while your application burns.&lt;/p&gt;</description></item></channel></rss>
