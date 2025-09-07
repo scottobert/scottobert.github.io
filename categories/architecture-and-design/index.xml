@@ -1,4 +1,22 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Architecture and Design on Scott Obert</title><link>https://scottobert.com/categories/architecture-and-design/</link><description>Recent content in Architecture and Design on Scott Obert</description><generator>Hugo</generator><language>en</language><copyright>&amp;copy;2022 Scott Obert</copyright><lastBuildDate>Wed, 23 Jul 2025 09:00:00 -0700</lastBuildDate><atom:link href="https://scottobert.com/categories/architecture-and-design/index.xml" rel="self" type="application/rss+xml"/><item><title>AWS Well-Architected Framework: Applying Best Practices to Serverless Architectures</title><link>https://scottobert.com/posts/2025/07/23/aws-well-architected-serverless/</link><pubDate>Wed, 23 Jul 2025 09:00:00 -0700</pubDate><guid>https://scottobert.com/posts/2025/07/23/aws-well-architected-serverless/</guid><description>&lt;figure class="image-figure "&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Architecture and Design on Scott Obert</title><link>https://scottobert.com/categories/architecture-and-design/</link><description>Recent content in Architecture and Design on Scott Obert</description><generator>Hugo</generator><language>en</language><copyright>&amp;copy;2022 Scott Obert</copyright><lastBuildDate>Wed, 20 Aug 2025 10:00:00 -0700</lastBuildDate><atom:link href="https://scottobert.com/categories/architecture-and-design/index.xml" rel="self" type="application/rss+xml"/><item><title>Simplified Cross-Account Backup and Disaster Recovery with AWS Backup</title><link>https://scottobert.com/posts/2025/08/20/simplified-aws-backup-cross-account/</link><pubDate>Wed, 20 Aug 2025 10:00:00 -0700</pubDate><guid>https://scottobert.com/posts/2025/08/20/simplified-aws-backup-cross-account/</guid><description>&lt;figure class="image-figure "&gt;
+ 
+ 
+ &lt;img 
+ src="https://scottobert.com/posts/2025/08/20/simplified-aws-backup-cross-account.png" 
+ alt="Meme showing a person frantically searching through multiple AWS accounts for backups during an outage" 
+ width="600"
+ 
+ loading="lazy"
+ decoding="async"
+ /&gt;
+ 
+ 
+ 
+ &lt;figcaption&gt;When your production database crashes at 2 AM and your backups are scattered across 6 different AWS accounts&lt;/figcaption&gt;
+ 
+&lt;/figure&gt;
+
+&lt;p&gt;The call comes at 2:17 AM. Your primary RDS cluster has suffered a catastrophic failure, taking down the entire e-commerce platform during peak holiday shopping. Customers can&amp;rsquo;t place orders, revenue is hemorrhaging by the minute, and your CEO is already awake asking hard questions. You sprint to your laptop, heart racing, only to discover that your perfectly planned backup strategy has become a nightmare of account boundaries and access controls.&lt;/p&gt;</description></item><item><title>AWS Well-Architected Framework: Applying Best Practices to Serverless Architectures</title><link>https://scottobert.com/posts/2025/07/23/aws-well-architected-serverless/</link><pubDate>Wed, 23 Jul 2025 09:00:00 -0700</pubDate><guid>https://scottobert.com/posts/2025/07/23/aws-well-architected-serverless/</guid><description>&lt;figure class="image-figure "&gt;
  
  
  &lt;img 

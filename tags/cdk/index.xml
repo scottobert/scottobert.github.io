@@ -1,3 +1,21 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>CDK on Scott Obert</title><link>https://scottobert.com/tags/cdk/</link><description>Recent content in CDK on Scott Obert</description><generator>Hugo</generator><language>en</language><copyright>&amp;copy;2022 Scott Obert</copyright><lastBuildDate>Sun, 23 Jul 2023 17:00:00 +0000</lastBuildDate><atom:link href="https://scottobert.com/tags/cdk/index.xml" rel="self" type="application/rss+xml"/><item><title>AWS CDK Infrastructure as Code with TypeScript</title><link>https://scottobert.com/posts/aws-cdk-typescript/</link><pubDate>Sun, 23 Jul 2023 17:00:00 +0000</pubDate><guid>https://scottobert.com/posts/aws-cdk-typescript/</guid><description>&lt;p&gt;Managing cloud infrastructure through code brings numerous advantages over manual configuration, including version control, reproducibility, and automated deployment pipelines. In this post, we&amp;rsquo;ll explore how to use AWS CDK (Cloud Development Kit) with TypeScript to create, manage, and deploy serverless applications with infrastructure that&amp;rsquo;s as maintainable and type-safe as your application code.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>CDK on Scott Obert</title><link>https://scottobert.com/tags/cdk/</link><description>Recent content in CDK on Scott Obert</description><generator>Hugo</generator><language>en</language><copyright>&amp;copy;2022 Scott Obert</copyright><lastBuildDate>Wed, 20 Aug 2025 10:00:00 -0700</lastBuildDate><atom:link href="https://scottobert.com/tags/cdk/index.xml" rel="self" type="application/rss+xml"/><item><title>Simplified Cross-Account Backup and Disaster Recovery with AWS Backup</title><link>https://scottobert.com/posts/2025/08/20/simplified-aws-backup-cross-account/</link><pubDate>Wed, 20 Aug 2025 10:00:00 -0700</pubDate><guid>https://scottobert.com/posts/2025/08/20/simplified-aws-backup-cross-account/</guid><description>&lt;figure class="image-figure "&gt;
+ 
+ 
+ &lt;img 
+ src="https://scottobert.com/posts/2025/08/20/simplified-aws-backup-cross-account.png" 
+ alt="Meme showing a person frantically searching through multiple AWS accounts for backups during an outage" 
+ width="600"
+ 
+ loading="lazy"
+ decoding="async"
+ /&gt;
+ 
+ 
+ 
+ &lt;figcaption&gt;When your production database crashes at 2 AM and your backups are scattered across 6 different AWS accounts&lt;/figcaption&gt;
+ 
+&lt;/figure&gt;
+
+&lt;p&gt;The call comes at 2:17 AM. Your primary RDS cluster has suffered a catastrophic failure, taking down the entire e-commerce platform during peak holiday shopping. Customers can&amp;rsquo;t place orders, revenue is hemorrhaging by the minute, and your CEO is already awake asking hard questions. You sprint to your laptop, heart racing, only to discover that your perfectly planned backup strategy has become a nightmare of account boundaries and access controls.&lt;/p&gt;</description></item><item><title>AWS CDK Infrastructure as Code with TypeScript</title><link>https://scottobert.com/posts/aws-cdk-typescript/</link><pubDate>Sun, 23 Jul 2023 17:00:00 +0000</pubDate><guid>https://scottobert.com/posts/aws-cdk-typescript/</guid><description>&lt;p&gt;Managing cloud infrastructure through code brings numerous advantages over manual configuration, including version control, reproducibility, and automated deployment pipelines. In this post, we&amp;rsquo;ll explore how to use AWS CDK (Cloud Development Kit) with TypeScript to create, manage, and deploy serverless applications with infrastructure that&amp;rsquo;s as maintainable and type-safe as your application code.&lt;/p&gt;
 &lt;h2 id="why-cdk-with-typescript"&gt;Why CDK with TypeScript?&lt;/h2&gt;
 &lt;p&gt;AWS CDK offers a compelling alternative to traditional infrastructure tools by allowing you to define cloud resources using familiar programming languages. When combined with TypeScript, CDK provides compile-time type checking, intelligent code completion, and the ability to create reusable, composable infrastructure components.&lt;/p&gt;</description></item></channel></rss>
