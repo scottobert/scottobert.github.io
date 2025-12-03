@@ -206,7 +206,6 @@
       height: auto;
       border-radius: $border-radius;
       @include box-shadow($box-shadow-medium);
-      border: 2px solid $border-color-light;
     }
 
     // Figure styling for image shortcode
