@@ -7,7 +7,7 @@
     "><meta property="og:type" content="article"><meta property="og:url" content="https://scottobert.com/posts/2025/08/20/simplified-aws-backup-cross-account/"><meta property="og:site_name" content="Scott Obert"><meta name=twitter:card content="summary"><meta name=twitter:title content="Simplified Cross-Account Backup and Disaster Recovery with AWS Backup"><meta name=twitter:description content="
   
     
-    "><link rel=stylesheet href=https://scottobert.com/css/style.min.1c2fad2e01192bc8806bc4c2e6eda237e33992ac3b191a1de4ac0d9d50878abd.css><script src=/js/npm-packages.js defer></script><script src=/js/search.js defer></script><script defer src=https://cloud.umami.is/script.js data-website-id=e2461896-021d-422a-b83f-624a8819309b></script><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/site.webmanifest></head><body><header class=site-header><div class=container><div class=header-content><div class=header-left><h1><a href=/>Scott Obert</a></h1><nav><a href=/posts/>Blog</a>
+    "><link rel=stylesheet href=https://scottobert.com/css/style.min.d57a26f1d64b2c7f0df88b12c113d433eaed97b49e5f51c6675b9756126ebb92.css><script src=/js/npm-packages.js defer></script><script src=/js/search.js defer></script><script defer src=https://cloud.umami.is/script.js data-website-id=e2461896-021d-422a-b83f-624a8819309b></script><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/site.webmanifest></head><body><header class=site-header><div class=container><div class=header-content><div class=header-left><h1><a href=/>Scott Obert</a></h1><nav><a href=/posts/>Blog</a>
 <a href=/album/>Photo Album</a>
 <button type=button class=search-toggle id=search-toggle-btn aria-label="Open search" title=Search>
 <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61.0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
@@ -150,14 +150,14 @@ note left of DRLambda
   • Automated cleanup
 end note
 @enduml
-`)</script><h2 id=project-structure-and-setup>Project Structure and Setup</h2><p>First, create a new CDK project to organize the backup infrastructure:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># Create a new CDK project</span>
+`)</script><h2 id=project-structure-and-setup>Project Structure and Setup</h2><p>First, create a new CDK project to organize the backup infrastructure:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># Create a new CDK project</span>
 </span></span><span style=display:flex><span>mkdir aws-backup-cross-account
 </span></span><span style=display:flex><span>cd aws-backup-cross-account
 </span></span><span style=display:flex><span>npx cdk init app --language typescript
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#75715e># Install additional dependencies</span>
 </span></span><span style=display:flex><span>npm install @aws-cdk/aws-backup @aws-cdk/aws-sns-subscriptions
-</span></span></code></pre></div><p>Organize your project structure like this:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>aws-backup-cross-account/
+</span></span></code></pre></div><p>Organize your project structure like this:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-text data-lang=text><span style=display:flex><span>aws-backup-cross-account/
 </span></span><span style=display:flex><span>├── bin/
 </span></span><span style=display:flex><span>│   └── app.ts                    # CDK app entry point
 </span></span><span style=display:flex><span>├── lib/
@@ -171,7 +171,7 @@ end note
 </span></span><span style=display:flex><span>├── cdk.json
 </span></span><span style=display:flex><span>├── package.json
 </span></span><span style=display:flex><span>└── README.md
-</span></span></code></pre></div><h2 id=step-1-main-cdk-app-entry-point>Step 1: Main CDK App Entry Point</h2><p>Create <code>bin/app.ts</code> to define your application and deploy the stacks:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>#</span><span style=color:#f92672>!</span><span style=color:#960050;background-color:#1e0010>/usr/bin/env node</span>
+</span></span></code></pre></div><h2 id=step-1-main-cdk-app-entry-point>Step 1: Main CDK App Entry Point</h2><p>Create <code>bin/app.ts</code> to define your application and deploy the stacks:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>#</span><span style=color:#f92672>!</span><span style=color:#960050;background-color:#1e0010>/usr/bin/env node</span>
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#e6db74>&#39;source-map-support/register&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>cdk</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>SimplifiedCrossAccountBackupStack</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;../lib/backup-stack&#39;</span>;
@@ -181,21 +181,21 @@ end note
 </span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>app</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cdk</span>.<span style=color:#a6e22e>App</span>();
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#75715e>// Configuration for your environment
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>config</span> <span style=color:#f92672>=</span> {
+</span></span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>config</span> <span style=color:#f92672>=</span> {
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>env</span><span style=color:#f92672>:</span> {
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>account</span>: <span style=color:#66d9ef>process.env.CDK_DEFAULT_ACCOUNT</span>,
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>region</span>: <span style=color:#66d9ef>process.env.CDK_DEFAULT_REGION</span> <span style=color:#f92672>||</span> <span style=color:#e6db74>&#39;us-west-2&#39;</span>
 </span></span><span style=display:flex><span>  },
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>backupAccountId</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;111122223333&#39;</span>,        <span style=color:#75715e>// Replace with your backup account ID
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>drAccountId</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;444455556666&#39;</span>,            <span style=color:#75715e>// Replace with your DR account ID
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>complianceFrameworks</span><span style=color:#f92672>:</span> [<span style=color:#e6db74>&#39;SOC2&#39;</span>, <span style=color:#e6db74>&#39;HIPAA&#39;</span>, <span style=color:#e6db74>&#39;PCI_DSS&#39;</span>],
+</span></span></span><span style=display:flex><span>  <span style=color:#a6e22e>drAccountId</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;444455556666&#39;</span>,            <span style=color:#75715e>// Replace with your DR account ID
+</span></span></span><span style=display:flex><span>  <span style=color:#a6e22e>complianceFrameworks</span><span style=color:#f92672>:</span> [<span style=color:#e6db74>&#39;SOC2&#39;</span>, <span style=color:#e6db74>&#39;HIPAA&#39;</span>, <span style=color:#e6db74>&#39;PCI_DSS&#39;</span>],
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>notificationEmail</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;admin@yourcompany.com&#39;</span>, <span style=color:#75715e>// Replace with your email
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>retentionDays</span><span style=color:#f92672>:</span> {
+</span></span></span><span style=display:flex><span>  <span style=color:#a6e22e>retentionDays</span><span style=color:#f92672>:</span> {
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>daily</span>: <span style=color:#66d9ef>30</span>,
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>weekly</span>: <span style=color:#66d9ef>90</span>,
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>monthly</span>: <span style=color:#66d9ef>365</span>,
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>yearly</span>: <span style=color:#66d9ef>2555</span>  <span style=color:#75715e>// 7 years
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  },
+</span></span></span><span style=display:flex><span>  },
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>crossRegionCopy</span><span style=color:#f92672>:</span> {
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>enabled</span>: <span style=color:#66d9ef>true</span>,
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>destinationRegion</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;us-east-1&#39;</span>,
@@ -204,20 +204,20 @@ end note
 </span></span><span style=display:flex><span>};
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#75715e>// Deploy the backup infrastructure stack
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>backupStack</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>SimplifiedCrossAccountBackupStack</span>(<span style=color:#a6e22e>app</span>, <span style=color:#e6db74>&#39;BackupStack&#39;</span>, {
+</span></span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>backupStack</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>SimplifiedCrossAccountBackupStack</span>(<span style=color:#a6e22e>app</span>, <span style=color:#e6db74>&#39;BackupStack&#39;</span>, {
 </span></span><span style=display:flex><span>  ...<span style=color:#a6e22e>config</span>,
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>stackName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;cross-account-backup-infrastructure&#39;</span>
 </span></span><span style=display:flex><span>});
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#75715e>// Deploy disaster recovery testing
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>drTestingStack</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>DisasterRecoveryTestingStack</span>(<span style=color:#a6e22e>app</span>, <span style=color:#e6db74>&#39;DRTestingStack&#39;</span>, {
+</span></span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>drTestingStack</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>DisasterRecoveryTestingStack</span>(<span style=color:#a6e22e>app</span>, <span style=color:#e6db74>&#39;DRTestingStack&#39;</span>, {
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>env</span>: <span style=color:#66d9ef>config.env</span>,
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>backupVault</span>: <span style=color:#66d9ef>backupStack.backupVault</span>,
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>stackName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;cross-account-dr-testing&#39;</span>
 </span></span><span style=display:flex><span>});
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#75715e>// Deploy monitoring and alerting
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>monitoringStack</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>BackupMonitoringStack</span>(<span style=color:#a6e22e>app</span>, <span style=color:#e6db74>&#39;MonitoringStack&#39;</span>, {
+</span></span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>monitoringStack</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>BackupMonitoringStack</span>(<span style=color:#a6e22e>app</span>, <span style=color:#e6db74>&#39;MonitoringStack&#39;</span>, {
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>env</span>: <span style=color:#66d9ef>config.env</span>,
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>backupVault</span>: <span style=color:#66d9ef>backupStack.backupVault</span>,
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>notificationEmail</span>: <span style=color:#66d9ef>config.notificationEmail</span>,
@@ -225,10 +225,10 @@ end note
 </span></span><span style=display:flex><span>});
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#75715e>// Add dependencies
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#a6e22e>drTestingStack</span>.<span style=color:#a6e22e>addDependency</span>(<span style=color:#a6e22e>backupStack</span>);
+</span></span></span><span style=display:flex><span><span style=color:#a6e22e>drTestingStack</span>.<span style=color:#a6e22e>addDependency</span>(<span style=color:#a6e22e>backupStack</span>);
 </span></span><span style=display:flex><span><span style=color:#a6e22e>monitoringStack</span>.<span style=color:#a6e22e>addDependency</span>(<span style=color:#a6e22e>backupStack</span>);
-</span></span></code></pre></div><h2 id=step-2-core-backup-infrastructure-implementation>Step 2: Core Backup Infrastructure Implementation</h2><p>Create <code>lib/backup-stack.ts</code> with the core backup infrastructure:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// lib/backup-stack.ts
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>backup</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-backup&#39;</span>;
+</span></span></code></pre></div><h2 id=step-2-core-backup-infrastructure-implementation>Step 2: Core Backup Infrastructure Implementation</h2><p>Create <code>lib/backup-stack.ts</code> with the core backup infrastructure:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// lib/backup-stack.ts
+</span></span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>backup</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-backup&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>iam</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-iam&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>kms</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-kms&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>events</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-events&#39;</span>;
@@ -264,21 +264,21 @@ end note
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>super</span>(<span style=color:#a6e22e>scope</span>, <span style=color:#a6e22e>id</span>, <span style=color:#a6e22e>props</span>);
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Create KMS key for backup encryption
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>backupKey</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>kms</span>.<span style=color:#a6e22e>Key</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;BackupEncryptionKey&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>backupKey</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>kms</span>.<span style=color:#a6e22e>Key</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;BackupEncryptionKey&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>description</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Cross-account backup encryption key&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>enableKeyRotation</span>: <span style=color:#66d9ef>true</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>policy</span>: <span style=color:#66d9ef>this.createBackupKeyPolicy</span>(<span style=color:#a6e22e>props</span>.<span style=color:#a6e22e>backupAccountId</span>, <span style=color:#a6e22e>props</span>.<span style=color:#a6e22e>drAccountId</span>)
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Create backup vault with cross-account access
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>backupVault</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>backup</span>.<span style=color:#a6e22e>BackupVault</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CrossAccountBackupVault&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>backupVault</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>backup</span>.<span style=color:#a6e22e>BackupVault</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CrossAccountBackupVault&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>backupVaultName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;cross-account-backup-vault&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>encryptionKey</span>: <span style=color:#66d9ef>backupKey</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>accessPolicy</span>: <span style=color:#66d9ef>this.createVaultAccessPolicy</span>(<span style=color:#a6e22e>props</span>.<span style=color:#a6e22e>backupAccountId</span>, <span style=color:#a6e22e>props</span>.<span style=color:#a6e22e>drAccountId</span>)
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Create cross-account IAM role
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>crossAccountRole</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>Role</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CrossAccountBackupRole&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>crossAccountRole</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>Role</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CrossAccountBackupRole&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>assumedBy</span>: <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>CompositePrincipal</span>(
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>ServicePrincipal</span>(<span style=color:#e6db74>&#39;backup.amazonaws.com&#39;</span>),
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>AccountPrincipal</span>(<span style=color:#a6e22e>props</span>.<span style=color:#a6e22e>backupAccountId</span>),
@@ -291,24 +291,24 @@ end note
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Create comprehensive backup plan
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>backupPlan</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>createBackupPlan</span>(<span style=color:#a6e22e>props</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>backupPlan</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>createBackupPlan</span>(<span style=color:#a6e22e>props</span>);
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Create backup selections (resources to backup)
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>createBackupSelections</span>(<span style=color:#a6e22e>props</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>createBackupSelections</span>(<span style=color:#a6e22e>props</span>);
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Set up notifications
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>setupNotifications</span>(<span style=color:#a6e22e>props</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>setupNotifications</span>(<span style=color:#a6e22e>props</span>);
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Create compliance reporting
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>setupComplianceReporting</span>(<span style=color:#a6e22e>props</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>setupComplianceReporting</span>(<span style=color:#a6e22e>props</span>);
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Configure cross-region copying if enabled
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>props</span>.<span style=color:#a6e22e>crossRegionCopy</span>.<span style=color:#a6e22e>enabled</span>) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>props</span>.<span style=color:#a6e22e>crossRegionCopy</span>.<span style=color:#a6e22e>enabled</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>setupCrossRegionCopy</span>(<span style=color:#a6e22e>props</span>);
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Output important values
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cdk</span>.<span style=color:#a6e22e>CfnOutput</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;BackupVaultName&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cdk</span>.<span style=color:#a6e22e>CfnOutput</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;BackupVaultName&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>value</span>: <span style=color:#66d9ef>this.backupVault.backupVaultName</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>description</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Name of the backup vault&#39;</span>
 </span></span><span style=display:flex><span>    });
@@ -388,7 +388,7 @@ end note
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>backupPlanName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;cross-account-enterprise-backup&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>backupPlanRules</span><span style=color:#f92672>:</span> [
 </span></span><span style=display:flex><span>        <span style=color:#75715e>// Daily backups with lifecycle management
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>backup</span>.<span style=color:#a6e22e>BackupPlanRule</span>({
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>backup</span>.<span style=color:#a6e22e>BackupPlanRule</span>({
 </span></span><span style=display:flex><span>          <span style=color:#a6e22e>ruleName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;DailyBackupRule&#39;</span>,
 </span></span><span style=display:flex><span>          <span style=color:#a6e22e>backupVault</span>: <span style=color:#66d9ef>this.backupVault</span>,
 </span></span><span style=display:flex><span>          <span style=color:#a6e22e>scheduleExpression</span>: <span style=color:#66d9ef>events.Schedule.cron</span>({
@@ -409,7 +409,7 @@ end note
 </span></span><span style=display:flex><span>        }),
 </span></span><span style=display:flex><span>        
 </span></span><span style=display:flex><span>        <span style=color:#75715e>// Weekly backups with extended retention
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>backup</span>.<span style=color:#a6e22e>BackupPlanRule</span>({
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>backup</span>.<span style=color:#a6e22e>BackupPlanRule</span>({
 </span></span><span style=display:flex><span>          <span style=color:#a6e22e>ruleName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;WeeklyBackupRule&#39;</span>,
 </span></span><span style=display:flex><span>          <span style=color:#a6e22e>backupVault</span>: <span style=color:#66d9ef>this.backupVault</span>,
 </span></span><span style=display:flex><span>          <span style=color:#a6e22e>scheduleExpression</span>: <span style=color:#66d9ef>events.Schedule.cron</span>({
@@ -422,7 +422,7 @@ end note
 </span></span><span style=display:flex><span>        }),
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>        <span style=color:#75715e>// Monthly backups for long-term retention
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>backup</span>.<span style=color:#a6e22e>BackupPlanRule</span>({
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>backup</span>.<span style=color:#a6e22e>BackupPlanRule</span>({
 </span></span><span style=display:flex><span>          <span style=color:#a6e22e>ruleName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;MonthlyBackupRule&#39;</span>,
 </span></span><span style=display:flex><span>          <span style=color:#a6e22e>backupVault</span>: <span style=color:#66d9ef>this.backupVault</span>,
 </span></span><span style=display:flex><span>          <span style=color:#a6e22e>scheduleExpression</span>: <span style=color:#66d9ef>events.Schedule.cron</span>({
@@ -435,7 +435,7 @@ end note
 </span></span><span style=display:flex><span>        }),
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>        <span style=color:#75715e>// Yearly backups for compliance
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>backup</span>.<span style=color:#a6e22e>BackupPlanRule</span>({
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>backup</span>.<span style=color:#a6e22e>BackupPlanRule</span>({
 </span></span><span style=display:flex><span>          <span style=color:#a6e22e>ruleName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;YearlyBackupRule&#39;</span>,
 </span></span><span style=display:flex><span>          <span style=color:#a6e22e>backupVault</span>: <span style=color:#66d9ef>this.backupVault</span>,
 </span></span><span style=display:flex><span>          <span style=color:#a6e22e>scheduleExpression</span>: <span style=color:#66d9ef>events.Schedule.cron</span>({
@@ -453,13 +453,13 @@ end note
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>createBackupSelections</span>(<span style=color:#a6e22e>props</span>: <span style=color:#66d9ef>SimplifiedBackupProps</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>void</span> {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Production resources backup selection
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>backup</span>.<span style=color:#a6e22e>BackupSelection</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;ProductionResourcesSelection&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>backup</span>.<span style=color:#a6e22e>BackupSelection</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;ProductionResourcesSelection&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>backupPlan</span>: <span style=color:#66d9ef>this.backupPlan</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>selectionName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;production-resources&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>role</span>: <span style=color:#66d9ef>this.crossAccountRole</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>resources</span><span style=color:#f92672>:</span> [
 </span></span><span style=display:flex><span>        <span style=color:#75715e>// Include all resources with specific tags
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#a6e22e>backup</span>.<span style=color:#a6e22e>BackupResource</span>.<span style=color:#a6e22e>fromTag</span>(<span style=color:#e6db74>&#39;Environment&#39;</span>, <span style=color:#e6db74>&#39;Production&#39;</span>),
+</span></span></span><span style=display:flex><span>        <span style=color:#a6e22e>backup</span>.<span style=color:#a6e22e>BackupResource</span>.<span style=color:#a6e22e>fromTag</span>(<span style=color:#e6db74>&#39;Environment&#39;</span>, <span style=color:#e6db74>&#39;Production&#39;</span>),
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>backup</span>.<span style=color:#a6e22e>BackupResource</span>.<span style=color:#a6e22e>fromTag</span>(<span style=color:#e6db74>&#39;BackupRequired&#39;</span>, <span style=color:#e6db74>&#39;true&#39;</span>),
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>backup</span>.<span style=color:#a6e22e>BackupResource</span>.<span style=color:#a6e22e>fromTag</span>(<span style=color:#e6db74>&#39;DataClassification&#39;</span>, <span style=color:#e6db74>&#39;Critical&#39;</span>)
 </span></span><span style=display:flex><span>      ],
@@ -475,7 +475,7 @@ end note
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Database-specific backup selection
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>backup</span>.<span style=color:#a6e22e>BackupSelection</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;DatabaseSelection&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>backup</span>.<span style=color:#a6e22e>BackupSelection</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;DatabaseSelection&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>backupPlan</span>: <span style=color:#66d9ef>this.backupPlan</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>selectionName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;database-resources&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>role</span>: <span style=color:#66d9ef>this.crossAccountRole</span>,
@@ -492,7 +492,7 @@ end note
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// File system backup selection
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>backup</span>.<span style=color:#a6e22e>BackupSelection</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;FileSystemSelection&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>backup</span>.<span style=color:#a6e22e>BackupSelection</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;FileSystemSelection&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>backupPlan</span>: <span style=color:#66d9ef>this.backupPlan</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>selectionName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;filesystem-resources&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>role</span>: <span style=color:#66d9ef>this.crossAccountRole</span>,
@@ -510,7 +510,7 @@ end note
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>setupNotifications</span>(<span style=color:#a6e22e>props</span>: <span style=color:#66d9ef>SimplifiedBackupProps</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>void</span> {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Create SNS topic for backup notifications
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>backupTopic</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>sns</span>.<span style=color:#a6e22e>Topic</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;BackupNotificationTopic&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>backupTopic</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>sns</span>.<span style=color:#a6e22e>Topic</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;BackupNotificationTopic&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>displayName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Cross-Account Backup Notifications&#39;</span>
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
@@ -519,7 +519,7 @@ end note
 </span></span><span style=display:flex><span>    );
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// EventBridge rules for backup events
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>backupCompletedRule</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>events</span>.<span style=color:#a6e22e>Rule</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;BackupCompletedRule&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>backupCompletedRule</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>events</span>.<span style=color:#a6e22e>Rule</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;BackupCompletedRule&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>eventPattern</span><span style=color:#f92672>:</span> {
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>source</span><span style=color:#f92672>:</span> [<span style=color:#e6db74>&#39;aws.backup&#39;</span>],
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>detailType</span><span style=color:#f92672>:</span> [<span style=color:#e6db74>&#39;Backup Job State Change&#39;</span>],
@@ -532,7 +532,7 @@ end note
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>backupCompletedRule</span>.<span style=color:#a6e22e>addTarget</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>events_targets</span>.<span style=color:#a6e22e>SnsTopic</span>(<span style=color:#a6e22e>backupTopic</span>));
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Rule for copy job events
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>copyJobRule</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>events</span>.<span style=color:#a6e22e>Rule</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CopyJobRule&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>copyJobRule</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>events</span>.<span style=color:#a6e22e>Rule</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CopyJobRule&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>eventPattern</span><span style=color:#f92672>:</span> {
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>source</span><span style=color:#f92672>:</span> [<span style=color:#e6db74>&#39;aws.backup&#39;</span>],
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>detailType</span><span style=color:#f92672>:</span> [<span style=color:#e6db74>&#39;Copy Job State Change&#39;</span>],
@@ -545,7 +545,7 @@ end note
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>copyJobRule</span>.<span style=color:#a6e22e>addTarget</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>events_targets</span>.<span style=color:#a6e22e>SnsTopic</span>(<span style=color:#a6e22e>backupTopic</span>));
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Rule for restore job events
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>restoreJobRule</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>events</span>.<span style=color:#a6e22e>Rule</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;RestoreJobRule&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>restoreJobRule</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>events</span>.<span style=color:#a6e22e>Rule</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;RestoreJobRule&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>eventPattern</span><span style=color:#f92672>:</span> {
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>source</span><span style=color:#f92672>:</span> [<span style=color:#e6db74>&#39;aws.backup&#39;</span>],
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>detailType</span><span style=color:#f92672>:</span> [<span style=color:#e6db74>&#39;Restore Job State Change&#39;</span>],
@@ -560,7 +560,7 @@ end note
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>setupComplianceReporting</span>(<span style=color:#a6e22e>props</span>: <span style=color:#66d9ef>SimplifiedBackupProps</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>void</span> {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Create compliance frameworks
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>props</span>.<span style=color:#a6e22e>complianceFrameworks</span>.<span style=color:#a6e22e>forEach</span>(<span style=color:#a6e22e>framework</span> <span style=color:#f92672>=&gt;</span> {
+</span></span></span><span style=display:flex><span>    <span style=color:#a6e22e>props</span>.<span style=color:#a6e22e>complianceFrameworks</span>.<span style=color:#a6e22e>forEach</span>(<span style=color:#a6e22e>framework</span> <span style=color:#f92672>=&gt;</span> {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>backup</span>.<span style=color:#a6e22e>CfnFramework</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>`</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>framework</span><span style=color:#e6db74>}</span><span style=color:#e6db74>Framework`</span>, {
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>frameworkName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`cross-account-</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>framework</span>.<span style=color:#a6e22e>toLowerCase</span>()<span style=color:#e6db74>}</span><span style=color:#e6db74>-compliance`</span>,
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>frameworkDescription</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`Cross-account backup compliance for </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>framework</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
@@ -569,7 +569,7 @@ end note
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Create audit report plan
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>backup</span>.<span style=color:#a6e22e>CfnReportPlan</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;ComplianceAuditReport&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>backup</span>.<span style=color:#a6e22e>CfnReportPlan</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;ComplianceAuditReport&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>reportPlanName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;cross-account-compliance-report&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>reportPlanDescription</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Cross-account backup compliance audit report&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>reportDeliveryChannel</span><span style=color:#f92672>:</span> {
@@ -609,7 +609,7 @@ end note
 </span></span><span style=display:flex><span>    ];
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Framework-specific controls
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>frameworkSpecificControls</span><span style=color:#f92672>:</span> { [<span style=color:#a6e22e>key</span>: <span style=color:#66d9ef>string</span>]<span style=color:#f92672>:</span> <span style=color:#66d9ef>any</span>[] } <span style=color:#f92672>=</span> {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>frameworkSpecificControls</span><span style=color:#f92672>:</span> { [<span style=color:#a6e22e>key</span>: <span style=color:#66d9ef>string</span>]<span style=color:#f92672>:</span> <span style=color:#66d9ef>any</span>[] } <span style=color:#f92672>=</span> {
 </span></span><span style=display:flex><span>      <span style=color:#e6db74>&#39;HIPAA&#39;</span><span style=color:#f92672>:</span> [
 </span></span><span style=display:flex><span>        {
 </span></span><span style=display:flex><span>          <span style=color:#a6e22e>controlName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;BACKUP_RECOVERY_POINT_MANUAL_DELETION_DISABLED&#39;</span>,
@@ -644,12 +644,12 @@ end note
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>setupCrossRegionCopy</span>(<span style=color:#a6e22e>props</span>: <span style=color:#66d9ef>SimplifiedBackupProps</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>void</span> {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Note: Cross-region copy is handled automatically by backup rules
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// This is a placeholder for any additional cross-region setup
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>`Cross-region backup copying enabled to </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>props</span>.<span style=color:#a6e22e>crossRegionCopy</span>.<span style=color:#a6e22e>destinationRegion</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#75715e>// This is a placeholder for any additional cross-region setup
+</span></span></span><span style=display:flex><span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>`Cross-region backup copying enabled to </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>props</span>.<span style=color:#a6e22e>crossRegionCopy</span>.<span style=color:#a6e22e>destinationRegion</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><h2 id=step-3-disaster-recovery-testing-stack>Step 3: Disaster Recovery Testing Stack</h2><p>Create <code>lib/dr-testing-stack.ts</code> for automated DR testing:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// lib/dr-testing-stack.ts
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>lambda</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-lambda&#39;</span>;
+</span></span></code></pre></div><h2 id=step-3-disaster-recovery-testing-stack>Step 3: Disaster Recovery Testing Stack</h2><p>Create <code>lib/dr-testing-stack.ts</code> for automated DR testing:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// lib/dr-testing-stack.ts
+</span></span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>lambda</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-lambda&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>backup</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-backup&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>events</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-events&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>events_targets</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-events-targets&#39;</span>;
@@ -668,7 +668,7 @@ end note
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>super</span>(<span style=color:#a6e22e>scope</span>, <span style=color:#a6e22e>id</span>, <span style=color:#a6e22e>props</span>);
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// IAM role for DR testing
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>drTestRole</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>Role</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;DRTestRole&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>drTestRole</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>Role</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;DRTestRole&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>assumedBy</span>: <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>ServicePrincipal</span>(<span style=color:#e6db74>&#39;lambda.amazonaws.com&#39;</span>),
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>managedPolicies</span><span style=color:#f92672>:</span> [
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>ManagedPolicy</span>.<span style=color:#a6e22e>fromAwsManagedPolicyName</span>(<span style=color:#e6db74>&#39;service-role/AWSLambdaBasicExecutionRole&#39;</span>)
@@ -676,7 +676,7 @@ end note
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Grant necessary permissions for DR testing
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>drTestRole</span>.<span style=color:#a6e22e>addToPolicy</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>PolicyStatement</span>({
+</span></span></span><span style=display:flex><span>    <span style=color:#a6e22e>drTestRole</span>.<span style=color:#a6e22e>addToPolicy</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>PolicyStatement</span>({
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>effect</span>: <span style=color:#66d9ef>iam.Effect.ALLOW</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>actions</span><span style=color:#f92672>:</span> [
 </span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;backup:ListRecoveryPointsByBackupVault&#39;</span>,
@@ -690,7 +690,7 @@ end note
 </span></span><span style=display:flex><span>    }));
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Create the DR testing Lambda function
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>drTestFunction</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>lambda</span>.Function(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;DRTestFunction&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>drTestFunction</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>lambda</span>.Function(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;DRTestFunction&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>runtime</span>: <span style=color:#66d9ef>lambda.Runtime.NODEJS_18_X</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>handler</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;index.handler&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>code</span>: <span style=color:#66d9ef>lambda.Code.fromAsset</span>(<span style=color:#e6db74>&#39;lambda/dr-testing&#39;</span>),
@@ -704,7 +704,7 @@ end note
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Schedule monthly DR tests
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>drTestRule</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>events</span>.<span style=color:#a6e22e>Rule</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;DRTestSchedule&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>drTestRule</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>events</span>.<span style=color:#a6e22e>Rule</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;DRTestSchedule&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>schedule</span>: <span style=color:#66d9ef>events.Schedule.cron</span>({
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>day</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;15&#39;</span>,
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>hour</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;10&#39;</span>,
@@ -722,13 +722,13 @@ end note
 </span></span><span style=display:flex><span>    }));
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Create a manual invoke option
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cdk</span>.<span style=color:#a6e22e>CfnOutput</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;DRTestFunctionName&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cdk</span>.<span style=color:#a6e22e>CfnOutput</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;DRTestFunctionName&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>value</span>: <span style=color:#66d9ef>this.drTestFunction.functionName</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>description</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Name of the DR testing Lambda function&#39;</span>
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><h2 id=step-4-dr-testing-lambda-function>Step 4: DR Testing Lambda Function</h2><p>Create <code>lambda/dr-testing/package.json</code>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-json data-lang=json><span style=display:flex><span>{
+</span></span></code></pre></div><h2 id=step-4-dr-testing-lambda-function>Step 4: DR Testing Lambda Function</h2><p>Create <code>lambda/dr-testing/package.json</code>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-json data-lang=json><span style=display:flex><span>{
 </span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;name&#34;</span>: <span style=color:#e6db74>&#34;dr-testing-lambda&#34;</span>,
 </span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;version&#34;</span>: <span style=color:#e6db74>&#34;1.0.0&#34;</span>,
 </span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;description&#34;</span>: <span style=color:#e6db74>&#34;Disaster Recovery Testing Lambda Function&#34;</span>,
@@ -746,14 +746,14 @@ end note
 </span></span><span style=display:flex><span>    <span style=color:#f92672>&#34;typescript&#34;</span>: <span style=color:#e6db74>&#34;^4.9.0&#34;</span>
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>Create <code>lambda/dr-testing/index.ts</code> with the DR testing logic:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>lambda</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-lambda&#39;</span>;
+</span></span></code></pre></div><p>Create <code>lambda/dr-testing/index.ts</code> with the DR testing logic:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>lambda</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-lambda&#39;</span>;
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>DisasterRecoveryTestingStack</span> <span style=color:#66d9ef>extends</span> <span style=color:#a6e22e>cdk</span>.<span style=color:#a6e22e>Stack</span> {
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>constructor</span>(<span style=color:#a6e22e>scope</span>: <span style=color:#66d9ef>Construct</span>, <span style=color:#a6e22e>id</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>props</span>: <span style=color:#66d9ef>cdk.StackProps</span>) {
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>super</span>(<span style=color:#a6e22e>scope</span>, <span style=color:#a6e22e>id</span>, <span style=color:#a6e22e>props</span>);
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Automated DR testing function
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>drTestFunction</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>lambda</span>.Function(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;DRTestFunction&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>drTestFunction</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>lambda</span>.Function(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;DRTestFunction&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>runtime</span>: <span style=color:#66d9ef>lambda.Runtime.NODEJS_18_X</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>handler</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;index.handler&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>code</span>: <span style=color:#66d9ef>lambda.Code.fromAsset</span>(<span style=color:#e6db74>&#39;lambda/dr-testing&#39;</span>),
@@ -765,7 +765,7 @@ end note
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Schedule monthly DR tests
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>drTestRule</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>events</span>.<span style=color:#a6e22e>Rule</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;DRTestSchedule&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>drTestRule</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>events</span>.<span style=color:#a6e22e>Rule</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;DRTestSchedule&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>schedule</span>: <span style=color:#66d9ef>events.Schedule.cron</span>({
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>day</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;15&#39;</span>,
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>hour</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;10&#39;</span>,
@@ -777,8 +777,8 @@ end note
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>drTestRule</span>.<span style=color:#a6e22e>addTarget</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>events_targets</span>.<span style=color:#a6e22e>LambdaFunction</span>(<span style=color:#a6e22e>drTestFunction</span>));
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>Create the DR testing Lambda function:</p><p>Create <code>lambda/dr-testing/index.ts</code> with the DR testing logic:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// lambda/dr-testing/index.ts
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>BackupClient</span>, <span style=color:#a6e22e>ListRecoveryPointsByBackupVaultCommand</span>, <span style=color:#a6e22e>StartRestoreJobCommand</span>, <span style=color:#a6e22e>DescribeRestoreJobCommand</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/client-backup&#39;</span>;
+</span></span></code></pre></div><p>Create the DR testing Lambda function:</p><p>Create <code>lambda/dr-testing/index.ts</code> with the DR testing logic:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// lambda/dr-testing/index.ts
+</span></span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>BackupClient</span>, <span style=color:#a6e22e>ListRecoveryPointsByBackupVaultCommand</span>, <span style=color:#a6e22e>StartRestoreJobCommand</span>, <span style=color:#a6e22e>DescribeRestoreJobCommand</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/client-backup&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>CloudWatchClient</span>, <span style=color:#a6e22e>PutMetricDataCommand</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/client-cloudwatch&#39;</span>;
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>backup</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>BackupClient</span>({});
@@ -814,16 +814,16 @@ end note
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>try</span> {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Get recent recovery points from the backup vault
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>recoveryPoints</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>backup</span>.<span style=color:#a6e22e>send</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>ListRecoveryPointsByBackupVaultCommand</span>({
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>recoveryPoints</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>backup</span>.<span style=color:#a6e22e>send</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>ListRecoveryPointsByBackupVaultCommand</span>({
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>BackupVaultName</span>: <span style=color:#66d9ef>process.env.BACKUP_VAULT_NAME</span><span style=color:#f92672>!</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>ByCreatedAfter</span>: <span style=color:#66d9ef>new</span> Date(Date.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>-</span> <span style=color:#ae81ff>7</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>24</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>60</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>60</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>1000</span>), <span style=color:#75715e>// Last 7 days
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>MaxResults</span>: <span style=color:#66d9ef>event.maxTestRestores</span> <span style=color:#f92672>||</span> <span style=color:#ae81ff>5</span>
+</span></span></span><span style=display:flex><span>      <span style=color:#a6e22e>MaxResults</span>: <span style=color:#66d9ef>event.maxTestRestores</span> <span style=color:#f92672>||</span> <span style=color:#ae81ff>5</span>
 </span></span><span style=display:flex><span>    }));
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>`Found </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>recoveryPoints</span>.<span style=color:#a6e22e>RecoveryPoints</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>length</span> <span style=color:#f92672>||</span> <span style=color:#ae81ff>0</span><span style=color:#e6db74>}</span><span style=color:#e6db74> recovery points to test`</span>);
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Test restore for each recovery point
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>const</span> <span style=color:#a6e22e>recoveryPoint</span> <span style=color:#66d9ef>of</span> <span style=color:#a6e22e>recoveryPoints</span>.<span style=color:#a6e22e>RecoveryPoints</span> <span style=color:#f92672>||</span> []) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>const</span> <span style=color:#a6e22e>recoveryPoint</span> <span style=color:#66d9ef>of</span> <span style=color:#a6e22e>recoveryPoints</span>.<span style=color:#a6e22e>RecoveryPoints</span> <span style=color:#f92672>||</span> []) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>testResults</span>.<span style=color:#a6e22e>totalTests</span> <span style=color:#f92672>&gt;=</span> (<span style=color:#a6e22e>event</span>.<span style=color:#a6e22e>maxTestRestores</span> <span style=color:#f92672>||</span> <span style=color:#ae81ff>5</span>)) <span style=color:#66d9ef>break</span>;
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>testResults</span>.<span style=color:#a6e22e>totalTests</span><span style=color:#f92672>++</span>;
@@ -833,11 +833,11 @@ end note
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>restoreStartTime</span> <span style=color:#f92672>=</span> Date.<span style=color:#a6e22e>now</span>();
 </span></span><span style=display:flex><span>        
 </span></span><span style=display:flex><span>        <span style=color:#75715e>// Start a test restore
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>restoreJobId</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>startTestRestore</span>(<span style=color:#a6e22e>recoveryPoint</span>);
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>restoreJobId</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>startTestRestore</span>(<span style=color:#a6e22e>recoveryPoint</span>);
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>`Started restore job: </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>restoreJobId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
 </span></span><span style=display:flex><span>        
 </span></span><span style=display:flex><span>        <span style=color:#75715e>// Wait for restore completion (simplified for demo)
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>restoreResult</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>waitForRestoreCompletion</span>(<span style=color:#a6e22e>restoreJobId</span>);
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>restoreResult</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>waitForRestoreCompletion</span>(<span style=color:#a6e22e>restoreJobId</span>);
 </span></span><span style=display:flex><span>        
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>restoreEndTime</span> <span style=color:#f92672>=</span> Date.<span style=color:#a6e22e>now</span>();
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>restoreDuration</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>restoreEndTime</span> <span style=color:#f92672>-</span> <span style=color:#a6e22e>restoreStartTime</span>;
@@ -847,7 +847,7 @@ end note
 </span></span><span style=display:flex><span>          <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>`Restore test successful in </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>restoreDuration</span><span style=color:#e6db74>}</span><span style=color:#e6db74>ms`</span>);
 </span></span><span style=display:flex><span>          
 </span></span><span style=display:flex><span>          <span style=color:#75715e>// Clean up test resources
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>          <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>cleanupTestRestore</span>(<span style=color:#a6e22e>restoreJobId</span>);
+</span></span></span><span style=display:flex><span>          <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>cleanupTestRestore</span>(<span style=color:#a6e22e>restoreJobId</span>);
 </span></span><span style=display:flex><span>        } <span style=color:#66d9ef>else</span> {
 </span></span><span style=display:flex><span>          <span style=color:#a6e22e>testResults</span>.<span style=color:#a6e22e>failedTests</span><span style=color:#f92672>++</span>;
 </span></span><span style=display:flex><span>          <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>error</span>(<span style=color:#e6db74>`Restore test failed with status: </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>restoreResult</span>.<span style=color:#a6e22e>status</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
@@ -859,15 +859,15 @@ end note
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Calculate final metrics
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>testResults</span>.<span style=color:#a6e22e>testDuration</span> <span style=color:#f92672>=</span> Date.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>-</span> <span style=color:#a6e22e>startTime</span>;
+</span></span></span><span style=display:flex><span>    <span style=color:#a6e22e>testResults</span>.<span style=color:#a6e22e>testDuration</span> <span style=color:#f92672>=</span> Date.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>-</span> <span style=color:#a6e22e>startTime</span>;
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>testResults</span>.<span style=color:#a6e22e>averageRTO</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>testResults</span>.<span style=color:#a6e22e>totalTests</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>0</span> <span style=color:#f92672>?</span> <span style=color:#a6e22e>testResults</span>.<span style=color:#a6e22e>testDuration</span> <span style=color:#f92672>/</span> <span style=color:#a6e22e>testResults.totalTests</span> : <span style=color:#66d9ef>0</span>;
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>testResults</span>.<span style=color:#a6e22e>successRate</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>testResults</span>.<span style=color:#a6e22e>totalTests</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>0</span> <span style=color:#f92672>?</span> (<span style=color:#a6e22e>testResults</span>.<span style=color:#a6e22e>successfulTests</span> <span style=color:#f92672>/</span> <span style=color:#a6e22e>testResults</span>.<span style=color:#a6e22e>totalTests</span>) <span style=color:#f92672>*</span> <span style=color:#a6e22e>100</span> : <span style=color:#66d9ef>0</span>;
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Publish metrics to CloudWatch
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>publishTestMetrics</span>(<span style=color:#a6e22e>testResults</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>publishTestMetrics</span>(<span style=color:#a6e22e>testResults</span>);
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Generate recommendations based on results
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>recommendations</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>generateRecommendations</span>(<span style=color:#a6e22e>testResults</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>recommendations</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>generateRecommendations</span>(<span style=color:#a6e22e>testResults</span>);
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#39;DR test completed:&#39;</span>, <span style=color:#a6e22e>testResults</span>);
 </span></span><span style=display:flex><span>
@@ -884,7 +884,7 @@ end note
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>error</span>(<span style=color:#e6db74>&#39;DR test execution failed:&#39;</span>, <span style=color:#a6e22e>error</span>);
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Publish failure metrics
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>send</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>PutMetricDataCommand</span>({
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>send</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>PutMetricDataCommand</span>({
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>Namespace</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;DR/Testing&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>MetricData</span><span style=color:#f92672>:</span> [
 </span></span><span style=display:flex><span>        {
@@ -902,7 +902,7 @@ end note
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#66d9ef>async</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>startTestRestore</span>(<span style=color:#a6e22e>recoveryPoint</span>: <span style=color:#66d9ef>any</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>string</span>&gt; {
 </span></span><span style=display:flex><span>  <span style=color:#75715e>// Configure restore metadata based on resource type
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>restoreMetadata</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>getRestoreMetadata</span>(<span style=color:#a6e22e>recoveryPoint</span>);
+</span></span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>restoreMetadata</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>getRestoreMetadata</span>(<span style=color:#a6e22e>recoveryPoint</span>);
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>result</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>backup</span>.<span style=color:#a6e22e>send</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>StartRestoreJobCommand</span>({
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>RecoveryPointArn</span>: <span style=color:#66d9ef>recoveryPoint.RecoveryPointArn</span>,
@@ -916,24 +916,24 @@ end note
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#66d9ef>function</span> <span style=color:#a6e22e>getRestoreMetadata</span>(<span style=color:#a6e22e>recoveryPoint</span>: <span style=color:#66d9ef>any</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Record</span>&lt;<span style=color:#f92672>string</span>, <span style=color:#a6e22e>string</span>&gt; {
 </span></span><span style=display:flex><span>  <span style=color:#75715e>// Default metadata for test restores
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>baseMetadata</span> <span style=color:#f92672>=</span> {
+</span></span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>baseMetadata</span> <span style=color:#f92672>=</span> {
 </span></span><span style=display:flex><span>    <span style=color:#e6db74>&#39;newInstanceType&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;t3.micro&#39;</span>,  <span style=color:#75715e>// Use smallest instance for cost efficiency
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#e6db74>&#39;targetAvailabilityZone&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;us-west-2a&#39;</span>
+</span></span></span><span style=display:flex><span>    <span style=color:#e6db74>&#39;targetAvailabilityZone&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;us-west-2a&#39;</span>
 </span></span><span style=display:flex><span>  };
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#75715e>// Resource-specific metadata
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>recoveryPoint</span>.<span style=color:#a6e22e>ResourceArn</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>includes</span>(<span style=color:#e6db74>&#39;:rds:&#39;</span>)) {
+</span></span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>recoveryPoint</span>.<span style=color:#a6e22e>ResourceArn</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>includes</span>(<span style=color:#e6db74>&#39;:rds:&#39;</span>)) {
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
 </span></span><span style=display:flex><span>      ...<span style=color:#a6e22e>baseMetadata</span>,
 </span></span><span style=display:flex><span>      <span style=color:#e6db74>&#39;DBInstanceClass&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;db.t3.micro&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#e6db74>&#39;Engine&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;mysql&#39;</span>  <span style=color:#75715e>// Will be determined from backup
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    };
+</span></span></span><span style=display:flex><span>    };
 </span></span><span style=display:flex><span>  } <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>recoveryPoint</span>.<span style=color:#a6e22e>ResourceArn</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>includes</span>(<span style=color:#e6db74>&#39;:ec2:&#39;</span>)) {
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
 </span></span><span style=display:flex><span>      ...<span style=color:#a6e22e>baseMetadata</span>,
 </span></span><span style=display:flex><span>      <span style=color:#e6db74>&#39;InstanceType&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;t3.micro&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#e6db74>&#39;SubnetId&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;subnet-12345678&#39;</span>  <span style=color:#75715e>// Replace with your test subnet
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    };
+</span></span></span><span style=display:flex><span>    };
 </span></span><span style=display:flex><span>  } <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>recoveryPoint</span>.<span style=color:#a6e22e>ResourceArn</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>includes</span>(<span style=color:#e6db74>&#39;:dynamodb:&#39;</span>)) {
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
 </span></span><span style=display:flex><span>      <span style=color:#e6db74>&#39;BillingMode&#39;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;PAY_PER_REQUEST&#39;</span>,
@@ -947,7 +947,7 @@ end note
 </span></span><span style=display:flex><span><span style=color:#66d9ef>async</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>waitForRestoreCompletion</span>(<span style=color:#a6e22e>restoreJobId</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span><span style=color:#f92672>&lt;</span>{ <span style=color:#a6e22e>status</span>: <span style=color:#66d9ef>string</span> }<span style=color:#f92672>&gt;</span> {
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>attempts</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>maxAttempts</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>30</span>; <span style=color:#75715e>// 30 minutes maximum wait
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  
+</span></span></span><span style=display:flex><span>  
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>while</span> (<span style=color:#a6e22e>attempts</span> <span style=color:#f92672>&lt;</span> <span style=color:#a6e22e>maxAttempts</span>) {
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>try</span> {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>result</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>backup</span>.<span style=color:#a6e22e>send</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>DescribeRestoreJobCommand</span>({
@@ -962,7 +962,7 @@ end note
 </span></span><span style=display:flex><span>      }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Wait 1 minute before checking again
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Promise</span>(<span style=color:#a6e22e>resolve</span> <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>setTimeout</span>(<span style=color:#a6e22e>resolve</span>, <span style=color:#ae81ff>60000</span>));
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Promise</span>(<span style=color:#a6e22e>resolve</span> <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>setTimeout</span>(<span style=color:#a6e22e>resolve</span>, <span style=color:#ae81ff>60000</span>));
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>attempts</span><span style=color:#f92672>++</span>;
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>    } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
@@ -979,12 +979,12 @@ end note
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>`Cleaning up test restore </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>restoreJobId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
 </span></span><span style=display:flex><span>  
 </span></span><span style=display:flex><span>  <span style=color:#75715e>// In a real implementation, you would:
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// 1. Get the restored resource details
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// 2. Delete the test resource to avoid costs
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// 3. Remove any associated resources (security groups, etc.)
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  
+</span></span></span><span style=display:flex><span>  <span style=color:#75715e>// 1. Get the restored resource details
+</span></span></span><span style=display:flex><span>  <span style=color:#75715e>// 2. Delete the test resource to avoid costs
+</span></span></span><span style=display:flex><span>  <span style=color:#75715e>// 3. Remove any associated resources (security groups, etc.)
+</span></span></span><span style=display:flex><span>  
 </span></span><span style=display:flex><span>  <span style=color:#75715e>// For now, just log the cleanup action
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#39;Test resource cleanup completed&#39;</span>);
+</span></span></span><span style=display:flex><span>  <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#39;Test resource cleanup completed&#39;</span>);
 </span></span><span style=display:flex><span>}
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#66d9ef>async</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>publishTestMetrics</span>(<span style=color:#a6e22e>testResults</span>: <span style=color:#66d9ef>TestResults</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
@@ -1035,7 +1035,7 @@ end note
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>  
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>testResults</span>.<span style=color:#a6e22e>averageRTO</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>1800000</span>) { <span style=color:#75715e>// 30 minutes
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>recommendations</span>.<span style=color:#a6e22e>push</span>(<span style=color:#e6db74>&#39;Consider optimizing restore performance or adjusting RTO targets&#39;</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#a6e22e>recommendations</span>.<span style=color:#a6e22e>push</span>(<span style=color:#e6db74>&#39;Consider optimizing restore performance or adjusting RTO targets&#39;</span>);
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>  
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>testResults</span>.<span style=color:#a6e22e>failedTests</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>0</span>) {
@@ -1048,8 +1048,8 @@ end note
 </span></span><span style=display:flex><span>  
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>recommendations</span>;
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><h2 id=step-5-monitoring-stack>Step 5: Monitoring Stack</h2><p>Create <code>lib/monitoring-stack.ts</code> for comprehensive monitoring:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// lib/monitoring-stack.ts
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>cloudwatch</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-cloudwatch&#39;</span>;
+</span></span></code></pre></div><h2 id=step-5-monitoring-stack>Step 5: Monitoring Stack</h2><p>Create <code>lib/monitoring-stack.ts</code> for comprehensive monitoring:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// lib/monitoring-stack.ts
+</span></span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>cloudwatch</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-cloudwatch&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>backup</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-backup&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>sns</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-sns&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>cdk</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib&#39;</span>;
@@ -1067,11 +1067,11 @@ end note
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>super</span>(<span style=color:#a6e22e>scope</span>, <span style=color:#a6e22e>id</span>, <span style=color:#a6e22e>props</span>);
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Create comprehensive monitoring dashboard
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>dashboard</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>Dashboard</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;BackupMonitoringDashboard&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>dashboard</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>Dashboard</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;BackupMonitoringDashboard&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>dashboardName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;CrossAccountBackupMonitoring&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>widgets</span><span style=color:#f92672>:</span> [
 </span></span><span style=display:flex><span>        <span style=color:#75715e>// Backup success rate widget
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>GraphWidget</span>({
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>GraphWidget</span>({
 </span></span><span style=display:flex><span>          <span style=color:#a6e22e>title</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Backup Job Success Rate&#39;</span>,
 </span></span><span style=display:flex><span>          <span style=color:#a6e22e>left</span><span style=color:#f92672>:</span> [
 </span></span><span style=display:flex><span>            <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>Metric</span>({
@@ -1092,7 +1092,7 @@ end note
 </span></span><span style=display:flex><span>        }),
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>        <span style=color:#75715e>// DR test results widget
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>GraphWidget</span>({
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>GraphWidget</span>({
 </span></span><span style=display:flex><span>          <span style=color:#a6e22e>title</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;DR Test Results&#39;</span>,
 </span></span><span style=display:flex><span>          <span style=color:#a6e22e>left</span><span style=color:#f92672>:</span> [
 </span></span><span style=display:flex><span>            <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>Metric</span>({
@@ -1113,7 +1113,7 @@ end note
 </span></span><span style=display:flex><span>        }),
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>        <span style=color:#75715e>// Cost tracking widget
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>SingleValueWidget</span>({
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>SingleValueWidget</span>({
 </span></span><span style=display:flex><span>          <span style=color:#a6e22e>title</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Monthly Backup Costs&#39;</span>,
 </span></span><span style=display:flex><span>          <span style=color:#a6e22e>metrics</span><span style=color:#f92672>:</span> [
 </span></span><span style=display:flex><span>            <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>Metric</span>({
@@ -1132,7 +1132,7 @@ end note
 </span></span><span style=display:flex><span>        }),
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>        <span style=color:#75715e>// Recovery point count widget
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>SingleValueWidget</span>({
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>SingleValueWidget</span>({
 </span></span><span style=display:flex><span>          <span style=color:#a6e22e>title</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Total Recovery Points&#39;</span>,
 </span></span><span style=display:flex><span>          <span style=color:#a6e22e>metrics</span><span style=color:#f92672>:</span> [
 </span></span><span style=display:flex><span>            <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>Metric</span>({
@@ -1149,10 +1149,10 @@ end note
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Create alarms for critical metrics
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>createAlarms</span>(<span style=color:#a6e22e>props</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>createAlarms</span>(<span style=color:#a6e22e>props</span>);
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Output dashboard URL
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cdk</span>.<span style=color:#a6e22e>CfnOutput</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;DashboardURL&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cdk</span>.<span style=color:#a6e22e>CfnOutput</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;DashboardURL&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>value</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`https://console.aws.amazon.com/cloudwatch/home?region=</span><span style=color:#e6db74>${</span><span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>region</span><span style=color:#e6db74>}</span><span style=color:#e6db74>#dashboards:name=</span><span style=color:#e6db74>${</span><span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>dashboard</span>.<span style=color:#a6e22e>dashboardName</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>description</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;URL to the backup monitoring dashboard&#39;</span>
 </span></span><span style=display:flex><span>    });
@@ -1160,7 +1160,7 @@ end note
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>createAlarms</span>(<span style=color:#a6e22e>props</span>: <span style=color:#66d9ef>MonitoringProps</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>void</span> {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Create SNS topic for alarms
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>alarmTopic</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>sns</span>.<span style=color:#a6e22e>Topic</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;BackupAlarmTopic&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>alarmTopic</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>sns</span>.<span style=color:#a6e22e>Topic</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;BackupAlarmTopic&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>displayName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Backup Monitoring Alarms&#39;</span>
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
@@ -1169,7 +1169,7 @@ end note
 </span></span><span style=display:flex><span>    );
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Backup failure alarm
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>backupFailureAlarm</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>Alarm</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;BackupFailureAlarm&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>backupFailureAlarm</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>Alarm</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;BackupFailureAlarm&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>alarmName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;BackupJobFailures&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>metric</span>: <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>Metric</span>({
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>namespace</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;AWS/Backup&#39;</span>,
@@ -1188,7 +1188,7 @@ end note
 </span></span><span style=display:flex><span>    );
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// DR test failure alarm
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>drTestFailureAlarm</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>Alarm</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;DRTestFailureAlarm&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>drTestFailureAlarm</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>Alarm</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;DRTestFailureAlarm&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>alarmName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;DRTestFailures&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>metric</span>: <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>Metric</span>({
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>namespace</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;DR/Testing&#39;</span>,
@@ -1208,37 +1208,37 @@ end note
 </span></span><span style=display:flex><span>    );
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><h2 id=step-6-resource-tagging-strategy>Step 6: Resource Tagging Strategy</h2><p>Before deploying, ensure your AWS resources are properly tagged for backup selection. Create a tagging script or use AWS Tag Editor:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e>#!/bin/bash
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#75715e># tag-resources.sh - Script to tag resources for backup</span>
+</span></span></code></pre></div><h2 id=step-6-resource-tagging-strategy>Step 6: Resource Tagging Strategy</h2><p>Before deploying, ensure your AWS resources are properly tagged for backup selection. Create a tagging script or use AWS Tag Editor:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e>#!/bin/bash
+</span></span></span><span style=display:flex><span><span style=color:#75715e># tag-resources.sh - Script to tag resources for backup</span>
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#75715e># Tag EC2 instances</span>
 </span></span><span style=display:flex><span>aws ec2 create-tags <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --resources i-1234567890abcdef0 <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --tags Key<span style=color:#f92672>=</span>Environment,Value<span style=color:#f92672>=</span>Production <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>           Key<span style=color:#f92672>=</span>BackupRequired,Value<span style=color:#f92672>=</span>true <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>           Key<span style=color:#f92672>=</span>DataClassification,Value<span style=color:#f92672>=</span>Critical
+</span></span></span><span style=display:flex><span>    --resources i-1234567890abcdef0 <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>    --tags Key<span style=color:#f92672>=</span>Environment,Value<span style=color:#f92672>=</span>Production <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>           Key<span style=color:#f92672>=</span>BackupRequired,Value<span style=color:#f92672>=</span>true <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>           Key<span style=color:#f92672>=</span>DataClassification,Value<span style=color:#f92672>=</span>Critical
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#75715e># Tag RDS instances  </span>
 </span></span><span style=display:flex><span>aws rds add-tags-to-resource <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --resource-name arn:aws:rds:us-west-2:123456789012:db:prod-database <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --tags Key<span style=color:#f92672>=</span>Environment,Value<span style=color:#f92672>=</span>Production <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>           Key<span style=color:#f92672>=</span>BackupRequired,Value<span style=color:#f92672>=</span>true <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>           Key<span style=color:#f92672>=</span>DatabaseBackup,Value<span style=color:#f92672>=</span>enabled
+</span></span></span><span style=display:flex><span>    --resource-name arn:aws:rds:us-west-2:123456789012:db:prod-database <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>    --tags Key<span style=color:#f92672>=</span>Environment,Value<span style=color:#f92672>=</span>Production <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>           Key<span style=color:#f92672>=</span>BackupRequired,Value<span style=color:#f92672>=</span>true <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>           Key<span style=color:#f92672>=</span>DatabaseBackup,Value<span style=color:#f92672>=</span>enabled
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#75715e># Tag DynamoDB tables</span>
 </span></span><span style=display:flex><span>aws dynamodb tag-resource <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --resource-arn arn:aws:dynamodb:us-west-2:123456789012:table/ProductionTable <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --tags Key<span style=color:#f92672>=</span>Environment,Value<span style=color:#f92672>=</span>Production <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>           Key<span style=color:#f92672>=</span>BackupRequired,Value<span style=color:#f92672>=</span>true <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>           Key<span style=color:#f92672>=</span>DataClassification,Value<span style=color:#f92672>=</span>Critical
+</span></span></span><span style=display:flex><span>    --resource-arn arn:aws:dynamodb:us-west-2:123456789012:table/ProductionTable <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>    --tags Key<span style=color:#f92672>=</span>Environment,Value<span style=color:#f92672>=</span>Production <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>           Key<span style=color:#f92672>=</span>BackupRequired,Value<span style=color:#f92672>=</span>true <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>           Key<span style=color:#f92672>=</span>DataClassification,Value<span style=color:#f92672>=</span>Critical
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#75715e># Tag EBS volumes</span>
 </span></span><span style=display:flex><span>aws ec2 create-tags <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --resources vol-1234567890abcdef0 <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --tags Key<span style=color:#f92672>=</span>Environment,Value<span style=color:#f92672>=</span>Production <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>           Key<span style=color:#f92672>=</span>FilesystemBackup,Value<span style=color:#f92672>=</span>enabled <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>           Key<span style=color:#f92672>=</span>BackupRequired,Value<span style=color:#f92672>=</span>true
-</span></span></code></pre></div><h2 id=step-7-deployment-process>Step 7: Deployment Process</h2><p>Deploy the complete solution step by step:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># 1. Install dependencies</span>
+</span></span></span><span style=display:flex><span>    --resources vol-1234567890abcdef0 <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>    --tags Key<span style=color:#f92672>=</span>Environment,Value<span style=color:#f92672>=</span>Production <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>           Key<span style=color:#f92672>=</span>FilesystemBackup,Value<span style=color:#f92672>=</span>enabled <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>           Key<span style=color:#f92672>=</span>BackupRequired,Value<span style=color:#f92672>=</span>true
+</span></span></code></pre></div><h2 id=step-7-deployment-process>Step 7: Deployment Process</h2><p>Deploy the complete solution step by step:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># 1. Install dependencies</span>
 </span></span><span style=display:flex><span>npm install
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#75715e># 2. Build the Lambda function</span>
@@ -1252,8 +1252,8 @@ end note
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#75715e># 4. Deploy the backup infrastructure first</span>
 </span></span><span style=display:flex><span>npx cdk deploy BackupStack <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --parameters backupAccountId<span style=color:#f92672>=</span><span style=color:#ae81ff>111122223333</span> <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --parameters drAccountId<span style=color:#f92672>=</span><span style=color:#ae81ff>444455556666</span>
+</span></span></span><span style=display:flex><span>    --parameters backupAccountId<span style=color:#f92672>=</span><span style=color:#ae81ff>111122223333</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>    --parameters drAccountId<span style=color:#f92672>=</span><span style=color:#ae81ff>444455556666</span>
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#75715e># 5. Deploy DR testing stack</span>
 </span></span><span style=display:flex><span>npx cdk deploy DRTestingStack
@@ -1263,14 +1263,14 @@ end note
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#75715e># 7. Verify deployment</span>
 </span></span><span style=display:flex><span>npx cdk list
-</span></span></code></pre></div><h2 id=step-8-testing-and-validation>Step 8: Testing and Validation</h2><p>After deployment, test the system:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># Test DR function manually</span>
+</span></span></code></pre></div><h2 id=step-8-testing-and-validation>Step 8: Testing and Validation</h2><p>After deployment, test the system:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># Test DR function manually</span>
 </span></span><span style=display:flex><span>aws lambda invoke <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --function-name <span style=color:#66d9ef>$(</span>aws cloudformation describe-stacks <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>        --stack-name DRTestingStack <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>        --query <span style=color:#e6db74>&#39;Stacks[0].Outputs[?OutputKey==`DRTestFunctionName`].OutputValue&#39;</span> <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>        --output text<span style=color:#66d9ef>)</span> <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --payload <span style=color:#e6db74>&#39;{&#34;testType&#34;:&#34;sample&#34;,&#34;maxTestRestores&#34;:1,&#34;resourceTypes&#34;:[&#34;EBS&#34;]}&#39;</span> <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    response.json
+</span></span></span><span style=display:flex><span>    --function-name <span style=color:#66d9ef>$(</span>aws cloudformation describe-stacks <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>        --stack-name DRTestingStack <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>        --query <span style=color:#e6db74>&#39;Stacks[0].Outputs[?OutputKey==`DRTestFunctionName`].OutputValue&#39;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>        --output text<span style=color:#66d9ef>)</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>    --payload <span style=color:#e6db74>&#39;{&#34;testType&#34;:&#34;sample&#34;,&#34;maxTestRestores&#34;:1,&#34;resourceTypes&#34;:[&#34;EBS&#34;]}&#39;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>    response.json
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#75715e># Check the response</span>
 </span></span><span style=display:flex><span>cat response.json
@@ -1283,7 +1283,7 @@ end note
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#75715e># View compliance reports</span>
 </span></span><span style=display:flex><span>aws backup list-report-jobs
-</span></span></code></pre></div><p>This structured approach provides clear implementation guidance for each component, showing exactly how to organize and deploy the TypeScript code in a real AWS environment.</p><h2 id=deployment-and-cost-optimization>Deployment and Cost Optimization</h2><p>Now that you have all the components structured properly, deploy the complete solution:</p><p>Now that you have all the components structured properly, deploy the complete solution:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># Navigate to your project directory</span>
+</span></span></code></pre></div><p>This structured approach provides clear implementation guidance for each component, showing exactly how to organize and deploy the TypeScript code in a real AWS environment.</p><h2 id=deployment-and-cost-optimization>Deployment and Cost Optimization</h2><p>Now that you have all the components structured properly, deploy the complete solution:</p><p>Now that you have all the components structured properly, deploy the complete solution:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># Navigate to your project directory</span>
 </span></span><span style=display:flex><span>cd aws-backup-cross-account
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#75715e># Install dependencies</span>
@@ -1300,11 +1300,11 @@ end note
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#75715e># Deploy all stacks</span>
 </span></span><span style=display:flex><span>npx cdk deploy --all <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>  --parameters BackupStack:backupAccountId<span style=color:#f92672>=</span><span style=color:#ae81ff>111122223333</span> <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>  --parameters BackupStack:drAccountId<span style=color:#f92672>=</span><span style=color:#ae81ff>444455556666</span> <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>  --parameters BackupStack:complianceFrameworks<span style=color:#f92672>=</span>SOC2,HIPAA,PCI_DSS <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>  --parameters BackupStack:notificationEmail<span style=color:#f92672>=</span>admin@yourcompany.com
-</span></span></code></pre></div><h2 id=post-deployment-validation>Post-Deployment Validation</h2><p>After deployment, validate that everything is working correctly:</p><p>After deployment, validate that everything is working correctly:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># 1. Check that all stacks deployed successfully</span>
+</span></span></span><span style=display:flex><span>  --parameters BackupStack:backupAccountId<span style=color:#f92672>=</span><span style=color:#ae81ff>111122223333</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>  --parameters BackupStack:drAccountId<span style=color:#f92672>=</span><span style=color:#ae81ff>444455556666</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>  --parameters BackupStack:complianceFrameworks<span style=color:#f92672>=</span>SOC2,HIPAA,PCI_DSS <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>  --parameters BackupStack:notificationEmail<span style=color:#f92672>=</span>admin@yourcompany.com
+</span></span></code></pre></div><h2 id=post-deployment-validation>Post-Deployment Validation</h2><p>After deployment, validate that everything is working correctly:</p><p>After deployment, validate that everything is working correctly:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># 1. Check that all stacks deployed successfully</span>
 </span></span><span style=display:flex><span>npx cdk list
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#75715e># 2. Verify backup vault creation</span>
@@ -1312,29 +1312,29 @@ end note
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#75715e># 3. Check backup plan creation</span>
 </span></span><span style=display:flex><span>aws backup get-backup-plan --backup-plan-id <span style=color:#66d9ef>$(</span>aws cloudformation describe-stacks <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --stack-name BackupStack <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --query <span style=color:#e6db74>&#39;Stacks[0].Outputs[?OutputKey==`BackupPlanId`].OutputValue&#39;</span> <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --output text<span style=color:#66d9ef>)</span>
+</span></span></span><span style=display:flex><span>    --stack-name BackupStack <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>    --query <span style=color:#e6db74>&#39;Stacks[0].Outputs[?OutputKey==`BackupPlanId`].OutputValue&#39;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>    --output text<span style=color:#66d9ef>)</span>
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#75715e># 4. Test the DR function manually</span>
 </span></span><span style=display:flex><span>aws lambda invoke <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --function-name <span style=color:#66d9ef>$(</span>aws cloudformation describe-stacks <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>        --stack-name DRTestingStack <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>        --query <span style=color:#e6db74>&#39;Stacks[0].Outputs[?OutputKey==`DRTestFunctionName`].OutputValue&#39;</span> <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>        --output text<span style=color:#66d9ef>)</span> <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --payload <span style=color:#e6db74>&#39;{&#34;testType&#34;:&#34;sample&#34;,&#34;maxTestRestores&#34;:1,&#34;resourceTypes&#34;:[&#34;EBS&#34;]}&#39;</span> <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    response.json <span style=color:#f92672>&amp;&amp;</span> cat response.json
+</span></span></span><span style=display:flex><span>    --function-name <span style=color:#66d9ef>$(</span>aws cloudformation describe-stacks <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>        --stack-name DRTestingStack <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>        --query <span style=color:#e6db74>&#39;Stacks[0].Outputs[?OutputKey==`DRTestFunctionName`].OutputValue&#39;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>        --output text<span style=color:#66d9ef>)</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>    --payload <span style=color:#e6db74>&#39;{&#34;testType&#34;:&#34;sample&#34;,&#34;maxTestRestores&#34;:1,&#34;resourceTypes&#34;:[&#34;EBS&#34;]}&#39;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>    response.json <span style=color:#f92672>&amp;&amp;</span> cat response.json
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#75715e># 5. View the monitoring dashboard</span>
 </span></span><span style=display:flex><span>echo <span style=color:#e6db74>&#34;Dashboard URL: </span><span style=color:#66d9ef>$(</span>aws cloudformation describe-stacks <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --stack-name MonitoringStack <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --query <span style=color:#e6db74>&#39;Stacks[0].Outputs[?OutputKey==`DashboardURL`].OutputValue&#39;</span> <span style=color:#ae81ff>\
-</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    --output text<span style=color:#66d9ef>)</span><span style=color:#e6db74>&#34;</span>
+</span></span></span><span style=display:flex><span>    --stack-name MonitoringStack <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>    --query <span style=color:#e6db74>&#39;Stacks[0].Outputs[?OutputKey==`DashboardURL`].OutputValue&#39;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>    --output text<span style=color:#66d9ef>)</span><span style=color:#e6db74>&#34;</span>
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#75715e># 6. Check CloudWatch logs for any issues</span>
 </span></span><span style=display:flex><span>aws logs describe-log-groups --log-group-name-prefix /aws/lambda/DRTestingStack
-</span></span></code></pre></div><h2 id=ongoing-operations>Ongoing Operations</h2><p>Once deployed, your backup solution will run automatically. Here&rsquo;s how to manage it:</p><p><strong>Daily Operations:</strong></p><ul><li>Monitor the CloudWatch dashboard for backup success rates</li><li>Review backup job notifications via email</li><li>Check compliance reports in the S3 bucket</li></ul><p><strong>Weekly Operations:</strong></p><ul><li>Review DR test results from automated monthly tests</li><li>Analyze cost trends and optimization opportunities</li><li>Update resource tags as infrastructure changes</li></ul><p><strong>Monthly Operations:</strong></p><ul><li>Review compliance reports and audit findings</li><li>Validate cross-account permissions and access</li><li>Update backup retention policies if needed</li></ul><h2 id=key-benefits-of-the-simplified-approach>Key Benefits of the Simplified Approach</h2><p><strong>Reduced Complexity</strong>: The AWS Backup-based solution eliminates 80% of the custom code while providing the same enterprise capabilities:</p><ul><li><strong>Before</strong>: 2000+ lines of custom orchestration code</li><li><strong>After</strong>: 300 lines of configuration and integration code</li></ul><p><strong>Native AWS Integration</strong>: AWS Backup provides built-in integration with all AWS services, eliminating the need for custom service-specific backup logic.</p><p><strong>Automatic Cost Optimization</strong>: AWS Backup&rsquo;s intelligent tiering automatically moves backups to cold storage, reducing costs by up to 70% without manual intervention.</p><p><strong>Compliance Automation</strong>: Built-in compliance frameworks and audit reporting eliminate the need for custom compliance validation logic.</p><p><strong>Operational Simplicity</strong>: Single console for monitoring, alerting, and management across all backup operations and accounts.</p><h2 id=monitoring-and-alerting>Monitoring and Alerting</h2><p>AWS Backup provides comprehensive monitoring through CloudWatch:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// Simplified monitoring setup
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>backupDashboard</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>Dashboard</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;BackupDashboard&#39;</span>, {
+</span></span></code></pre></div><h2 id=ongoing-operations>Ongoing Operations</h2><p>Once deployed, your backup solution will run automatically. Here&rsquo;s how to manage it:</p><p><strong>Daily Operations:</strong></p><ul><li>Monitor the CloudWatch dashboard for backup success rates</li><li>Review backup job notifications via email</li><li>Check compliance reports in the S3 bucket</li></ul><p><strong>Weekly Operations:</strong></p><ul><li>Review DR test results from automated monthly tests</li><li>Analyze cost trends and optimization opportunities</li><li>Update resource tags as infrastructure changes</li></ul><p><strong>Monthly Operations:</strong></p><ul><li>Review compliance reports and audit findings</li><li>Validate cross-account permissions and access</li><li>Update backup retention policies if needed</li></ul><h2 id=key-benefits-of-the-simplified-approach>Key Benefits of the Simplified Approach</h2><p><strong>Reduced Complexity</strong>: The AWS Backup-based solution eliminates 80% of the custom code while providing the same enterprise capabilities:</p><ul><li><strong>Before</strong>: 2000+ lines of custom orchestration code</li><li><strong>After</strong>: 300 lines of configuration and integration code</li></ul><p><strong>Native AWS Integration</strong>: AWS Backup provides built-in integration with all AWS services, eliminating the need for custom service-specific backup logic.</p><p><strong>Automatic Cost Optimization</strong>: AWS Backup&rsquo;s intelligent tiering automatically moves backups to cold storage, reducing costs by up to 70% without manual intervention.</p><p><strong>Compliance Automation</strong>: Built-in compliance frameworks and audit reporting eliminate the need for custom compliance validation logic.</p><p><strong>Operational Simplicity</strong>: Single console for monitoring, alerting, and management across all backup operations and accounts.</p><h2 id=monitoring-and-alerting>Monitoring and Alerting</h2><p>AWS Backup provides comprehensive monitoring through CloudWatch:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// Simplified monitoring setup
+</span></span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>backupDashboard</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>Dashboard</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;BackupDashboard&#39;</span>, {
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>dashboardName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;SimplifiedCrossAccountBackup&#39;</span>,
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>widgets</span><span style=color:#f92672>:</span> [
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>GraphWidget</span>({
@@ -1522,4 +1522,4 @@ end note
 </a><a href=/tags/well-architected-framework class=tag-cloud-item style=font-size:1rem>well-architected framework
 </a><a href=/tags/x-ray class=tag-cloud-item style=font-size:1rem>x-ray
 </a><a href=/tags/zero-trust class=tag-cloud-item style=font-size:1rem>zero trust</a></div></div><div class=sidebar-widget><h3>Subscribe</h3><div class=subscribe-links><a href=/index.xml class=rss-link><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 019 9"/><path d="M4 4a16 16 0 0116 16"/><circle cx="5" cy="19" r="1"/></svg>
-RSS Feed</a></div></div><div class="sidebar-widget npm-packages"><h3>My NPM Packages</h3><div id=npm-list></div></div></aside></div></div><footer class=site-footer><div class=container><p>&copy; 2025 Scott Obert</p><p class=disclaimer-text style=font-size:.9em;margin-top:.5em>The views and opinions expressed on this site are my own. <a href=/disclaimer/ style=color:#0074d9;text-decoration:underline>Read full disclaimer</a>.</p></div></footer></body></html>
+RSS Feed</a></div></div><div class="sidebar-widget npm-packages"><h3>My NPM Packages</h3><div id=npm-list></div></div></aside></div></div><footer class=site-footer><div class=container><p>&copy; 2026 Scott Obert</p><p class=disclaimer-text style=font-size:.9em;margin-top:.5em>The views and opinions expressed on this site are my own. <a href=/disclaimer/ style=color:#0074d9;text-decoration:underline>Read full disclaimer</a>.</p></div></footer></body></html>

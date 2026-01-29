@@ -1,4 +1,4 @@
-<!doctype html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Scott Obert</title><meta name=description content="Application Programming Interfaces (APIs) have become the fundamental building blocks of cloud-native applications, enabling microservices to communicate and …"><link rel=canonical href=https://scottobert.com/posts/api-security-best-practices/><meta property="og:title" content="API Security Best Practices for Cloud-Native Applications"><meta property="og:description" content="Application Programming Interfaces (APIs) have become the fundamental building blocks of cloud-native applications, enabling microservices to communicate and …"><meta property="og:type" content="article"><meta property="og:url" content="https://scottobert.com/posts/api-security-best-practices/"><meta property="og:site_name" content="Scott Obert"><meta name=twitter:card content="summary"><meta name=twitter:title content="API Security Best Practices for Cloud-Native Applications"><meta name=twitter:description content="Application Programming Interfaces (APIs) have become the fundamental building blocks of cloud-native applications, enabling microservices to communicate and …"><link rel=stylesheet href=https://scottobert.com/css/style.min.1c2fad2e01192bc8806bc4c2e6eda237e33992ac3b191a1de4ac0d9d50878abd.css><script src=/js/npm-packages.js defer></script><script src=/js/search.js defer></script><script defer src=https://cloud.umami.is/script.js data-website-id=e2461896-021d-422a-b83f-624a8819309b></script><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/site.webmanifest></head><body><header class=site-header><div class=container><div class=header-content><div class=header-left><h1><a href=/>Scott Obert</a></h1><nav><a href=/posts/>Blog</a>
+<!doctype html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Scott Obert</title><meta name=description content="Application Programming Interfaces (APIs) have become the fundamental building blocks of cloud-native applications, enabling microservices to communicate and …"><link rel=canonical href=https://scottobert.com/posts/api-security-best-practices/><meta property="og:title" content="API Security Best Practices for Cloud-Native Applications"><meta property="og:description" content="Application Programming Interfaces (APIs) have become the fundamental building blocks of cloud-native applications, enabling microservices to communicate and …"><meta property="og:type" content="article"><meta property="og:url" content="https://scottobert.com/posts/api-security-best-practices/"><meta property="og:site_name" content="Scott Obert"><meta name=twitter:card content="summary"><meta name=twitter:title content="API Security Best Practices for Cloud-Native Applications"><meta name=twitter:description content="Application Programming Interfaces (APIs) have become the fundamental building blocks of cloud-native applications, enabling microservices to communicate and …"><link rel=stylesheet href=https://scottobert.com/css/style.min.d57a26f1d64b2c7f0df88b12c113d433eaed97b49e5f51c6675b9756126ebb92.css><script src=/js/npm-packages.js defer></script><script src=/js/search.js defer></script><script defer src=https://cloud.umami.is/script.js data-website-id=e2461896-021d-422a-b83f-624a8819309b></script><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/site.webmanifest></head><body><header class=site-header><div class=container><div class=header-content><div class=header-left><h1><a href=/>Scott Obert</a></h1><nav><a href=/posts/>Blog</a>
 <a href=/album/>Photo Album</a>
 <button type=button class=search-toggle id=search-toggle-btn aria-label="Open search" title=Search>
 <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61.0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
@@ -97,8 +97,8 @@ Auth --> Audit : authentication events
 Authz --> Audit : authorization decisions
 ThreatDetect --> Audit : security alerts
 @enduml
-`)</script><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// Comprehensive API Gateway security implementation
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>APIGatewayProxyEvent</span>, <span style=color:#a6e22e>APIGatewayProxyResult</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-lambda&#39;</span>;
+`)</script><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// Comprehensive API Gateway security implementation
+</span></span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>APIGatewayProxyEvent</span>, <span style=color:#a6e22e>APIGatewayProxyResult</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-lambda&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>verify</span>, <span style=color:#a6e22e>sign</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;jsonwebtoken&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>RateLimiterRedis</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;rate-limiter-flexible&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>createHash</span>, <span style=color:#a6e22e>createHmac</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;crypto&#39;</span>;
@@ -185,29 +185,29 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>try</span> {
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Create request context
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>requestContext</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>createRequestContext</span>(<span style=color:#a6e22e>event</span>, <span style=color:#a6e22e>requestId</span>);
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>requestContext</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>createRequestContext</span>(<span style=color:#a6e22e>event</span>, <span style=color:#a6e22e>requestId</span>);
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Execute security pipeline
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>securityResult</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>executeSecurityPipeline</span>(<span style=color:#a6e22e>requestContext</span>);
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>securityResult</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>executeSecurityPipeline</span>(<span style=color:#a6e22e>requestContext</span>);
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>securityResult</span>.<span style=color:#a6e22e>action</span> <span style=color:#f92672>===</span> <span style=color:#a6e22e>PolicyAction</span>.<span style=color:#a6e22e>DENY</span>) {
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>createSecurityResponse</span>(<span style=color:#a6e22e>securityResult</span>, <span style=color:#a6e22e>requestId</span>);
 </span></span><span style=display:flex><span>      }
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Forward to backend service
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>backendResponse</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>forwardToBackend</span>(<span style=color:#a6e22e>requestContext</span>, <span style=color:#a6e22e>securityResult</span>);
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>backendResponse</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>forwardToBackend</span>(<span style=color:#a6e22e>requestContext</span>, <span style=color:#a6e22e>securityResult</span>);
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Apply response security measures
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>secureResponse</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>secureResponse</span>(<span style=color:#a6e22e>backendResponse</span>, <span style=color:#a6e22e>requestContext</span>);
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>secureResponse</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>secureResponse</span>(<span style=color:#a6e22e>backendResponse</span>, <span style=color:#a6e22e>requestContext</span>);
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Log successful request
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>auditLogger</span>.<span style=color:#a6e22e>logRequest</span>(<span style=color:#a6e22e>requestContext</span>, <span style=color:#a6e22e>securityResult</span>, Date.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>-</span> <span style=color:#a6e22e>startTime</span>);
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>auditLogger</span>.<span style=color:#a6e22e>logRequest</span>(<span style=color:#a6e22e>requestContext</span>, <span style=color:#a6e22e>securityResult</span>, Date.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>-</span> <span style=color:#a6e22e>startTime</span>);
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>secureResponse</span>;
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>    } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Log error and return secure error response
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>auditLogger</span>.<span style=color:#a6e22e>logError</span>(<span style=color:#a6e22e>requestId</span>, <span style=color:#a6e22e>error</span>);
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>auditLogger</span>.<span style=color:#a6e22e>logError</span>(<span style=color:#a6e22e>requestId</span>, <span style=color:#a6e22e>error</span>);
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>createErrorResponse</span>(<span style=color:#a6e22e>error</span>, <span style=color:#a6e22e>requestId</span>);
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>  }
@@ -257,7 +257,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Check cache first
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>cacheKey</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>generateAuthCacheKey</span>(<span style=color:#a6e22e>authHeader</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>cacheKey</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>generateAuthCacheKey</span>(<span style=color:#a6e22e>authHeader</span>);
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>cached</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>authenticationCache</span>.<span style=color:#66d9ef>get</span>(<span style=color:#a6e22e>cacheKey</span>);
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>cached</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#f92672>!</span><span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>isAuthCacheExpired</span>(<span style=color:#a6e22e>cached</span>)) {
@@ -269,7 +269,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Perform authentication based on method
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>authResult</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>performAuthentication</span>(<span style=color:#a6e22e>authHeader</span>, <span style=color:#a6e22e>context</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>authResult</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>performAuthentication</span>(<span style=color:#a6e22e>authHeader</span>, <span style=color:#a6e22e>context</span>);
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>authResult</span>.<span style=color:#a6e22e>success</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> {
@@ -280,7 +280,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Cache successful authentication
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>cacheAuthResult</span>(<span style=color:#a6e22e>cacheKey</span>, <span style=color:#a6e22e>authResult</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>cacheAuthResult</span>(<span style=color:#a6e22e>cacheKey</span>, <span style=color:#a6e22e>authResult</span>);
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
 </span></span><span style=display:flex><span>      ...<span style=color:#a6e22e>securityResult</span>,
@@ -310,7 +310,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>authenticateBearer</span>(<span style=color:#a6e22e>token</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>context</span>: <span style=color:#66d9ef>RequestContext</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>AuthenticationResult</span>&gt; {
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>try</span> {
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Validate JWT token
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>decoded</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>verify</span>(<span style=color:#a6e22e>token</span>, <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>getJWTSecret</span>(), {
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>decoded</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>verify</span>(<span style=color:#a6e22e>token</span>, <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>getJWTSecret</span>(), {
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>algorithms</span><span style=color:#f92672>:</span> [<span style=color:#e6db74>&#39;HS256&#39;</span>, <span style=color:#e6db74>&#39;RS256&#39;</span>],
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>issuer</span>: <span style=color:#66d9ef>this.securityConfig.authentication.tokenValidation.issuer</span>,
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>audience</span>: <span style=color:#66d9ef>this.securityConfig.authentication.tokenValidation.audience</span>
@@ -318,7 +318,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#66d9ef>typeof</span> <span style=color:#a6e22e>decoded</span> <span style=color:#f92672>===</span> <span style=color:#e6db74>&#39;object&#39;</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#a6e22e>decoded</span> <span style=color:#f92672>!==</span> <span style=color:#66d9ef>null</span>) {
 </span></span><span style=display:flex><span>        <span style=color:#75715e>// Additional security checks
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>securityChecks</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>performTokenSecurityChecks</span>(<span style=color:#a6e22e>decoded</span>, <span style=color:#a6e22e>context</span>);
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>securityChecks</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>performTokenSecurityChecks</span>(<span style=color:#a6e22e>decoded</span>, <span style=color:#a6e22e>context</span>);
 </span></span><span style=display:flex><span>        
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>securityChecks</span>.<span style=color:#a6e22e>passed</span>) {
 </span></span><span style=display:flex><span>          <span style=color:#66d9ef>return</span> {
@@ -354,7 +354,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>authenticateApiKey</span>(<span style=color:#a6e22e>apiKey</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>context</span>: <span style=color:#66d9ef>RequestContext</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>AuthenticationResult</span>&gt; {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Validate API key format
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>validateApiKeyFormat</span>(<span style=color:#a6e22e>apiKey</span>)) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>validateApiKeyFormat</span>(<span style=color:#a6e22e>apiKey</span>)) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> {
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>success</span>: <span style=color:#66d9ef>false</span>,
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>reason</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Invalid API key format&#39;</span>
@@ -362,7 +362,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Look up API key in secure store
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>keyInfo</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>lookupApiKey</span>(<span style=color:#a6e22e>apiKey</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>keyInfo</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>lookupApiKey</span>(<span style=color:#a6e22e>apiKey</span>);
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>keyInfo</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> {
@@ -372,7 +372,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Check if key is active and not expired
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>keyInfo</span>.<span style=color:#a6e22e>isActive</span> <span style=color:#f92672>||</span> (<span style=color:#a6e22e>keyInfo</span>.<span style=color:#a6e22e>expiresAt</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#a6e22e>keyInfo</span>.<span style=color:#a6e22e>expiresAt</span> <span style=color:#f92672>&lt;=</span> <span style=color:#66d9ef>new</span> Date())) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>keyInfo</span>.<span style=color:#a6e22e>isActive</span> <span style=color:#f92672>||</span> (<span style=color:#a6e22e>keyInfo</span>.<span style=color:#a6e22e>expiresAt</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#a6e22e>keyInfo</span>.<span style=color:#a6e22e>expiresAt</span> <span style=color:#f92672>&lt;=</span> <span style=color:#66d9ef>new</span> Date())) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> {
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>success</span>: <span style=color:#66d9ef>false</span>,
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>reason</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;API key is inactive or expired&#39;</span>
@@ -380,7 +380,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Check usage limits
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>usageCheck</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>checkApiKeyUsage</span>(<span style=color:#a6e22e>apiKey</span>, <span style=color:#a6e22e>keyInfo</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>usageCheck</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>checkApiKeyUsage</span>(<span style=color:#a6e22e>apiKey</span>, <span style=color:#a6e22e>keyInfo</span>);
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>usageCheck</span>.<span style=color:#a6e22e>withinLimits</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> {
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>success</span>: <span style=color:#66d9ef>false</span>,
@@ -409,7 +409,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>user</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>securityResult</span>.<span style=color:#a6e22e>authenticatedUser</span>;
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Build authorization request
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>authzRequest</span> <span style=color:#f92672>=</span> {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>authzRequest</span> <span style=color:#f92672>=</span> {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>subject</span><span style=color:#f92672>:</span> {
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>id</span>: <span style=color:#66d9ef>user.id</span>,
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>roles</span>: <span style=color:#66d9ef>user.roles</span>,
@@ -429,7 +429,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    };
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Evaluate authorization policies
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>authzResult</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>evaluateAuthorizationPolicies</span>(<span style=color:#a6e22e>authzRequest</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>authzResult</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>evaluateAuthorizationPolicies</span>(<span style=color:#a6e22e>authzRequest</span>);
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>authzResult</span>.<span style=color:#a6e22e>decision</span> <span style=color:#f92672>===</span> <span style=color:#a6e22e>PolicyAction</span>.<span style=color:#a6e22e>DENY</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> {
@@ -454,7 +454,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>validationRules</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>getValidationRules</span>(<span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>path</span>, <span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>httpMethod</span>);
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Validate headers
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>headerValidation</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>validateHeaders</span>(<span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>headers</span>, <span style=color:#a6e22e>validationRules</span>.<span style=color:#a6e22e>headers</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>headerValidation</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>validateHeaders</span>(<span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>headers</span>, <span style=color:#a6e22e>validationRules</span>.<span style=color:#a6e22e>headers</span>);
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>headerValidation</span>.<span style=color:#a6e22e>isValid</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> {
 </span></span><span style=display:flex><span>        ...<span style=color:#a6e22e>securityResult</span>,
@@ -464,7 +464,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Validate query parameters
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>queryValidation</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>validateQueryParameters</span>(<span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>queryStringParameters</span>, <span style=color:#a6e22e>validationRules</span>.<span style=color:#a6e22e>queryParams</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>queryValidation</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>validateQueryParameters</span>(<span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>queryStringParameters</span>, <span style=color:#a6e22e>validationRules</span>.<span style=color:#a6e22e>queryParams</span>);
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>queryValidation</span>.<span style=color:#a6e22e>isValid</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> {
 </span></span><span style=display:flex><span>        ...<span style=color:#a6e22e>securityResult</span>,
@@ -474,7 +474,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Validate request body
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>body</span>) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>body</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>bodyValidation</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>validateRequestBody</span>(<span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>body</span>, <span style=color:#a6e22e>validationRules</span>.<span style=color:#a6e22e>body</span>);
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>bodyValidation</span>.<span style=color:#a6e22e>isValid</span>) {
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> {
@@ -486,7 +486,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Check for injection attacks
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>injectionCheck</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>checkForInjectionAttacks</span>(<span style=color:#a6e22e>context</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>injectionCheck</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>checkForInjectionAttacks</span>(<span style=color:#a6e22e>context</span>);
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>injectionCheck</span>.<span style=color:#a6e22e>detected</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> {
 </span></span><span style=display:flex><span>        ...<span style=color:#a6e22e>securityResult</span>,
@@ -534,7 +534,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>context</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>securityResult</span>.<span style=color:#a6e22e>context</span>;
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Analyze request patterns
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>threatAnalysis</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>threatDetector</span>.<span style=color:#a6e22e>analyzeRequest</span>({
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>threatAnalysis</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>threatDetector</span>.<span style=color:#a6e22e>analyzeRequest</span>({
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>ip</span>: <span style=color:#66d9ef>context.sourceIP</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>userAgent</span>: <span style=color:#66d9ef>context.userAgent</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>path</span>: <span style=color:#66d9ef>context.path</span>,
@@ -546,7 +546,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>threatAnalysis</span>.<span style=color:#a6e22e>riskScore</span> <span style=color:#f92672>&gt;</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>securityConfig</span>.<span style=color:#a6e22e>threatDetection</span>.<span style=color:#a6e22e>riskThreshold</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Determine response action based on risk level
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>responseAction</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>determineResponseAction</span>(<span style=color:#a6e22e>threatAnalysis</span>.<span style=color:#a6e22e>riskScore</span>);
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>responseAction</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>determineResponseAction</span>(<span style=color:#a6e22e>threatAnalysis</span>.<span style=color:#a6e22e>riskScore</span>);
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>responseAction</span> <span style=color:#f92672>===</span> <span style=color:#a6e22e>PolicyAction</span>.<span style=color:#a6e22e>DENY</span>) {
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> {
@@ -566,23 +566,23 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>checkForInjectionAttacks</span>(<span style=color:#a6e22e>context</span>: <span style=color:#66d9ef>RequestContext</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>InjectionCheckResult</span>&gt; {
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>injectionPatterns</span> <span style=color:#f92672>=</span> [
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// SQL Injection patterns
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#e6db74>/(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|SCRIPT)\b)/i</span>,
+</span></span></span><span style=display:flex><span>      <span style=color:#e6db74>/(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|SCRIPT)\b)/i</span>,
 </span></span><span style=display:flex><span>      <span style=color:#e6db74>/(&#39;|(\\x27)|(\\x2D)|(;)|(\\x00)|(\\n)|(\\r)|(\\x1a))/i</span>,
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// NoSQL Injection patterns
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#e6db74>/(\$where|\$ne|\$in|\$nin|\$exists|\$regex)/i</span>,
+</span></span></span><span style=display:flex><span>      <span style=color:#e6db74>/(\$where|\$ne|\$in|\$nin|\$exists|\$regex)/i</span>,
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// XSS patterns
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#e6db74>/(&lt;script|javascript:|vbscript:|onload=|onerror=|onclick=)/i</span>,
+</span></span></span><span style=display:flex><span>      <span style=color:#e6db74>/(&lt;script|javascript:|vbscript:|onload=|onerror=|onclick=)/i</span>,
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Command injection patterns
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#e6db74>/(;|\|&amp;|&amp;&amp;|\|\||`|\$\(|\${)/</span>,
+</span></span></span><span style=display:flex><span>      <span style=color:#e6db74>/(;|\|&amp;|&amp;&amp;|\|\||`|\$\(|\${)/</span>,
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// LDAP injection patterns
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#e6db74>/(\*|\)|\(|\\|\||&amp;)/</span>,
+</span></span></span><span style=display:flex><span>      <span style=color:#e6db74>/(\*|\)|\(|\\|\||&amp;)/</span>,
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// XML injection patterns
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#e6db74>/(&lt;!DOCTYPE|&lt;!ENTITY|SYSTEM|PUBLIC)/i</span>
+</span></span></span><span style=display:flex><span>      <span style=color:#e6db74>/(&lt;!DOCTYPE|&lt;!ENTITY|SYSTEM|PUBLIC)/i</span>
 </span></span><span style=display:flex><span>    ];
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>checkString</span> <span style=color:#f92672>=</span> [
@@ -610,17 +610,17 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>keyComponents</span> <span style=color:#f92672>=</span> [];
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Include user ID if authenticated
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>user</span>) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>user</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>keyComponents</span>.<span style=color:#a6e22e>push</span>(<span style=color:#e6db74>`user:</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>user</span>.<span style=color:#a6e22e>id</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
 </span></span><span style=display:flex><span>    } <span style=color:#66d9ef>else</span> {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>keyComponents</span>.<span style=color:#a6e22e>push</span>(<span style=color:#e6db74>`ip:</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>sourceIP</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Include API endpoint
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>keyComponents</span>.<span style=color:#a6e22e>push</span>(<span style=color:#e6db74>`endpoint:</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>path</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#a6e22e>keyComponents</span>.<span style=color:#a6e22e>push</span>(<span style=color:#e6db74>`endpoint:</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>path</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Include method
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>keyComponents</span>.<span style=color:#a6e22e>push</span>(<span style=color:#e6db74>`method:</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>httpMethod</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#a6e22e>keyComponents</span>.<span style=color:#a6e22e>push</span>(<span style=color:#e6db74>`method:</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>httpMethod</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>keyComponents</span>.<span style=color:#a6e22e>join</span>(<span style=color:#e6db74>&#39;:&#39;</span>);
 </span></span><span style=display:flex><span>  }
@@ -636,7 +636,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    };
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Remove sensitive headers
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>filteredHeaders</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>filterSensitiveHeaders</span>(<span style=color:#a6e22e>response</span>.<span style=color:#a6e22e>headers</span> <span style=color:#f92672>||</span> {});
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>filteredHeaders</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>filterSensitiveHeaders</span>(<span style=color:#a6e22e>response</span>.<span style=color:#a6e22e>headers</span> <span style=color:#f92672>||</span> {});
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>statusCode</span>: <span style=color:#66d9ef>response.statusCode</span> <span style=color:#f92672>||</span> <span style=color:#ae81ff>200</span>,
@@ -681,8 +681,8 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><h2 id=oauth-20-and-openid-connect-integration>OAuth 2.0 and OpenID Connect Integration</h2><p>Modern API security heavily relies on OAuth 2.0 and OpenID Connect protocols to provide secure, standardized authentication and authorization mechanisms. These protocols enable secure delegation of access rights while maintaining separation of concerns between authentication providers and resource servers. Implementing these protocols correctly requires understanding their nuances and potential security vulnerabilities.</p><p>The integration of OAuth 2.0 and OpenID Connect in cloud-native applications must address challenges such as token lifecycle management, scope validation, and the secure handling of refresh tokens. The implementation must also consider the various OAuth 2.0 flows and select the appropriate flow based on the client type and security requirements.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// Comprehensive OAuth 2.0 and OpenID Connect implementation
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>OAuthConfig</span> {
+</span></span></code></pre></div><h2 id=oauth-20-and-openid-connect-integration>OAuth 2.0 and OpenID Connect Integration</h2><p>Modern API security heavily relies on OAuth 2.0 and OpenID Connect protocols to provide secure, standardized authentication and authorization mechanisms. These protocols enable secure delegation of access rights while maintaining separation of concerns between authentication providers and resource servers. Implementing these protocols correctly requires understanding their nuances and potential security vulnerabilities.</p><p>The integration of OAuth 2.0 and OpenID Connect in cloud-native applications must address challenges such as token lifecycle management, scope validation, and the secure handling of refresh tokens. The implementation must also consider the various OAuth 2.0 flows and select the appropriate flow based on the client type and security requirements.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// Comprehensive OAuth 2.0 and OpenID Connect implementation
+</span></span></span><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>OAuthConfig</span> {
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>issuer</span>: <span style=color:#66d9ef>string</span>;
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>clientId</span>: <span style=color:#66d9ef>string</span>;
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>clientSecret</span>: <span style=color:#66d9ef>string</span>;
@@ -739,7 +739,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Add PKCE parameters if enabled
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>pkceEnabled</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#a6e22e>codeChallenge</span>) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>pkceEnabled</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#a6e22e>codeChallenge</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>params</span>.<span style=color:#a6e22e>append</span>(<span style=color:#e6db74>&#39;code_challenge&#39;</span>, <span style=color:#a6e22e>codeChallenge</span>);
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>params</span>.<span style=color:#a6e22e>append</span>(<span style=color:#e6db74>&#39;code_challenge_method&#39;</span>, <span style=color:#a6e22e>codeChallengeMethod</span> <span style=color:#f92672>||</span> <span style=color:#e6db74>&#39;S256&#39;</span>);
 </span></span><span style=display:flex><span>    }
@@ -753,7 +753,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>codeVerifier?</span>: <span style=color:#66d9ef>string</span>
 </span></span><span style=display:flex><span>  )<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>TokenResponse</span>&gt; {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Validate state parameter to prevent CSRF attacks
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>validateState</span>(<span style=color:#a6e22e>state</span>)) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>validateState</span>(<span style=color:#a6e22e>state</span>)) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>&#39;Invalid state parameter&#39;</span>);
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
@@ -766,7 +766,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    };
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Add PKCE code verifier if enabled
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>pkceEnabled</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#a6e22e>codeVerifier</span>) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>pkceEnabled</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#a6e22e>codeVerifier</span>) {
 </span></span><span style=display:flex><span>      (<span style=color:#a6e22e>tokenRequest</span> <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>any</span>).<span style=color:#a6e22e>code_verifier</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>codeVerifier</span>;
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
@@ -774,10 +774,10 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>response</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>makeTokenRequest</span>(<span style=color:#a6e22e>tokenRequest</span>);
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Validate tokens
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>validateTokenResponse</span>(<span style=color:#a6e22e>response</span>);
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>validateTokenResponse</span>(<span style=color:#a6e22e>response</span>);
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Cache tokens for future use
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>response</span>.<span style=color:#a6e22e>accessToken</span>) {
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>response</span>.<span style=color:#a6e22e>accessToken</span>) {
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>cacheToken</span>(<span style=color:#a6e22e>response</span>.<span style=color:#a6e22e>accessToken</span>, <span style=color:#a6e22e>response</span>);
 </span></span><span style=display:flex><span>      }
 </span></span><span style=display:flex><span>      
@@ -791,7 +791,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>validateAccessToken</span>(<span style=color:#a6e22e>accessToken</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>TokenValidationResult</span>&gt; {
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>try</span> {
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Check cache first
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>cached</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>tokenCache</span>.<span style=color:#66d9ef>get</span>(<span style=color:#a6e22e>accessToken</span>);
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>cached</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>tokenCache</span>.<span style=color:#66d9ef>get</span>(<span style=color:#a6e22e>accessToken</span>);
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>cached</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#f92672>!</span><span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>isTokenExpired</span>(<span style=color:#a6e22e>cached</span>)) {
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> {
 </span></span><span style=display:flex><span>          <span style=color:#a6e22e>isValid</span>: <span style=color:#66d9ef>true</span>,
@@ -801,10 +801,10 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>      }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Validate token signature and claims
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>claims</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>verifyJWT</span>(<span style=color:#a6e22e>accessToken</span>);
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>claims</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>verifyJWT</span>(<span style=color:#a6e22e>accessToken</span>);
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Validate token claims
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>claimsValidation</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>validateTokenClaims</span>(<span style=color:#a6e22e>claims</span>);
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>claimsValidation</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>validateTokenClaims</span>(<span style=color:#a6e22e>claims</span>);
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>claimsValidation</span>.<span style=color:#a6e22e>isValid</span>) {
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> {
 </span></span><span style=display:flex><span>          <span style=color:#a6e22e>isValid</span>: <span style=color:#66d9ef>false</span>,
@@ -813,10 +813,10 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>      }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Extract scopes
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>scopes</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>extractScopes</span>(<span style=color:#a6e22e>claims</span>);
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>scopes</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>extractScopes</span>(<span style=color:#a6e22e>claims</span>);
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Cache validated token
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>cacheToken</span>(<span style=color:#a6e22e>accessToken</span>, {
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>cacheToken</span>(<span style=color:#a6e22e>accessToken</span>, {
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>accessToken</span>,
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>tokenType</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Bearer&#39;</span>,
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>expiresIn</span>: <span style=color:#66d9ef>claims.exp</span> <span style=color:#f92672>-</span> Math.<span style=color:#a6e22e>floor</span>(Date.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>/</span> <span style=color:#ae81ff>1000</span>),
@@ -849,13 +849,13 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>response</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>makeTokenRequest</span>(<span style=color:#a6e22e>refreshRequest</span>);
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Validate new tokens
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>validateTokenResponse</span>(<span style=color:#a6e22e>response</span>);
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>validateTokenResponse</span>(<span style=color:#a6e22e>response</span>);
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Invalidate old tokens from cache
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>invalidateTokensForRefresh</span>(<span style=color:#a6e22e>refreshToken</span>);
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>invalidateTokensForRefresh</span>(<span style=color:#a6e22e>refreshToken</span>);
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Cache new tokens
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>response</span>.<span style=color:#a6e22e>accessToken</span>) {
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>response</span>.<span style=color:#a6e22e>accessToken</span>) {
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>cacheToken</span>(<span style=color:#a6e22e>response</span>.<span style=color:#a6e22e>accessToken</span>, <span style=color:#a6e22e>response</span>);
 </span></span><span style=display:flex><span>      }
 </span></span><span style=display:flex><span>      
@@ -868,13 +868,13 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>getUserInfo</span>(<span style=color:#a6e22e>accessToken</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>UserInfo</span>&gt; {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Validate access token first
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>tokenValidation</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>validateAccessToken</span>(<span style=color:#a6e22e>accessToken</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>tokenValidation</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>validateAccessToken</span>(<span style=color:#a6e22e>accessToken</span>);
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>tokenValidation</span>.<span style=color:#a6e22e>isValid</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>&#39;Invalid access token&#39;</span>);
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Check if token has required scope for user info
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>tokenValidation</span>.<span style=color:#a6e22e>scopes</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>includes</span>(<span style=color:#e6db74>&#39;openid&#39;</span>)) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>tokenValidation</span>.<span style=color:#a6e22e>scopes</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>includes</span>(<span style=color:#e6db74>&#39;openid&#39;</span>)) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>&#39;Token does not have required scope for user info&#39;</span>);
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
@@ -894,7 +894,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>userInfo</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>response</span>.<span style=color:#a6e22e>json</span>();
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Validate user info response
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>validateUserInfo</span>(<span style=color:#a6e22e>userInfo</span>, <span style=color:#a6e22e>tokenValidation</span>.<span style=color:#a6e22e>claims</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>sub</span>);
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>validateUserInfo</span>(<span style=color:#a6e22e>userInfo</span>, <span style=color:#a6e22e>tokenValidation</span>.<span style=color:#a6e22e>claims</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>sub</span>);
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>userInfo</span>;
 </span></span><span style=display:flex><span>      
@@ -928,7 +928,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>      }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Remove from cache
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>tokenCache</span>.<span style=color:#66d9ef>delete</span>(<span style=color:#a6e22e>token</span>);
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>tokenCache</span>.<span style=color:#66d9ef>delete</span>(<span style=color:#a6e22e>token</span>);
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>    } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>`Token revocation failed: </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>error</span> <span style=color:#66d9ef>instanceof</span> Error <span style=color:#f92672>?</span> <span style=color:#a6e22e>error</span>.<span style=color:#a6e22e>message</span> <span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Unknown error&#39;</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
@@ -963,7 +963,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>validateTokenClaims</span>(<span style=color:#a6e22e>claims</span>: <span style=color:#66d9ef>any</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>ValidationResult</span>&gt; {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Check expiration
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>claims</span>.<span style=color:#a6e22e>exp</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#a6e22e>claims</span>.<span style=color:#a6e22e>exp</span> <span style=color:#f92672>&lt;=</span> Math.<span style=color:#a6e22e>floor</span>(Date.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>/</span> <span style=color:#ae81ff>1000</span>)) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>claims</span>.<span style=color:#a6e22e>exp</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#a6e22e>claims</span>.<span style=color:#a6e22e>exp</span> <span style=color:#f92672>&lt;=</span> Math.<span style=color:#a6e22e>floor</span>(Date.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>/</span> <span style=color:#ae81ff>1000</span>)) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> {
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>isValid</span>: <span style=color:#66d9ef>false</span>,
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>reason</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Token has expired&#39;</span>
@@ -971,7 +971,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Check not before
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>claims</span>.<span style=color:#a6e22e>nbf</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#a6e22e>claims</span>.<span style=color:#a6e22e>nbf</span> <span style=color:#f92672>&gt;</span> Math.<span style=color:#a6e22e>floor</span>(Date.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>/</span> <span style=color:#ae81ff>1000</span>)) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>claims</span>.<span style=color:#a6e22e>nbf</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#a6e22e>claims</span>.<span style=color:#a6e22e>nbf</span> <span style=color:#f92672>&gt;</span> Math.<span style=color:#a6e22e>floor</span>(Date.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>/</span> <span style=color:#ae81ff>1000</span>)) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> {
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>isValid</span>: <span style=color:#66d9ef>false</span>,
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>reason</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Token not yet valid&#39;</span>
@@ -979,7 +979,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Check issuer
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>claims</span>.<span style=color:#a6e22e>iss</span> <span style=color:#f92672>!==</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>issuer</span>) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>claims</span>.<span style=color:#a6e22e>iss</span> <span style=color:#f92672>!==</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>issuer</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> {
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>isValid</span>: <span style=color:#66d9ef>false</span>,
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>reason</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Invalid issuer&#39;</span>
@@ -987,7 +987,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Check audience
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (Array.<span style=color:#a6e22e>isArray</span>(<span style=color:#a6e22e>claims</span>.<span style=color:#a6e22e>aud</span>)) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (Array.<span style=color:#a6e22e>isArray</span>(<span style=color:#a6e22e>claims</span>.<span style=color:#a6e22e>aud</span>)) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>claims</span>.<span style=color:#a6e22e>aud</span>.<span style=color:#a6e22e>includes</span>(<span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>clientId</span>)) {
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> {
 </span></span><span style=display:flex><span>          <span style=color:#a6e22e>isValid</span>: <span style=color:#66d9ef>false</span>,
@@ -1002,7 +1002,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Validate scope if present
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>claims</span>.<span style=color:#a6e22e>scope</span>) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>claims</span>.<span style=color:#a6e22e>scope</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>tokenScopes</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>claims</span>.<span style=color:#a6e22e>scope</span>.<span style=color:#a6e22e>split</span>(<span style=color:#e6db74>&#39; &#39;</span>);
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>hasValidScope</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>scopes</span>.<span style=color:#a6e22e>some</span>(<span style=color:#a6e22e>scope</span> <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>tokenScopes</span>.<span style=color:#a6e22e>includes</span>(<span style=color:#a6e22e>scope</span>));
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>hasValidScope</span>) {
@@ -1030,17 +1030,17 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>validateUserInfo</span>(<span style=color:#a6e22e>userInfo</span>: <span style=color:#66d9ef>any</span>, <span style=color:#a6e22e>expectedSub?</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Validate subject matches token
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>expectedSub</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#a6e22e>userInfo</span>.<span style=color:#a6e22e>sub</span> <span style=color:#f92672>!==</span> <span style=color:#a6e22e>expectedSub</span>) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>expectedSub</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#a6e22e>userInfo</span>.<span style=color:#a6e22e>sub</span> <span style=color:#f92672>!==</span> <span style=color:#a6e22e>expectedSub</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>&#39;UserInfo subject does not match token subject&#39;</span>);
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Validate required fields
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>userInfo</span>.<span style=color:#a6e22e>sub</span>) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>userInfo</span>.<span style=color:#a6e22e>sub</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>&#39;UserInfo missing required subject field&#39;</span>);
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Validate email if present
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>userInfo</span>.<span style=color:#a6e22e>email</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#f92672>!</span><span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>isValidEmail</span>(<span style=color:#a6e22e>userInfo</span>.<span style=color:#a6e22e>email</span>)) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>userInfo</span>.<span style=color:#a6e22e>email</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#f92672>!</span><span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>isValidEmail</span>(<span style=color:#a6e22e>userInfo</span>.<span style=color:#a6e22e>email</span>)) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>&#39;UserInfo contains invalid email address&#39;</span>);
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>  }
@@ -1052,10 +1052,10 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>validateState</span>(<span style=color:#a6e22e>state</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>boolean</span> {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Implement state validation logic
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// This should verify that the state parameter matches what was sent
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// and includes CSRF protection
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>true</span>; <span style=color:#75715e>// Simplified for example
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  }
+</span></span></span><span style=display:flex><span>    <span style=color:#75715e>// This should verify that the state parameter matches what was sent
+</span></span></span><span style=display:flex><span>    <span style=color:#75715e>// and includes CSRF protection
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>true</span>; <span style=color:#75715e>// Simplified for example
+</span></span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>validateScopes</span>(<span style=color:#a6e22e>requiredScopes</span>: <span style=color:#66d9ef>string</span>[], <span style=color:#a6e22e>tokenScopes</span>: <span style=color:#66d9ef>string</span>[])<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>boolean</span>&gt; {
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>requiredScopes</span>.<span style=color:#a6e22e>every</span>(<span style=color:#a6e22e>scope</span> <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>tokenScopes</span>.<span style=color:#a6e22e>includes</span>(<span style=color:#a6e22e>scope</span>));
@@ -1103,7 +1103,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>startTokenCleanup</span>()<span style=color:#f92672>:</span> <span style=color:#66d9ef>void</span> {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Clean up expired tokens every 5 minutes
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>setInterval</span>(() <span style=color:#f92672>=&gt;</span> {
+</span></span></span><span style=display:flex><span>    <span style=color:#a6e22e>setInterval</span>(() <span style=color:#f92672>=&gt;</span> {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>now</span> <span style=color:#f92672>=</span> Date.<span style=color:#a6e22e>now</span>();
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>const</span> [<span style=color:#a6e22e>token</span>, <span style=color:#a6e22e>cached</span>] <span style=color:#66d9ef>of</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>tokenCache</span>.<span style=color:#a6e22e>entries</span>()) {
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (<span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>isTokenExpired</span>(<span style=color:#a6e22e>cached</span>)) {
@@ -1117,8 +1117,8 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>cached</span>.<span style=color:#a6e22e>expiresAt</span> <span style=color:#f92672>&lt;=</span> Date.<span style=color:#a6e22e>now</span>();
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><h2 id=advanced-rate-limiting-and-throttling>Advanced Rate Limiting and Throttling</h2><p>Effective rate limiting and throttling mechanisms are essential for protecting APIs from abuse, ensuring fair resource allocation, and maintaining service availability under high load conditions. Advanced rate limiting goes beyond simple request counting to implement sophisticated algorithms that can adapt to different usage patterns and provide granular control over resource consumption.</p><p>Modern rate limiting systems must support multiple dimensions of limiting, including per-user, per-API, per-service, and global limits. They must also implement intelligent algorithms that can handle burst traffic while preventing sustained abuse and provide meaningful feedback to clients about their current usage status.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// Advanced rate limiting and throttling system
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>RateLimitConfig</span> {
+</span></span></code></pre></div><h2 id=advanced-rate-limiting-and-throttling>Advanced Rate Limiting and Throttling</h2><p>Effective rate limiting and throttling mechanisms are essential for protecting APIs from abuse, ensuring fair resource allocation, and maintaining service availability under high load conditions. Advanced rate limiting goes beyond simple request counting to implement sophisticated algorithms that can adapt to different usage patterns and provide granular control over resource consumption.</p><p>Modern rate limiting systems must support multiple dimensions of limiting, including per-user, per-API, per-service, and global limits. They must also implement intelligent algorithms that can handle burst traffic while preventing sustained abuse and provide meaningful feedback to clients about their current usage status.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// Advanced rate limiting and throttling system
+</span></span></span><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>RateLimitConfig</span> {
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>algorithm</span>: <span style=color:#66d9ef>RateLimitAlgorithm</span>;
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>limits</span>: <span style=color:#66d9ef>RateLimit</span>[];
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>keyGenerators</span>: <span style=color:#66d9ef>KeyGenerator</span>[];
@@ -1131,7 +1131,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>name</span>: <span style=color:#66d9ef>string</span>;
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>maxRequests</span>: <span style=color:#66d9ef>number</span>;
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>windowSize</span>: <span style=color:#66d9ef>number</span>; <span style=color:#75715e>// seconds
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>windowType</span>: <span style=color:#66d9ef>WindowType</span>;
+</span></span></span><span style=display:flex><span>  <span style=color:#a6e22e>windowType</span>: <span style=color:#66d9ef>WindowType</span>;
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>scope</span>: <span style=color:#66d9ef>LimitScope</span>;
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>overrideRules</span>: <span style=color:#66d9ef>OverrideRule</span>[];
 </span></span><span style=display:flex><span>}
@@ -1187,10 +1187,10 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>results</span>: <span style=color:#66d9ef>RateLimitResult</span>[] <span style=color:#f92672>=</span> [];
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Generate all applicable rate limit keys
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>keys</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>generateRateLimitKeys</span>(<span style=color:#a6e22e>request</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>keys</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>generateRateLimitKeys</span>(<span style=color:#a6e22e>request</span>);
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Check each applicable rate limit
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>const</span> <span style=color:#a6e22e>key</span> <span style=color:#66d9ef>of</span> <span style=color:#a6e22e>keys</span>) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>const</span> <span style=color:#a6e22e>key</span> <span style=color:#66d9ef>of</span> <span style=color:#a6e22e>keys</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>limit</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>findApplicableLimit</span>(<span style=color:#a6e22e>key</span>, <span style=color:#a6e22e>request</span>);
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>limit</span>) <span style=color:#66d9ef>continue</span>;
 </span></span><span style=display:flex><span>      
@@ -1203,14 +1203,14 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>results</span>.<span style=color:#a6e22e>push</span>(<span style=color:#a6e22e>result</span>);
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// If any limit is exceeded, return immediately
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>result</span>.<span style=color:#a6e22e>allowed</span>) {
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>result</span>.<span style=color:#a6e22e>allowed</span>) {
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>recordViolation</span>(<span style=color:#a6e22e>key</span>, <span style=color:#a6e22e>limit</span>, <span style=color:#a6e22e>request</span>, <span style=color:#a6e22e>result</span>);
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>result</span>;
 </span></span><span style=display:flex><span>      }
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// All limits passed, consume tokens/quotas
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>const</span> <span style=color:#a6e22e>key</span> <span style=color:#66d9ef>of</span> <span style=color:#a6e22e>keys</span>) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>const</span> <span style=color:#a6e22e>key</span> <span style=color:#66d9ef>of</span> <span style=color:#a6e22e>keys</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>limit</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>findApplicableLimit</span>(<span style=color:#a6e22e>key</span>, <span style=color:#a6e22e>request</span>);
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>limit</span>) {
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>algorithm</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>algorithms</span>.<span style=color:#66d9ef>get</span>(<span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>algorithm</span>);
@@ -1219,7 +1219,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Check quota limits if enabled
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>quotaManagement</span>.<span style=color:#a6e22e>enabled</span>) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>quotaManagement</span>.<span style=color:#a6e22e>enabled</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>quotaResult</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>checkQuotaLimits</span>(<span style=color:#a6e22e>request</span>);
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>quotaResult</span>.<span style=color:#a6e22e>allowed</span>) {
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>quotaResult</span>;
@@ -1227,7 +1227,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Return the most restrictive successful result
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>mostRestrictive</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>results</span>.<span style=color:#a6e22e>reduce</span>((<span style=color:#a6e22e>prev</span>, <span style=color:#a6e22e>current</span>) <span style=color:#f92672>=&gt;</span> 
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>mostRestrictive</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>results</span>.<span style=color:#a6e22e>reduce</span>((<span style=color:#a6e22e>prev</span>, <span style=color:#a6e22e>current</span>) <span style=color:#f92672>=&gt;</span> 
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>current</span>.<span style=color:#a6e22e>remainingRequests</span> <span style=color:#f92672>&lt;</span> <span style=color:#a6e22e>prev</span>.<span style=color:#a6e22e>remainingRequests</span> <span style=color:#f92672>?</span> <span style=color:#a6e22e>current</span> : <span style=color:#66d9ef>prev</span>
 </span></span><span style=display:flex><span>    );
 </span></span><span style=display:flex><span>    
@@ -1264,15 +1264,15 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>now</span> <span style=color:#f92672>=</span> Date.<span style=color:#a6e22e>now</span>();
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Get current bucket state
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>bucketData</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>getBucketState</span>(<span style=color:#a6e22e>bucketKey</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>bucketData</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>getBucketState</span>(<span style=color:#a6e22e>bucketKey</span>);
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Calculate tokens to add based on time elapsed
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>tokensToAdd</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>calculateTokensToAdd</span>(<span style=color:#a6e22e>bucketData</span>.<span style=color:#a6e22e>lastRefill</span>, <span style=color:#a6e22e>now</span>, <span style=color:#a6e22e>limit</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>tokensToAdd</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>calculateTokensToAdd</span>(<span style=color:#a6e22e>bucketData</span>.<span style=color:#a6e22e>lastRefill</span>, <span style=color:#a6e22e>now</span>, <span style=color:#a6e22e>limit</span>);
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>currentTokens</span> <span style=color:#f92672>=</span> Math.<span style=color:#a6e22e>min</span>(<span style=color:#a6e22e>bucketData</span>.<span style=color:#a6e22e>tokens</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>tokensToAdd</span>, <span style=color:#a6e22e>limit</span>.<span style=color:#a6e22e>maxRequests</span>);
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>currentTokens</span> <span style=color:#f92672>&gt;=</span> <span style=color:#ae81ff>1</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Allow request and update bucket
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>newTokens</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>currentTokens</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>;
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>newTokens</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>currentTokens</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>;
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>updateBucketState</span>(<span style=color:#a6e22e>bucketKey</span>, <span style=color:#a6e22e>newTokens</span>, <span style=color:#a6e22e>now</span>);
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> {
@@ -1283,8 +1283,8 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>      };
 </span></span><span style=display:flex><span>    } <span style=color:#66d9ef>else</span> {
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Request denied
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>refillRate</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>limit</span>.<span style=color:#a6e22e>maxRequests</span> <span style=color:#f92672>/</span> <span style=color:#a6e22e>limit</span>.<span style=color:#a6e22e>windowSize</span>; <span style=color:#75715e>// tokens per second
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>timeToNextToken</span> <span style=color:#f92672>=</span> (<span style=color:#ae81ff>1</span> <span style=color:#f92672>-</span> <span style=color:#a6e22e>currentTokens</span>) <span style=color:#f92672>/</span> <span style=color:#a6e22e>refillRate</span>;
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>refillRate</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>limit</span>.<span style=color:#a6e22e>maxRequests</span> <span style=color:#f92672>/</span> <span style=color:#a6e22e>limit</span>.<span style=color:#a6e22e>windowSize</span>; <span style=color:#75715e>// tokens per second
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>timeToNextToken</span> <span style=color:#f92672>=</span> (<span style=color:#ae81ff>1</span> <span style=color:#f92672>-</span> <span style=color:#a6e22e>currentTokens</span>) <span style=color:#f92672>/</span> <span style=color:#a6e22e>refillRate</span>;
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> {
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>allowed</span>: <span style=color:#66d9ef>false</span>,
@@ -1297,7 +1297,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>consumeToken</span>(<span style=color:#a6e22e>key</span>: <span style=color:#66d9ef>RateLimitKey</span>, <span style=color:#a6e22e>limit</span>: <span style=color:#66d9ef>RateLimit</span>, <span style=color:#a6e22e>request</span>: <span style=color:#66d9ef>RateLimitRequest</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Token consumption is handled in checkLimit for token bucket
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  }
+</span></span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>getBucketState</span>(<span style=color:#a6e22e>bucketKey</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>BucketState</span>&gt; {
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>data</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>redisClient</span>.<span style=color:#a6e22e>hmget</span>(<span style=color:#a6e22e>bucketKey</span>, <span style=color:#e6db74>&#39;tokens&#39;</span>, <span style=color:#e6db74>&#39;lastRefill&#39;</span>);
@@ -1311,12 +1311,12 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>updateBucketState</span>(<span style=color:#a6e22e>bucketKey</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>tokens</span>: <span style=color:#66d9ef>number</span>, <span style=color:#a6e22e>timestamp</span>: <span style=color:#66d9ef>number</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>redisClient</span>.<span style=color:#a6e22e>hmset</span>(<span style=color:#a6e22e>bucketKey</span>, <span style=color:#e6db74>&#39;tokens&#39;</span>, <span style=color:#a6e22e>tokens</span>.<span style=color:#a6e22e>toString</span>(), <span style=color:#e6db74>&#39;lastRefill&#39;</span>, <span style=color:#a6e22e>timestamp</span>.<span style=color:#a6e22e>toString</span>());
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>redisClient</span>.<span style=color:#a6e22e>expire</span>(<span style=color:#a6e22e>bucketKey</span>, <span style=color:#ae81ff>3600</span>); <span style=color:#75715e>// 1 hour TTL
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  }
+</span></span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>calculateTokensToAdd</span>(<span style=color:#a6e22e>lastRefill</span>: <span style=color:#66d9ef>number</span>, <span style=color:#a6e22e>now</span>: <span style=color:#66d9ef>number</span>, <span style=color:#a6e22e>limit</span>: <span style=color:#66d9ef>RateLimit</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>number</span> {
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>timeElapsed</span> <span style=color:#f92672>=</span> (<span style=color:#a6e22e>now</span> <span style=color:#f92672>-</span> <span style=color:#a6e22e>lastRefill</span>) <span style=color:#f92672>/</span> <span style=color:#ae81ff>1000</span>; <span style=color:#75715e>// seconds
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>refillRate</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>limit</span>.<span style=color:#a6e22e>maxRequests</span> <span style=color:#f92672>/</span> <span style=color:#a6e22e>limit</span>.<span style=color:#a6e22e>windowSize</span>; <span style=color:#75715e>// tokens per second
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>timeElapsed</span> <span style=color:#f92672>*</span> <span style=color:#a6e22e>refillRate</span>;
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>refillRate</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>limit</span>.<span style=color:#a6e22e>maxRequests</span> <span style=color:#f92672>/</span> <span style=color:#a6e22e>limit</span>.<span style=color:#a6e22e>windowSize</span>; <span style=color:#75715e>// tokens per second
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>timeElapsed</span> <span style=color:#f92672>*</span> <span style=color:#a6e22e>refillRate</span>;
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>}
 </span></span><span style=display:flex><span>
@@ -1329,12 +1329,12 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>windowStart</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>now</span> <span style=color:#f92672>-</span> (<span style=color:#a6e22e>limit</span>.<span style=color:#a6e22e>windowSize</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>1000</span>);
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Remove expired entries and count current requests
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>redisClient</span>.<span style=color:#a6e22e>zremrangebyscore</span>(<span style=color:#a6e22e>windowKey</span>, <span style=color:#e6db74>&#39;-inf&#39;</span>, <span style=color:#a6e22e>windowStart</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>redisClient</span>.<span style=color:#a6e22e>zremrangebyscore</span>(<span style=color:#a6e22e>windowKey</span>, <span style=color:#e6db74>&#39;-inf&#39;</span>, <span style=color:#a6e22e>windowStart</span>);
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>currentCount</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>redisClient</span>.<span style=color:#a6e22e>zcard</span>(<span style=color:#a6e22e>windowKey</span>);
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>currentCount</span> <span style=color:#f92672>&lt;</span> <span style=color:#a6e22e>limit</span>.<span style=color:#a6e22e>maxRequests</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Allow request
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>return</span> {
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> {
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>allowed</span>: <span style=color:#66d9ef>true</span>,
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>remainingRequests</span>: <span style=color:#66d9ef>limit.maxRequests</span> <span style=color:#f92672>-</span> <span style=color:#a6e22e>currentCount</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>,
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>resetTime</span>: <span style=color:#66d9ef>new</span> Date(<span style=color:#a6e22e>now</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>limit</span>.<span style=color:#a6e22e>windowSize</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>1000</span>),
@@ -1342,7 +1342,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>      };
 </span></span><span style=display:flex><span>    } <span style=color:#66d9ef>else</span> {
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Request denied - find when oldest request will expire
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>oldestRequest</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>redisClient</span>.<span style=color:#a6e22e>zrange</span>(<span style=color:#a6e22e>windowKey</span>, <span style=color:#ae81ff>0</span>, <span style=color:#ae81ff>0</span>, <span style=color:#e6db74>&#39;WITHSCORES&#39;</span>);
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>oldestRequest</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>redisClient</span>.<span style=color:#a6e22e>zrange</span>(<span style=color:#a6e22e>windowKey</span>, <span style=color:#ae81ff>0</span>, <span style=color:#ae81ff>0</span>, <span style=color:#e6db74>&#39;WITHSCORES&#39;</span>);
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>retryAfter</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>oldestRequest</span>.<span style=color:#a6e22e>length</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>0</span> 
 </span></span><span style=display:flex><span>        <span style=color:#f92672>?</span> Math.<span style=color:#a6e22e>ceil</span>((parseInt(<span style=color:#a6e22e>oldestRequest</span>[<span style=color:#ae81ff>1</span>]) <span style=color:#f92672>+</span> <span style=color:#a6e22e>limit</span>.<span style=color:#a6e22e>windowSize</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>1000</span> <span style=color:#f92672>-</span> <span style=color:#a6e22e>now</span>) <span style=color:#f92672>/</span> <span style=color:#ae81ff>1000</span>)
 </span></span><span style=display:flex><span>        <span style=color:#f92672>:</span> <span style=color:#a6e22e>limit</span>.<span style=color:#a6e22e>windowSize</span>;
@@ -1362,9 +1362,9 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>requestId</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>`</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>now</span><span style=color:#e6db74>}</span><span style=color:#e6db74>_</span><span style=color:#e6db74>${</span>Math.<span style=color:#a6e22e>random</span>()<span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>;
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Add current request to window
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>redisClient</span>.<span style=color:#a6e22e>zadd</span>(<span style=color:#a6e22e>windowKey</span>, <span style=color:#a6e22e>now</span>, <span style=color:#a6e22e>requestId</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>redisClient</span>.<span style=color:#a6e22e>zadd</span>(<span style=color:#a6e22e>windowKey</span>, <span style=color:#a6e22e>now</span>, <span style=color:#a6e22e>requestId</span>);
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>redisClient</span>.<span style=color:#a6e22e>expire</span>(<span style=color:#a6e22e>windowKey</span>, <span style=color:#a6e22e>limit</span>.<span style=color:#a6e22e>windowSize</span> <span style=color:#f92672>+</span> <span style=color:#ae81ff>60</span>); <span style=color:#75715e>// Add buffer to TTL
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  }
+</span></span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>}
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>AdaptiveAlgorithm</span> <span style=color:#66d9ef>implements</span> <span style=color:#a6e22e>RateLimitingAlgorithm</span> {
@@ -1375,17 +1375,17 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>checkLimit</span>(<span style=color:#a6e22e>key</span>: <span style=color:#66d9ef>RateLimitKey</span>, <span style=color:#a6e22e>limit</span>: <span style=color:#66d9ef>RateLimit</span>, <span style=color:#a6e22e>request</span>: <span style=color:#66d9ef>RateLimitRequest</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>RateLimitResult</span>&gt; {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Get current system metrics
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>metrics</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>metricsCollector</span>.<span style=color:#a6e22e>getCurrentMetrics</span>();
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>metrics</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>metricsCollector</span>.<span style=color:#a6e22e>getCurrentMetrics</span>();
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Adjust limit based on system load
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>adjustedLimit</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>calculateAdaptiveLimit</span>(<span style=color:#a6e22e>limit</span>, <span style=color:#a6e22e>metrics</span>, <span style=color:#a6e22e>key</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>adjustedLimit</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>calculateAdaptiveLimit</span>(<span style=color:#a6e22e>limit</span>, <span style=color:#a6e22e>metrics</span>, <span style=color:#a6e22e>key</span>);
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Use sliding window algorithm with adjusted limit
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>slidingWindow</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>SlidingWindowAlgorithm</span>(<span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>redisClient</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>slidingWindow</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>SlidingWindowAlgorithm</span>(<span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>redisClient</span>);
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>result</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>slidingWindow</span>.<span style=color:#a6e22e>checkLimit</span>(<span style=color:#a6e22e>key</span>, <span style=color:#a6e22e>adjustedLimit</span>, <span style=color:#a6e22e>request</span>);
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Track adaptation for future adjustments
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>trackAdaptation</span>(<span style=color:#a6e22e>key</span>, <span style=color:#a6e22e>limit</span>, <span style=color:#a6e22e>adjustedLimit</span>, <span style=color:#a6e22e>metrics</span>, <span style=color:#a6e22e>result</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>trackAdaptation</span>(<span style=color:#a6e22e>key</span>, <span style=color:#a6e22e>limit</span>, <span style=color:#a6e22e>adjustedLimit</span>, <span style=color:#a6e22e>metrics</span>, <span style=color:#a6e22e>result</span>);
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>result</span>;
 </span></span><span style=display:flex><span>  }
@@ -1406,29 +1406,29 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>adjustmentFactor</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>1.0</span>;
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Adjust based on CPU usage
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>metrics</span>.<span style=color:#a6e22e>cpuUsage</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>80</span>) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>metrics</span>.<span style=color:#a6e22e>cpuUsage</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>80</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>adjustmentFactor</span> <span style=color:#f92672>*=</span> <span style=color:#ae81ff>0.5</span>; <span style=color:#75715e>// Reduce limit by 50%
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    } <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>metrics</span>.<span style=color:#a6e22e>cpuUsage</span> <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>30</span>) {
+</span></span></span><span style=display:flex><span>    } <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>metrics</span>.<span style=color:#a6e22e>cpuUsage</span> <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>30</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>adjustmentFactor</span> <span style=color:#f92672>*=</span> <span style=color:#ae81ff>1.2</span>; <span style=color:#75715e>// Increase limit by 20%
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    }
+</span></span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Adjust based on memory usage
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>metrics</span>.<span style=color:#a6e22e>memoryUsage</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>85</span>) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>metrics</span>.<span style=color:#a6e22e>memoryUsage</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>85</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>adjustmentFactor</span> <span style=color:#f92672>*=</span> <span style=color:#ae81ff>0.7</span>; <span style=color:#75715e>// Reduce limit by 30%
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    }
+</span></span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Adjust based on error rate
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>metrics</span>.<span style=color:#a6e22e>errorRate</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>5</span>) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>metrics</span>.<span style=color:#a6e22e>errorRate</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>5</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>adjustmentFactor</span> <span style=color:#f92672>*=</span> <span style=color:#ae81ff>0.6</span>; <span style=color:#75715e>// Reduce limit by 40%
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    }
+</span></span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Adjust based on response time
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>metrics</span>.<span style=color:#a6e22e>avgResponseTime</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>2000</span>) { <span style=color:#75715e>// 2 seconds
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>adjustmentFactor</span> <span style=color:#f92672>*=</span> <span style=color:#ae81ff>0.8</span>; <span style=color:#75715e>// Reduce limit by 20%
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    }
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>metrics</span>.<span style=color:#a6e22e>avgResponseTime</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>2000</span>) { <span style=color:#75715e>// 2 seconds
+</span></span></span><span style=display:flex><span>      <span style=color:#a6e22e>adjustmentFactor</span> <span style=color:#f92672>*=</span> <span style=color:#ae81ff>0.8</span>; <span style=color:#75715e>// Reduce limit by 20%
+</span></span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Apply user/service specific adjustments
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>userAdjustment</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>getUserSpecificAdjustment</span>(<span style=color:#a6e22e>key</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>userAdjustment</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>getUserSpecificAdjustment</span>(<span style=color:#a6e22e>key</span>);
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>adjustmentFactor</span> <span style=color:#f92672>*=</span> <span style=color:#a6e22e>userAdjustment</span>;
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
@@ -1439,12 +1439,12 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>getUserSpecificAdjustment</span>(<span style=color:#a6e22e>key</span>: <span style=color:#66d9ef>RateLimitKey</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>number</span> {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Implement user-specific adjustments based on:
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// - Historical behavior
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// - Service tier
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// - Trust score
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// - Geographic location
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>1.0</span>; <span style=color:#75715e>// Simplified for example
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  }
+</span></span></span><span style=display:flex><span>    <span style=color:#75715e>// - Historical behavior
+</span></span></span><span style=display:flex><span>    <span style=color:#75715e>// - Service tier
+</span></span></span><span style=display:flex><span>    <span style=color:#75715e>// - Trust score
+</span></span></span><span style=display:flex><span>    <span style=color:#75715e>// - Geographic location
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>1.0</span>; <span style=color:#75715e>// Simplified for example
+</span></span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>trackAdaptation</span>(
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>key</span>: <span style=color:#66d9ef>RateLimitKey</span>,
@@ -1489,7 +1489,7 @@ ThreatDetect --> Audit : security alerts
 </span></span><span style=display:flex><span>      }
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Check warning thresholds
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>usagePercentage</span> <span style=color:#f92672>=</span> (<span style=color:#a6e22e>usage</span> <span style=color:#f92672>/</span> <span style=color:#a6e22e>quota</span>.<span style=color:#a6e22e>limit</span>) <span style=color:#f92672>*</span> <span style=color:#ae81ff>100</span>;
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>usagePercentage</span> <span style=color:#f92672>=</span> (<span style=color:#a6e22e>usage</span> <span style=color:#f92672>/</span> <span style=color:#a6e22e>quota</span>.<span style=color:#a6e22e>limit</span>) <span style=color:#f92672>*</span> <span style=color:#ae81ff>100</span>;
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>warningThresholds</span>.<span style=color:#a6e22e>some</span>(<span style=color:#a6e22e>threshold</span> <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>usagePercentage</span> <span style=color:#f92672>&gt;=</span> <span style=color:#a6e22e>threshold</span>)) {
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>sendQuotaWarning</span>(<span style=color:#a6e22e>quotaKey</span>, <span style=color:#a6e22e>usage</span>, <span style=color:#a6e22e>quota</span>);
 </span></span><span style=display:flex><span>      }
@@ -1672,4 +1672,4 @@ ThreatDetect --> Audit : security alerts
 </a><a href=/tags/well-architected-framework class=tag-cloud-item style=font-size:1rem>well-architected framework
 </a><a href=/tags/x-ray class=tag-cloud-item style=font-size:1rem>x-ray
 </a><a href=/tags/zero-trust class=tag-cloud-item style=font-size:1rem>zero trust</a></div></div><div class=sidebar-widget><h3>Subscribe</h3><div class=subscribe-links><a href=/index.xml class=rss-link><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 019 9"/><path d="M4 4a16 16 0 0116 16"/><circle cx="5" cy="19" r="1"/></svg>
-RSS Feed</a></div></div><div class="sidebar-widget npm-packages"><h3>My NPM Packages</h3><div id=npm-list></div></div></aside></div></div><footer class=site-footer><div class=container><p>&copy; 2025 Scott Obert</p><p class=disclaimer-text style=font-size:.9em;margin-top:.5em>The views and opinions expressed on this site are my own. <a href=/disclaimer/ style=color:#0074d9;text-decoration:underline>Read full disclaimer</a>.</p></div></footer></body></html>
+RSS Feed</a></div></div><div class="sidebar-widget npm-packages"><h3>My NPM Packages</h3><div id=npm-list></div></div></aside></div></div><footer class=site-footer><div class=container><p>&copy; 2026 Scott Obert</p><p class=disclaimer-text style=font-size:.9em;margin-top:.5em>The views and opinions expressed on this site are my own. <a href=/disclaimer/ style=color:#0074d9;text-decoration:underline>Read full disclaimer</a>.</p></div></footer></body></html>

@@ -1,4 +1,4 @@
-<!doctype html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Scott Obert</title><meta name=description content="Master technical debt management strategies including automated detection, refactoring patterns, and debt metrics to maintain code quality as your codebase grows."><link rel=canonical href=https://scottobert.com/posts/technical-debt-management-growing-codebases/><meta property="og:title" content="Technical Debt Management in Growing Codebases: Strategies for Sustainable Development"><meta property="og:description" content="Master technical debt management strategies including automated detection, refactoring patterns, and debt metrics to maintain code quality as your codebase grows."><meta property="og:type" content="article"><meta property="og:url" content="https://scottobert.com/posts/technical-debt-management-growing-codebases/"><meta property="og:site_name" content="Scott Obert"><meta name=twitter:card content="summary"><meta name=twitter:title content="Technical Debt Management in Growing Codebases: Strategies for Sustainable Development"><meta name=twitter:description content="Master technical debt management strategies including automated detection, refactoring patterns, and debt metrics to maintain code quality as your codebase grows."><link rel=stylesheet href=https://scottobert.com/css/style.min.1c2fad2e01192bc8806bc4c2e6eda237e33992ac3b191a1de4ac0d9d50878abd.css><script src=/js/npm-packages.js defer></script><script src=/js/search.js defer></script><script defer src=https://cloud.umami.is/script.js data-website-id=e2461896-021d-422a-b83f-624a8819309b></script><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/site.webmanifest></head><body><header class=site-header><div class=container><div class=header-content><div class=header-left><h1><a href=/>Scott Obert</a></h1><nav><a href=/posts/>Blog</a>
+<!doctype html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Scott Obert</title><meta name=description content="Master technical debt management strategies including automated detection, refactoring patterns, and debt metrics to maintain code quality as your codebase grows."><link rel=canonical href=https://scottobert.com/posts/technical-debt-management-growing-codebases/><meta property="og:title" content="Technical Debt Management in Growing Codebases: Strategies for Sustainable Development"><meta property="og:description" content="Master technical debt management strategies including automated detection, refactoring patterns, and debt metrics to maintain code quality as your codebase grows."><meta property="og:type" content="article"><meta property="og:url" content="https://scottobert.com/posts/technical-debt-management-growing-codebases/"><meta property="og:site_name" content="Scott Obert"><meta name=twitter:card content="summary"><meta name=twitter:title content="Technical Debt Management in Growing Codebases: Strategies for Sustainable Development"><meta name=twitter:description content="Master technical debt management strategies including automated detection, refactoring patterns, and debt metrics to maintain code quality as your codebase grows."><link rel=stylesheet href=https://scottobert.com/css/style.min.d57a26f1d64b2c7f0df88b12c113d433eaed97b49e5f51c6675b9756126ebb92.css><script src=/js/npm-packages.js defer></script><script src=/js/search.js defer></script><script defer src=https://cloud.umami.is/script.js data-website-id=e2461896-021d-422a-b83f-624a8819309b></script><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/site.webmanifest></head><body><header class=site-header><div class=container><div class=header-content><div class=header-left><h1><a href=/>Scott Obert</a></h1><nav><a href=/posts/>Blog</a>
 <a href=/album/>Photo Album</a>
 <button type=button class=search-toggle id=search-toggle-btn aria-label="Open search" title=Search>
 <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61.0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
@@ -23,50 +23,50 @@
 </a><a href="https://wa.me/?text=Technical+Debt+Management+in+Growing+Codebases%3A+Strategies+for+Sustainable+Development+https%3A%2F%2Fscottobert.com%2Fposts%2Ftechnical-debt-management-growing-codebases%2F" target=_blank rel="noopener noreferrer" class="quick-share-button whatsapp" title="Share on WhatsApp"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198.0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479.0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87.0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86.0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64.0 5.122 1.03 6.988 2.898a9.825 9.825.0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815.0 0012.05.0C5.495.0.16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882.0 005.683 1.448h.005c6.554.0 11.89-5.335 11.893-11.893A11.821 11.821.0 0020.465 3.488"/></svg>
 </a><a href="mailto:?subject=Technical+Debt+Management+in+Growing+Codebases%3A+Strategies+for+Sustainable+Development&body=Check+out+this+article%3A+Technical+Debt+Management+in+Growing+Codebases%3A+Strategies+for+Sustainable+Development+-+https%3A%2F%2Fscottobert.com%2Fposts%2Ftechnical-debt-management-growing-codebases%2F" class="quick-share-button email" title="Share via Email"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1.0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1.0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
 </a><button type=button class="quick-share-button copy-link" data-url=https://scottobert.com/posts/technical-debt-management-growing-codebases/ title="Copy link to clipboard">
-<svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1.0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1.0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1.0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button></div></div><script>(function(){const i=document.querySelector(".quick-social-share"),e=document.getElementById("quick-share-toggle"),t=document.getElementById("quick-share-buttons");if(!i||!e||!t)return;let n=!1;e.addEventListener("click",function(){n=!n,n?(t.classList.add("visible"),e.classList.add("active")):(t.classList.remove("visible"),e.classList.remove("active"))});const a=document.querySelectorAll(".quick-share-button.copy-link");a.forEach(e=>{e.addEventListener("click",function(){const e=this.getAttribute("data-url");navigator.clipboard&&window.isSecureContext?navigator.clipboard.writeText(e).then(()=>{o(this)}).catch(()=>{s(e,this)}):s(e,this)})});function s(e,t){const n=document.createElement("textarea");n.value=e,n.style.position="fixed",n.style.left="-999999px",n.style.top="-999999px",document.body.appendChild(n),n.focus(),n.select();try{document.execCommand("copy"),o(t)}catch(e){console.error("Fallback: Unable to copy",e),r(t)}document.body.removeChild(n)}function o(e){const n=e.getAttribute("title");e.setAttribute("title","Copied!"),e.classList.add("copied");const t=document.createElement("div");t.textContent="Copied!",t.style.position="absolute",t.style.bottom="100%",t.style.left="50%",t.style.transform="translateX(-50%)",t.style.background="#28a745",t.style.color="white",t.style.padding="4px 8px",t.style.borderRadius="4px",t.style.fontSize="0.75rem",t.style.whiteSpace="nowrap",t.style.zIndex="1000",t.style.marginBottom="5px",e.style.position="relative",e.appendChild(t),setTimeout(()=>{e.setAttribute("title",n),e.classList.remove("copied"),t.parentNode&&e.removeChild(t)},2e3)}function r(e){const t=e.getAttribute("title");e.setAttribute("title","Copy failed"),e.classList.add("error"),setTimeout(()=>{e.setAttribute("title",t),e.classList.remove("error")},2e3)}})()</script></div></div><div class=post-content><h2 id=introduction>Introduction</h2><p>In our Modern Development Practices series, we&rsquo;ve explored test-driven development, code quality gates, API design patterns, microservices communication, database design, and performance testing. Today, we conclude with technical debt management – the critical practice that determines whether your codebase remains maintainable and scalable as it grows.</p><p>Technical debt accumulates naturally in all software projects. The key is not to eliminate it entirely (which is impossible) but to manage it strategically, making conscious decisions about when to incur debt and when to pay it down.</p><h2 id=understanding-technical-debt-types>Understanding Technical Debt Types</h2><h3 id=deliberate-vs-inadvertent-debt>Deliberate vs. Inadvertent Debt</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// Deliberate Technical Debt - Conscious shortcuts for speed
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>QuickOrderProcessor</span> {
+<svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1.0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1.0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1.0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button></div></div><script>(function(){const i=document.querySelector(".quick-social-share"),e=document.getElementById("quick-share-toggle"),t=document.getElementById("quick-share-buttons");if(!i||!e||!t)return;let n=!1;e.addEventListener("click",function(){n=!n,n?(t.classList.add("visible"),e.classList.add("active")):(t.classList.remove("visible"),e.classList.remove("active"))});const a=document.querySelectorAll(".quick-share-button.copy-link");a.forEach(e=>{e.addEventListener("click",function(){const e=this.getAttribute("data-url");navigator.clipboard&&window.isSecureContext?navigator.clipboard.writeText(e).then(()=>{o(this)}).catch(()=>{s(e,this)}):s(e,this)})});function s(e,t){const n=document.createElement("textarea");n.value=e,n.style.position="fixed",n.style.left="-999999px",n.style.top="-999999px",document.body.appendChild(n),n.focus(),n.select();try{document.execCommand("copy"),o(t)}catch(e){console.error("Fallback: Unable to copy",e),r(t)}document.body.removeChild(n)}function o(e){const n=e.getAttribute("title");e.setAttribute("title","Copied!"),e.classList.add("copied");const t=document.createElement("div");t.textContent="Copied!",t.style.position="absolute",t.style.bottom="100%",t.style.left="50%",t.style.transform="translateX(-50%)",t.style.background="#28a745",t.style.color="white",t.style.padding="4px 8px",t.style.borderRadius="4px",t.style.fontSize="0.75rem",t.style.whiteSpace="nowrap",t.style.zIndex="1000",t.style.marginBottom="5px",e.style.position="relative",e.appendChild(t),setTimeout(()=>{e.setAttribute("title",n),e.classList.remove("copied"),t.parentNode&&e.removeChild(t)},2e3)}function r(e){const t=e.getAttribute("title");e.setAttribute("title","Copy failed"),e.classList.add("error"),setTimeout(()=>{e.setAttribute("title",t),e.classList.remove("error")},2e3)}})()</script></div></div><div class=post-content><h2 id=introduction>Introduction</h2><p>In our Modern Development Practices series, we&rsquo;ve explored test-driven development, code quality gates, API design patterns, microservices communication, database design, and performance testing. Today, we conclude with technical debt management – the critical practice that determines whether your codebase remains maintainable and scalable as it grows.</p><p>Technical debt accumulates naturally in all software projects. The key is not to eliminate it entirely (which is impossible) but to manage it strategically, making conscious decisions about when to incur debt and when to pay it down.</p><h2 id=understanding-technical-debt-types>Understanding Technical Debt Types</h2><h3 id=deliberate-vs-inadvertent-debt>Deliberate vs. Inadvertent Debt</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// Deliberate Technical Debt - Conscious shortcuts for speed
+</span></span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>QuickOrderProcessor</span> {
 </span></span><span style=display:flex><span>  <span style=color:#75715e>// TODO: TECH DEBT - Hardcoded tax calculation for MVP
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// Ticket: ORD-123 - Implement proper tax service integration
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// Priority: High (target: Sprint 15)
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// Effort: 3 story points
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>calculateTax</span>(<span style=color:#a6e22e>amount</span>: <span style=color:#66d9ef>number</span>, <span style=color:#a6e22e>region</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>number</span> {
+</span></span></span><span style=display:flex><span>  <span style=color:#75715e>// Ticket: ORD-123 - Implement proper tax service integration
+</span></span></span><span style=display:flex><span>  <span style=color:#75715e>// Priority: High (target: Sprint 15)
+</span></span></span><span style=display:flex><span>  <span style=color:#75715e>// Effort: 3 story points
+</span></span></span><span style=display:flex><span>  <span style=color:#a6e22e>calculateTax</span>(<span style=color:#a6e22e>amount</span>: <span style=color:#66d9ef>number</span>, <span style=color:#a6e22e>region</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>number</span> {
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>amount</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>0.08</span>; <span style=color:#75715e>// Hardcoded 8% tax rate
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  }
+</span></span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#75715e>// Deliberate simplification - will need proper error handling
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>processOrder</span>(<span style=color:#a6e22e>order</span>: <span style=color:#66d9ef>Order</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>processOrder</span>(<span style=color:#a6e22e>order</span>: <span style=color:#66d9ef>Order</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>try</span> {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>orderService</span>.<span style=color:#a6e22e>create</span>(<span style=color:#a6e22e>order</span>);
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// TODO: Add retry logic, dead letter queue, and monitoring
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
+</span></span></span><span style=display:flex><span>    } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>error</span>(<span style=color:#e6db74>&#39;Order processing failed:&#39;</span>, <span style=color:#a6e22e>error</span>);
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#a6e22e>error</span>; <span style=color:#75715e>// Simplified error handling for now
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    }
+</span></span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>}
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#75715e>// Inadvertent Technical Debt - Code that accumulated over time
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>LegacyUserService</span> {
+</span></span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>LegacyUserService</span> {
 </span></span><span style=display:flex><span>  <span style=color:#75715e>// Multiple responsibilities - violates SRP
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>processUser</span>(<span style=color:#a6e22e>userData</span>: <span style=color:#66d9ef>any</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>any</span>&gt; {
+</span></span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>processUser</span>(<span style=color:#a6e22e>userData</span>: <span style=color:#66d9ef>any</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>any</span>&gt; {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Validation logic mixed with business logic
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>userData</span>.<span style=color:#a6e22e>email</span> <span style=color:#f92672>||</span> <span style=color:#f92672>!</span><span style=color:#a6e22e>userData</span>.<span style=color:#a6e22e>email</span>.<span style=color:#a6e22e>includes</span>(<span style=color:#e6db74>&#39;@&#39;</span>)) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>userData</span>.<span style=color:#a6e22e>email</span> <span style=color:#f92672>||</span> <span style=color:#f92672>!</span><span style=color:#a6e22e>userData</span>.<span style=color:#a6e22e>email</span>.<span style=color:#a6e22e>includes</span>(<span style=color:#e6db74>&#39;@&#39;</span>)) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>throw</span> <span style=color:#66d9ef>new</span> Error(<span style=color:#e6db74>&#39;Invalid email&#39;</span>);
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Direct database access in service layer
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>user</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>db</span>.<span style=color:#a6e22e>query</span>(<span style=color:#e6db74>&#39;INSERT INTO users...&#39;</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>user</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>db</span>.<span style=color:#a6e22e>query</span>(<span style=color:#e6db74>&#39;INSERT INTO users...&#39;</span>);
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Email sending logic in wrong place
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>emailService</span>.<span style=color:#a6e22e>sendWelcomeEmail</span>(<span style=color:#a6e22e>user</span>.<span style=color:#a6e22e>email</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>emailService</span>.<span style=color:#a6e22e>sendWelcomeEmail</span>(<span style=color:#a6e22e>user</span>.<span style=color:#a6e22e>email</span>);
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Audit logging mixed with business logic
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>auditLogger</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#39;User created&#39;</span>, <span style=color:#a6e22e>user</span>.<span style=color:#a6e22e>id</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>auditLogger</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#39;User created&#39;</span>, <span style=color:#a6e22e>user</span>.<span style=color:#a6e22e>id</span>);
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>user</span>;
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><h3 id=debt-classification-framework>Debt Classification Framework</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>TechnicalDebtItem</span> {
+</span></span></code></pre></div><h3 id=debt-classification-framework>Debt Classification Framework</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>TechnicalDebtItem</span> {
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>id</span>: <span style=color:#66d9ef>string</span>;
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>type</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>DebtType</span>;
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>severity</span>: <span style=color:#66d9ef>DebtSeverity</span>;
@@ -81,26 +81,26 @@
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#66d9ef>enum</span> <span style=color:#a6e22e>DebtType</span> {
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>DESIGN_DEBT</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;design_debt&#39;</span>,           <span style=color:#75715e>// Architectural issues
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>CODE_DEBT</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;code_debt&#39;</span>,               <span style=color:#75715e>// Code quality issues
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>TEST_DEBT</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;test_debt&#39;</span>,               <span style=color:#75715e>// Missing or inadequate tests
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>DOCUMENTATION_DEBT</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;doc_debt&#39;</span>,       <span style=color:#75715e>// Missing documentation
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>INFRASTRUCTURE_DEBT</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;infra_debt&#39;</span>,    <span style=color:#75715e>// Infrastructure shortcuts
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>DEPENDENCY_DEBT</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;dependency_debt&#39;</span>     <span style=color:#75715e>// Outdated dependencies
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>}
+</span></span></span><span style=display:flex><span>  <span style=color:#a6e22e>CODE_DEBT</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;code_debt&#39;</span>,               <span style=color:#75715e>// Code quality issues
+</span></span></span><span style=display:flex><span>  <span style=color:#a6e22e>TEST_DEBT</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;test_debt&#39;</span>,               <span style=color:#75715e>// Missing or inadequate tests
+</span></span></span><span style=display:flex><span>  <span style=color:#a6e22e>DOCUMENTATION_DEBT</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;doc_debt&#39;</span>,       <span style=color:#75715e>// Missing documentation
+</span></span></span><span style=display:flex><span>  <span style=color:#a6e22e>INFRASTRUCTURE_DEBT</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;infra_debt&#39;</span>,    <span style=color:#75715e>// Infrastructure shortcuts
+</span></span></span><span style=display:flex><span>  <span style=color:#a6e22e>DEPENDENCY_DEBT</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;dependency_debt&#39;</span>     <span style=color:#75715e>// Outdated dependencies
+</span></span></span><span style=display:flex><span>}
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#66d9ef>enum</span> <span style=color:#a6e22e>DebtSeverity</span> {
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>CRITICAL</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;critical&#39;</span>,    <span style=color:#75715e>// Blocks development or causes outages
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>HIGH</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;high&#39;</span>,           <span style=color:#75715e>// Significantly impacts velocity
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>MEDIUM</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;medium&#39;</span>,       <span style=color:#75715e>// Moderate impact on development
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>LOW</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;low&#39;</span>              <span style=color:#75715e>// Minor inconvenience
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>}
+</span></span></span><span style=display:flex><span>  <span style=color:#a6e22e>HIGH</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;high&#39;</span>,           <span style=color:#75715e>// Significantly impacts velocity
+</span></span></span><span style=display:flex><span>  <span style=color:#a6e22e>MEDIUM</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;medium&#39;</span>,       <span style=color:#75715e>// Moderate impact on development
+</span></span></span><span style=display:flex><span>  <span style=color:#a6e22e>LOW</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;low&#39;</span>              <span style=color:#75715e>// Minor inconvenience
+</span></span></span><span style=display:flex><span>}
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>DebtImpact</span> {
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>developmentVelocity</span>: <span style=color:#66d9ef>number</span>;    <span style=color:#75715e>// 1-10 scale
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>maintenanceCost</span>: <span style=color:#66d9ef>number</span>;        <span style=color:#75715e>// 1-10 scale
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>riskToProduction</span>: <span style=color:#66d9ef>number</span>;       <span style=color:#75715e>// 1-10 scale
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>teamMorale</span>: <span style=color:#66d9ef>number</span>;             <span style=color:#75715e>// 1-10 scale
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>}
+</span></span></span><span style=display:flex><span>  <span style=color:#a6e22e>maintenanceCost</span>: <span style=color:#66d9ef>number</span>;        <span style=color:#75715e>// 1-10 scale
+</span></span></span><span style=display:flex><span>  <span style=color:#a6e22e>riskToProduction</span>: <span style=color:#66d9ef>number</span>;       <span style=color:#75715e>// 1-10 scale
+</span></span></span><span style=display:flex><span>  <span style=color:#a6e22e>teamMorale</span>: <span style=color:#66d9ef>number</span>;             <span style=color:#75715e>// 1-10 scale
+</span></span></span><span style=display:flex><span>}
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>EstimatedEffort</span> {
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>storyPoints</span>: <span style=color:#66d9ef>number</span>;
@@ -131,11 +131,11 @@
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>items</span>.<span style=color:#a6e22e>sort</span>((<span style=color:#a6e22e>a</span>, <span style=color:#a6e22e>b</span>) <span style=color:#f92672>=&gt;</span> {
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Calculate priority score based on impact vs effort
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>scoreA</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>calculatePriorityScore</span>(<span style=color:#a6e22e>a</span>);
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>scoreA</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>calculatePriorityScore</span>(<span style=color:#a6e22e>a</span>);
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>scoreB</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>calculatePriorityScore</span>(<span style=color:#a6e22e>b</span>);
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>scoreB</span> <span style=color:#f92672>-</span> <span style=color:#a6e22e>scoreA</span>; <span style=color:#75715e>// Higher score = higher priority
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    });
+</span></span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>calculatePriorityScore</span>(<span style=color:#a6e22e>item</span>: <span style=color:#66d9ef>TechnicalDebtItem</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>number</span> {
@@ -179,7 +179,7 @@
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>notifyTeam</span>(<span style=color:#a6e22e>item</span>: <span style=color:#66d9ef>TechnicalDebtItem</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>void</span> {
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>item</span>.<span style=color:#a6e22e>severity</span> <span style=color:#f92672>===</span> <span style=color:#a6e22e>DebtSeverity</span>.<span style=color:#a6e22e>CRITICAL</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Send immediate notification for critical debt
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>`🚨 CRITICAL Technical Debt Added: </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>item</span>.<span style=color:#a6e22e>description</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
+</span></span></span><span style=display:flex><span>      <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>`🚨 CRITICAL Technical Debt Added: </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>item</span>.<span style=color:#a6e22e>description</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
@@ -211,11 +211,11 @@
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>calculateTrends</span>(<span style=color:#a6e22e>items</span>: <span style=color:#66d9ef>TechnicalDebtItem</span>[])<span style=color:#f92672>:</span> <span style=color:#a6e22e>DebtTrends</span> {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Implementation for trend analysis
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>return</span> {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>creationRate</span>: <span style=color:#66d9ef>0</span>, <span style=color:#75715e>// Items created per week
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>resolutionRate</span>: <span style=color:#66d9ef>0</span>, <span style=color:#75715e>// Items resolved per week
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>netChange</span>: <span style=color:#66d9ef>0</span> <span style=color:#75715e>// Net change in debt items
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    };
+</span></span></span><span style=display:flex><span>      <span style=color:#a6e22e>resolutionRate</span>: <span style=color:#66d9ef>0</span>, <span style=color:#75715e>// Items resolved per week
+</span></span></span><span style=display:flex><span>      <span style=color:#a6e22e>netChange</span>: <span style=color:#66d9ef>0</span> <span style=color:#75715e>// Net change in debt items
+</span></span></span><span style=display:flex><span>    };
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>}
 </span></span><span style=display:flex><span>
@@ -233,15 +233,15 @@
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>resolutionRate</span>: <span style=color:#66d9ef>number</span>;
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>netChange</span>: <span style=color:#66d9ef>number</span>;
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><h2 id=automated-debt-detection>Automated Debt Detection</h2><h3 id=static-analysis-integration>Static Analysis Integration</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// ESLint custom rules for debt detection
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>ESLintUtils</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@typescript-eslint/utils&#39;</span>;
+</span></span></code></pre></div><h2 id=automated-debt-detection>Automated Debt Detection</h2><h3 id=static-analysis-integration>Static Analysis Integration</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// ESLint custom rules for debt detection
+</span></span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>ESLintUtils</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@typescript-eslint/utils&#39;</span>;
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>createRule</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>ESLintUtils</span>.<span style=color:#a6e22e>RuleCreator</span>(
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>name</span> <span style=color:#f92672>=&gt;</span> <span style=color:#e6db74>`https://your-docs.com/eslint-rules/</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>name</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>
 </span></span><span style=display:flex><span>);
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#75715e>// Detect overly complex functions
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>complexityDebtRule</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>createRule</span>({
+</span></span></span><span style=display:flex><span><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>complexityDebtRule</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>createRule</span>({
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>name</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;complexity-debt&#39;</span>,
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>meta</span><span style=color:#f92672>:</span> {
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>type</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;suggestion&#39;</span>,
@@ -266,10 +266,10 @@
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>analyzeComplexity</span>(<span style=color:#a6e22e>node</span>: <span style=color:#66d9ef>any</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>number</span> {
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Simplified complexity calculation
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>complexity</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>; <span style=color:#75715e>// Base complexity
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>complexity</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>; <span style=color:#75715e>// Base complexity
+</span></span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Add complexity for control structures
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>complexityNodes</span> <span style=color:#f92672>=</span> [
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>complexityNodes</span> <span style=color:#f92672>=</span> [
 </span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;IfStatement&#39;</span>, <span style=color:#e6db74>&#39;ConditionalExpression&#39;</span>, <span style=color:#e6db74>&#39;SwitchCase&#39;</span>,
 </span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;ForStatement&#39;</span>, <span style=color:#e6db74>&#39;ForInStatement&#39;</span>, <span style=color:#e6db74>&#39;ForOfStatement&#39;</span>,
 </span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;WhileStatement&#39;</span>, <span style=color:#e6db74>&#39;DoWhileStatement&#39;</span>,
@@ -311,7 +311,7 @@
 </span></span><span style=display:flex><span>});
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#75715e>// Detect outdated TODO comments
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>todoDebtRule</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>createRule</span>({
+</span></span></span><span style=display:flex><span><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>todoDebtRule</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>createRule</span>({
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>name</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;todo-debt&#39;</span>,
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>meta</span><span style=color:#f92672>:</span> {
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>type</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;suggestion&#39;</span>,
@@ -347,7 +347,7 @@
 </span></span><span style=display:flex><span>          <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>todoText</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>todoMatch</span>[<span style=color:#ae81ff>1</span>].<span style=color:#a6e22e>trim</span>();
 </span></span><span style=display:flex><span>          
 </span></span><span style=display:flex><span>          <span style=color:#75715e>// Check if TODO has ticket reference
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>          <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>hasTicket</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>/(?:TICKET|ISSUE|JIRA|#)\s*[A-Z]+-\d+/i</span>.<span style=color:#a6e22e>test</span>(<span style=color:#a6e22e>todoText</span>);
+</span></span></span><span style=display:flex><span>          <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>hasTicket</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>/(?:TICKET|ISSUE|JIRA|#)\s*[A-Z]+-\d+/i</span>.<span style=color:#a6e22e>test</span>(<span style=color:#a6e22e>todoText</span>);
 </span></span><span style=display:flex><span>          <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>hasTicket</span>) {
 </span></span><span style=display:flex><span>            <span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>report</span>({
 </span></span><span style=display:flex><span>              <span style=color:#a6e22e>node</span>: <span style=color:#66d9ef>comment</span> <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>any</span>,
@@ -358,8 +358,8 @@
 </span></span><span style=display:flex><span>          }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>          <span style=color:#75715e>// Check age (would need additional tooling to track creation date)
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>          <span style=color:#75715e>// This is a simplified example
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>          <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>ageInDays</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>calculateCommentAge</span>(<span style=color:#a6e22e>comment</span>);
+</span></span></span><span style=display:flex><span>          <span style=color:#75715e>// This is a simplified example
+</span></span></span><span style=display:flex><span>          <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>ageInDays</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>calculateCommentAge</span>(<span style=color:#a6e22e>comment</span>);
 </span></span><span style=display:flex><span>          <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>ageInDays</span> <span style=color:#f92672>&gt;</span> <span style=color:#a6e22e>maxAge</span>) {
 </span></span><span style=display:flex><span>            <span style=color:#a6e22e>context</span>.<span style=color:#a6e22e>report</span>({
 </span></span><span style=display:flex><span>              <span style=color:#a6e22e>node</span>: <span style=color:#66d9ef>comment</span> <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>any</span>,
@@ -375,7 +375,7 @@
 </span></span><span style=display:flex><span>    };
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>});
-</span></span></code></pre></div><h3 id=code-metrics-collection>Code Metrics Collection</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>fs</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;fs&#39;</span>;
+</span></span></code></pre></div><h3 id=code-metrics-collection>Code Metrics Collection</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>fs</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;fs&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>path</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;path&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>Project</span>, <span style=color:#a6e22e>SourceFile</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;ts-morph&#39;</span>;
 </span></span><span style=display:flex><span>
@@ -426,7 +426,7 @@
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>lines</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>text</span>.<span style=color:#a6e22e>split</span>(<span style=color:#e6db74>&#39;\n&#39;</span>);
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Count non-empty, non-comment lines
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>lines</span>.<span style=color:#a6e22e>filter</span>(<span style=color:#a6e22e>line</span> <span style=color:#f92672>=&gt;</span> {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>lines</span>.<span style=color:#a6e22e>filter</span>(<span style=color:#a6e22e>line</span> <span style=color:#f92672>=&gt;</span> {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>trimmed</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>line</span>.<span style=color:#a6e22e>trim</span>();
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>trimmed</span>.<span style=color:#a6e22e>length</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>0</span> <span style=color:#f92672>&amp;&amp;</span> 
 </span></span><span style=display:flex><span>             <span style=color:#f92672>!</span><span style=color:#a6e22e>trimmed</span>.<span style=color:#a6e22e>startsWith</span>(<span style=color:#e6db74>&#39;//&#39;</span>) <span style=color:#f92672>&amp;&amp;</span> 
@@ -453,12 +453,12 @@
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>analyzeComplexity</span>(<span style=color:#a6e22e>node</span>: <span style=color:#66d9ef>any</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>number</span> {
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>complexity</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>; <span style=color:#75715e>// Base complexity
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>node</span>.<span style=color:#a6e22e>forEachDescendant</span>((<span style=color:#a6e22e>descendant</span>: <span style=color:#66d9ef>any</span>) <span style=color:#f92672>=&gt;</span> {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>kind</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>descendant</span>.<span style=color:#a6e22e>getKind</span>();
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Decision points that increase complexity
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>if</span> ([
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> ([
 </span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;IfStatement&#39;</span>, <span style=color:#e6db74>&#39;ConditionalExpression&#39;</span>, <span style=color:#e6db74>&#39;SwitchStatement&#39;</span>,
 </span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;ForStatement&#39;</span>, <span style=color:#e6db74>&#39;ForInStatement&#39;</span>, <span style=color:#e6db74>&#39;ForOfStatement&#39;</span>,
 </span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;WhileStatement&#39;</span>, <span style=color:#e6db74>&#39;DoWhileStatement&#39;</span>, <span style=color:#e6db74>&#39;CatchClause&#39;</span>,
@@ -473,7 +473,7 @@
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>detectDuplication</span>(<span style=color:#a6e22e>sourceFile</span>: <span style=color:#66d9ef>SourceFile</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>number</span> {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Simplified duplication detection
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>text</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>sourceFile</span>.<span style=color:#a6e22e>getFullText</span>();
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>text</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>sourceFile</span>.<span style=color:#a6e22e>getFullText</span>();
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>lines</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>text</span>.<span style=color:#a6e22e>split</span>(<span style=color:#e6db74>&#39;\n&#39;</span>).<span style=color:#a6e22e>map</span>(<span style=color:#a6e22e>line</span> <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>line</span>.<span style=color:#a6e22e>trim</span>()).<span style=color:#a6e22e>filter</span>(<span style=color:#a6e22e>line</span> <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>line</span>.<span style=color:#a6e22e>length</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>10</span>);
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>duplicates</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Set</span>&lt;<span style=color:#f92672>string</span>&gt;();
@@ -492,8 +492,8 @@
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>getTestCoverage</span>(<span style=color:#a6e22e>filePath</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>number</span> {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Integration with coverage tools (Istanbul, Jest, etc.)
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// This would typically read from coverage reports
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>try</span> {
+</span></span></span><span style=display:flex><span>    <span style=color:#75715e>// This would typically read from coverage reports
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>try</span> {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>coverageData</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>readCoverageData</span>();
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>coverageData</span>[<span style=color:#a6e22e>filePath</span>]<span style=color:#f92672>?</span>.<span style=color:#a6e22e>percentage</span> <span style=color:#f92672>||</span> <span style=color:#ae81ff>0</span>;
 </span></span><span style=display:flex><span>    } <span style=color:#66d9ef>catch</span> {
@@ -512,12 +512,12 @@
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>calculateMaintainabilityIndex</span>(<span style=color:#a6e22e>sourceFile</span>: <span style=color:#66d9ef>SourceFile</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>number</span> {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Simplified maintainability index calculation
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>loc</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>calculateLinesOfCode</span>(<span style=color:#a6e22e>sourceFile</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>loc</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>calculateLinesOfCode</span>(<span style=color:#a6e22e>sourceFile</span>);
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>complexity</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>calculateCyclomaticComplexity</span>(<span style=color:#a6e22e>sourceFile</span>);
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>halsteadVolume</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>calculateHalsteadVolume</span>(<span style=color:#a6e22e>sourceFile</span>);
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Microsoft&#39;s maintainability index formula (simplified)
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>mi</span> <span style=color:#f92672>=</span> Math.<span style=color:#a6e22e>max</span>(<span style=color:#ae81ff>0</span>, 
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>mi</span> <span style=color:#f92672>=</span> Math.<span style=color:#a6e22e>max</span>(<span style=color:#ae81ff>0</span>, 
 </span></span><span style=display:flex><span>      <span style=color:#ae81ff>171</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>5.2</span> <span style=color:#f92672>*</span> Math.<span style=color:#a6e22e>log</span>(<span style=color:#a6e22e>halsteadVolume</span>) <span style=color:#f92672>-</span> <span style=color:#ae81ff>0.23</span> <span style=color:#f92672>*</span> <span style=color:#a6e22e>complexity</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>16.2</span> <span style=color:#f92672>*</span> Math.<span style=color:#a6e22e>log</span>(<span style=color:#a6e22e>loc</span>)
 </span></span><span style=display:flex><span>    );
 </span></span><span style=display:flex><span>
@@ -526,15 +526,15 @@
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>calculateHalsteadVolume</span>(<span style=color:#a6e22e>sourceFile</span>: <span style=color:#66d9ef>SourceFile</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>number</span> {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Simplified Halstead volume calculation
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>text</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>sourceFile</span>.<span style=color:#a6e22e>getFullText</span>();
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>text</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>sourceFile</span>.<span style=color:#a6e22e>getFullText</span>();
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>operators</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>text</span>.<span style=color:#a6e22e>match</span>(<span style=color:#e6db74>/[+\-*/=&lt;&gt;!&amp;|?:;,(){}[\]]/g</span>) <span style=color:#f92672>||</span> [];
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>operands</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>text</span>.<span style=color:#a6e22e>match</span>(<span style=color:#e6db74>/\b[a-zA-Z_][a-zA-Z0-9_]*\b/g</span>) <span style=color:#f92672>||</span> [];
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>n1</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Set</span>(<span style=color:#a6e22e>operators</span>).<span style=color:#a6e22e>size</span>; <span style=color:#75715e>// Unique operators
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>n2</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Set</span>(<span style=color:#a6e22e>operands</span>).<span style=color:#a6e22e>size</span>;  <span style=color:#75715e>// Unique operands
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>N1</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>operators</span>.<span style=color:#a6e22e>length</span>;        <span style=color:#75715e>// Total operators
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>N2</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>operands</span>.<span style=color:#a6e22e>length</span>;         <span style=color:#75715e>// Total operands
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>n2</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Set</span>(<span style=color:#a6e22e>operands</span>).<span style=color:#a6e22e>size</span>;  <span style=color:#75715e>// Unique operands
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>N1</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>operators</span>.<span style=color:#a6e22e>length</span>;        <span style=color:#75715e>// Total operators
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>N2</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>operands</span>.<span style=color:#a6e22e>length</span>;         <span style=color:#75715e>// Total operands
+</span></span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>n</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>n1</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>n2</span>;
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>N</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>N1</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>N2</span>;
 </span></span><span style=display:flex><span>
@@ -543,7 +543,7 @@
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>readCoverageData</span>()<span style=color:#f92672>:</span> <span style=color:#a6e22e>Record</span>&lt;<span style=color:#f92672>string</span>, { <span style=color:#a6e22e>percentage</span><span style=color:#960050;background-color:#1e0010>:</span> <span style=color:#a6e22e>number</span> }&gt; {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Read from coverage report file
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>try</span> {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>try</span> {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>coverageFile</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>path</span>.<span style=color:#a6e22e>join</span>(<span style=color:#a6e22e>process</span>.<span style=color:#a6e22e>cwd</span>(), <span style=color:#e6db74>&#39;coverage&#39;</span>, <span style=color:#e6db74>&#39;coverage-summary.json&#39;</span>);
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>data</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>JSON</span>.<span style=color:#a6e22e>parse</span>(<span style=color:#a6e22e>fs</span>.<span style=color:#a6e22e>readFileSync</span>(<span style=color:#a6e22e>coverageFile</span>, <span style=color:#e6db74>&#39;utf8&#39;</span>));
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>data</span>;
@@ -559,7 +559,7 @@
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>staleMaintainance</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>metrics</span>.<span style=color:#a6e22e>filter</span>(<span style=color:#a6e22e>m</span> <span style=color:#f92672>=&gt;</span> {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>daysSinceModified</span> <span style=color:#f92672>=</span> (Date.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>-</span> <span style=color:#a6e22e>m</span>.<span style=color:#a6e22e>lastModified</span>.<span style=color:#a6e22e>getTime</span>()) <span style=color:#f92672>/</span> (<span style=color:#ae81ff>1000</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>60</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>60</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>24</span>);
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>daysSinceModified</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>180</span>; <span style=color:#75715e>// 6 months
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    });
+</span></span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>totalFiles</span>: <span style=color:#66d9ef>metrics.length</span>,
@@ -608,22 +608,22 @@
 </span></span><span style=display:flex><span>  };
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>recommendations</span>: <span style=color:#66d9ef>string</span>[];
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><h2 id=refactoring-strategies>Refactoring Strategies</h2><h3 id=incremental-refactoring-patterns>Incremental Refactoring Patterns</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// Strategy Pattern for gradual migration
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>PaymentProcessor</span> {
+</span></span></code></pre></div><h2 id=refactoring-strategies>Refactoring Strategies</h2><h3 id=incremental-refactoring-patterns>Incremental Refactoring Patterns</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// Strategy Pattern for gradual migration
+</span></span></span><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>PaymentProcessor</span> {
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>processPayment</span>(<span style=color:#a6e22e>amount</span>: <span style=color:#66d9ef>number</span>, <span style=color:#a6e22e>currency</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>PaymentResult</span>&gt;;
 </span></span><span style=display:flex><span>}
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>LegacyPaymentProcessor</span> <span style=color:#66d9ef>implements</span> <span style=color:#a6e22e>PaymentProcessor</span> {
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>processPayment</span>(<span style=color:#a6e22e>amount</span>: <span style=color:#66d9ef>number</span>, <span style=color:#a6e22e>currency</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>PaymentResult</span>&gt; {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Legacy implementation
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>return</span> { <span style=color:#a6e22e>success</span>: <span style=color:#66d9ef>true</span>, <span style=color:#a6e22e>transactionId</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;legacy-123&#39;</span> };
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { <span style=color:#a6e22e>success</span>: <span style=color:#66d9ef>true</span>, <span style=color:#a6e22e>transactionId</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;legacy-123&#39;</span> };
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>}
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>ModernPaymentProcessor</span> <span style=color:#66d9ef>implements</span> <span style=color:#a6e22e>PaymentProcessor</span> {
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>processPayment</span>(<span style=color:#a6e22e>amount</span>: <span style=color:#66d9ef>number</span>, <span style=color:#a6e22e>currency</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>PaymentResult</span>&gt; {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// New implementation with better error handling, monitoring, etc.
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>return</span> { <span style=color:#a6e22e>success</span>: <span style=color:#66d9ef>true</span>, <span style=color:#a6e22e>transactionId</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;modern-456&#39;</span> };
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> { <span style=color:#a6e22e>success</span>: <span style=color:#66d9ef>true</span>, <span style=color:#a6e22e>transactionId</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;modern-456&#39;</span> };
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>}
 </span></span><span style=display:flex><span>
@@ -645,14 +645,14 @@
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>result</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>processor</span>.<span style=color:#a6e22e>processPayment</span>(<span style=color:#a6e22e>amount</span>, <span style=color:#a6e22e>currency</span>);
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Track migration metrics
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>trackMigrationMetrics</span>(<span style=color:#a6e22e>processorType</span>, <span style=color:#66d9ef>true</span>);
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>trackMigrationMetrics</span>(<span style=color:#a6e22e>processorType</span>, <span style=color:#66d9ef>true</span>);
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>result</span>;
 </span></span><span style=display:flex><span>    } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>trackMigrationMetrics</span>(<span style=color:#a6e22e>processorType</span>, <span style=color:#66d9ef>false</span>);
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Fallback to legacy if modern fails during migration
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>processorType</span> <span style=color:#f92672>===</span> <span style=color:#e6db74>&#39;modern&#39;</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>migrationConfig</span>.<span style=color:#a6e22e>fallbackOnError</span>) {
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>processorType</span> <span style=color:#f92672>===</span> <span style=color:#e6db74>&#39;modern&#39;</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>migrationConfig</span>.<span style=color:#a6e22e>fallbackOnError</span>) {
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>warn</span>(<span style=color:#e6db74>&#39;Modern processor failed, falling back to legacy&#39;</span>);
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>processors</span>.<span style=color:#66d9ef>get</span>(<span style=color:#e6db74>&#39;legacy&#39;</span>)<span style=color:#f92672>!</span>.<span style=color:#a6e22e>processPayment</span>(<span style=color:#a6e22e>amount</span>, <span style=color:#a6e22e>currency</span>);
 </span></span><span style=display:flex><span>      }
@@ -663,7 +663,7 @@
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>selectProcessor</span>(<span style=color:#a6e22e>userId</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>string</span> {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Gradual rollout based on user cohorts
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>userHash</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>hashUserId</span>(<span style=color:#a6e22e>userId</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>userHash</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>hashUserId</span>(<span style=color:#a6e22e>userId</span>);
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>migrationPercentage</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>migrationConfig</span>.<span style=color:#a6e22e>rolloutPercentage</span>;
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>userHash</span> <span style=color:#f92672>%</span> <span style=color:#ae81ff>100</span> <span style=color:#f92672>&lt;</span> <span style=color:#a6e22e>migrationPercentage</span> <span style=color:#f92672>?</span> <span style=color:#e6db74>&#39;modern&#39;</span> <span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;legacy&#39;</span>;
@@ -671,24 +671,24 @@
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>hashUserId</span>(<span style=color:#a6e22e>userId</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>number</span> {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Simple hash function for consistent user assignment
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>hash</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>hash</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>let</span> <span style=color:#a6e22e>i</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>; <span style=color:#a6e22e>i</span> <span style=color:#f92672>&lt;</span> <span style=color:#a6e22e>userId</span>.<span style=color:#a6e22e>length</span>; <span style=color:#a6e22e>i</span><span style=color:#f92672>++</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>char</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>userId</span>.<span style=color:#a6e22e>charCodeAt</span>(<span style=color:#a6e22e>i</span>);
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>hash</span> <span style=color:#f92672>=</span> ((<span style=color:#a6e22e>hash</span> <span style=color:#f92672>&lt;&lt;</span> <span style=color:#ae81ff>5</span>) <span style=color:#f92672>-</span> <span style=color:#a6e22e>hash</span>) <span style=color:#f92672>+</span> <span style=color:#a6e22e>char</span>;
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>hash</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>hash</span> <span style=color:#f92672>&amp;</span> <span style=color:#a6e22e>hash</span>; <span style=color:#75715e>// Convert to 32-bit integer
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    }
+</span></span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> Math.<span style=color:#a6e22e>abs</span>(<span style=color:#a6e22e>hash</span>);
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>trackMigrationMetrics</span>(<span style=color:#a6e22e>processorType</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>success</span>: <span style=color:#66d9ef>boolean</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>void</span> {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Send metrics to monitoring system
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>`Payment processor: </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>processorType</span><span style=color:#e6db74>}</span><span style=color:#e6db74>, success: </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>success</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>`Payment processor: </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>processorType</span><span style=color:#e6db74>}</span><span style=color:#e6db74>, success: </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>success</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>);
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>}
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>MigrationConfig</span> {
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>rolloutPercentage</span>: <span style=color:#66d9ef>number</span>; <span style=color:#75715e>// 0-100
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>fallbackOnError</span>: <span style=color:#66d9ef>boolean</span>;
+</span></span></span><span style=display:flex><span>  <span style=color:#a6e22e>fallbackOnError</span>: <span style=color:#66d9ef>boolean</span>;
 </span></span><span style=display:flex><span>}
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>PaymentResult</span> {
@@ -696,8 +696,8 @@
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>transactionId</span>: <span style=color:#66d9ef>string</span>;
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>error?</span>: <span style=color:#66d9ef>string</span>;
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><h3 id=strangler-fig-pattern-implementation>Strangler Fig Pattern Implementation</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// Gradual replacement of legacy system
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>StranglerFigProxy</span> {
+</span></span></code></pre></div><h3 id=strangler-fig-pattern-implementation>Strangler Fig Pattern Implementation</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// Gradual replacement of legacy system
+</span></span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>StranglerFigProxy</span> {
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>legacyService</span>: <span style=color:#66d9ef>LegacyUserService</span>;
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>modernService</span>: <span style=color:#66d9ef>ModernUserService</span>;
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>routingConfig</span>: <span style=color:#66d9ef>RoutingConfig</span>;
@@ -738,13 +738,13 @@
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>user</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>modernService</span>.<span style=color:#a6e22e>createUser</span>(<span style=color:#a6e22e>userData</span>);
 </span></span><span style=display:flex><span>        
 </span></span><span style=display:flex><span>        <span style=color:#75715e>// Dual write during migration phase
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>if</span> (<span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>routingConfig</span>.<span style=color:#a6e22e>dualWrite</span>) {
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (<span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>routingConfig</span>.<span style=color:#a6e22e>dualWrite</span>) {
 </span></span><span style=display:flex><span>          <span style=color:#66d9ef>try</span> {
 </span></span><span style=display:flex><span>            <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>legacyService</span>.<span style=color:#a6e22e>createUser</span>(<span style=color:#a6e22e>userData</span>);
 </span></span><span style=display:flex><span>          } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
 </span></span><span style=display:flex><span>            <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>warn</span>(<span style=color:#e6db74>&#39;Legacy dual write failed:&#39;</span>, <span style=color:#a6e22e>error</span>);
 </span></span><span style=display:flex><span>            <span style=color:#75715e>// Don&#39;t fail the operation if dual write fails
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>          }
+</span></span></span><span style=display:flex><span>          }
 </span></span><span style=display:flex><span>        }
 </span></span><span style=display:flex><span>        
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>user</span>;
@@ -759,7 +759,7 @@
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>user</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>legacyService</span>.<span style=color:#a6e22e>createUser</span>(<span style=color:#a6e22e>userData</span>);
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Forward write to modern system for data sync
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>routingConfig</span>.<span style=color:#a6e22e>forwardWrite</span>) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>routingConfig</span>.<span style=color:#a6e22e>forwardWrite</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>try</span> {
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>modernService</span>.<span style=color:#a6e22e>createUser</span>(<span style=color:#a6e22e>userData</span>);
 </span></span><span style=display:flex><span>      } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
@@ -777,7 +777,7 @@
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>user</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>modernService</span>.<span style=color:#a6e22e>updateUser</span>(<span style=color:#a6e22e>userId</span>, <span style=color:#a6e22e>updates</span>);
 </span></span><span style=display:flex><span>      
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Keep legacy in sync during migration
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>if</span> (<span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>routingConfig</span>.<span style=color:#a6e22e>syncToLegacy</span>) {
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>routingConfig</span>.<span style=color:#a6e22e>syncToLegacy</span>) {
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>try</span> {
 </span></span><span style=display:flex><span>          <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>legacyService</span>.<span style=color:#a6e22e>updateUser</span>(<span style=color:#a6e22e>userId</span>, <span style=color:#a6e22e>updates</span>);
 </span></span><span style=display:flex><span>        } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
@@ -791,7 +791,7 @@
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>user</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>legacyService</span>.<span style=color:#a6e22e>updateUser</span>(<span style=color:#a6e22e>userId</span>, <span style=color:#a6e22e>updates</span>);
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Sync to modern system
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>routingConfig</span>.<span style=color:#a6e22e>syncToModern</span>) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>routingConfig</span>.<span style=color:#a6e22e>syncToModern</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>try</span> {
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>modernService</span>.<span style=color:#a6e22e>updateUser</span>(<span style=color:#a6e22e>userId</span>, <span style=color:#a6e22e>updates</span>);
 </span></span><span style=display:flex><span>      } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
@@ -807,18 +807,18 @@
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>config</span>) <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#39;legacy&#39;</span>;
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Feature flag based routing
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>featureFlag</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#f92672>!</span><span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>isFeatureEnabled</span>(<span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>featureFlag</span>)) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>featureFlag</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#f92672>!</span><span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>isFeatureEnabled</span>(<span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>featureFlag</span>)) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#39;legacy&#39;</span>;
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Percentage based routing
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>modernPercentage</span>) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>modernPercentage</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>hash</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>hashIdentifier</span>(<span style=color:#a6e22e>identifier</span>);
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>hash</span> <span style=color:#f92672>%</span> <span style=color:#ae81ff>100</span> <span style=color:#f92672>&lt;</span> <span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>modernPercentage</span> <span style=color:#f92672>?</span> <span style=color:#e6db74>&#39;modern&#39;</span> <span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;legacy&#39;</span>;
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// User whitelist based routing
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>whitelistedUsers</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>includes</span>(<span style=color:#a6e22e>identifier</span>)) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>whitelistedUsers</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>includes</span>(<span style=color:#a6e22e>identifier</span>)) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#39;modern&#39;</span>;
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
@@ -827,7 +827,7 @@
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>isFeatureEnabled</span>(<span style=color:#a6e22e>featureFlag</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>boolean</span> {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Check feature flag service
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>process</span>.<span style=color:#a6e22e>env</span>[<span style=color:#e6db74>`FEATURE_</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>featureFlag</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>] <span style=color:#f92672>===</span> <span style=color:#e6db74>&#39;true&#39;</span>;
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>process</span>.<span style=color:#a6e22e>env</span>[<span style=color:#e6db74>`FEATURE_</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>featureFlag</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>] <span style=color:#f92672>===</span> <span style=color:#e6db74>&#39;true&#39;</span>;
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>hashIdentifier</span>(<span style=color:#a6e22e>identifier</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>number</span> {
@@ -855,13 +855,13 @@
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>featureFlag?</span>: <span style=color:#66d9ef>string</span>;
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>whitelistedUsers?</span>: <span style=color:#66d9ef>string</span>[];
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><h2 id=debt-paydown-strategies>Debt Paydown Strategies</h2><h3 id=time-boxed-refactoring>Time-Boxed Refactoring</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>RefactoringSession</span> {
+</span></span></code></pre></div><h2 id=debt-paydown-strategies>Debt Paydown Strategies</h2><h3 id=time-boxed-refactoring>Time-Boxed Refactoring</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>RefactoringSession</span> {
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>startTime</span>: <span style=color:#66d9ef>Date</span>;
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>timeBoxMinutes</span>: <span style=color:#66d9ef>number</span>;
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>changesLog</span>: <span style=color:#66d9ef>RefactoringChange</span>[] <span style=color:#f92672>=</span> [];
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>constructor</span>(<span style=color:#a6e22e>timeBoxMinutes</span>: <span style=color:#66d9ef>number</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>25</span>) { <span style=color:#75715e>// Pomodoro technique
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>timeBoxMinutes</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>timeBoxMinutes</span>;
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>timeBoxMinutes</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>timeBoxMinutes</span>;
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>startTime</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> Date();
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
@@ -920,8 +920,8 @@
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>calculateLinesChanged</span>()<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>number</span>&gt; {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// In a real implementation, this would integrate with Git
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// to calculate actual lines changed since session start
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>return</span> Math.<span style=color:#a6e22e>floor</span>(Math.<span style=color:#a6e22e>random</span>() <span style=color:#f92672>*</span> <span style=color:#ae81ff>50</span>) <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>;
+</span></span></span><span style=display:flex><span>    <span style=color:#75715e>// to calculate actual lines changed since session start
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> Math.<span style=color:#a6e22e>floor</span>(Math.<span style=color:#a6e22e>random</span>() <span style=color:#f92672>*</span> <span style=color:#ae81ff>50</span>) <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>;
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>}
 </span></span><span style=display:flex><span>
@@ -944,15 +944,15 @@
 </span></span><span style=display:flex><span>}
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#75715e>// Usage example
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>async</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>refactorUserService</span>()<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
+</span></span></span><span style=display:flex><span><span style=color:#66d9ef>async</span> <span style=color:#66d9ef>function</span> <span style=color:#a6e22e>refactorUserService</span>()<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>session</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>RefactoringSession</span>(<span style=color:#ae81ff>25</span>); <span style=color:#75715e>// 25-minute time box
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>try</span> {
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>session</span>.<span style=color:#a6e22e>executeRefactoring</span>(
 </span></span><span style=display:flex><span>      <span style=color:#e6db74>&#39;Extract validation logic to separate class&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>async</span> () <span style=color:#f92672>=&gt;</span> {
 </span></span><span style=display:flex><span>        <span style=color:#75715e>// Refactoring implementation
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>extractValidationLogic</span>();
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>extractValidationLogic</span>();
 </span></span><span style=display:flex><span>      }
 </span></span><span style=display:flex><span>    );
 </span></span><span style=display:flex><span>
@@ -975,11 +975,11 @@
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#39;Refactoring session complete:&#39;</span>, <span style=color:#a6e22e>report</span>);
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Log to tracking system
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>logRefactoringSession</span>(<span style=color:#a6e22e>report</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>logRefactoringSession</span>(<span style=color:#a6e22e>report</span>);
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><h3 id=boy-scout-rule-implementation>Boy Scout Rule Implementation</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// Automatic code improvement during regular development
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>BoyScoutRule</span> {
+</span></span></code></pre></div><h3 id=boy-scout-rule-implementation>Boy Scout Rule Implementation</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// Automatic code improvement during regular development
+</span></span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>BoyScoutRule</span> {
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>improvementTracker</span>: <span style=color:#66d9ef>Map</span>&lt;<span style=color:#f92672>string</span>, <span style=color:#a6e22e>number</span>&gt; <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Map</span>();
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>applyBoyScoutRule</span>(
@@ -990,14 +990,14 @@
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>originalMetrics</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>analyzeCode</span>(<span style=color:#a6e22e>fileContent</span>);
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Execute the original development task
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>originalFunction</span>();
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>originalFunction</span>();
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Apply small improvements
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>improvements</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>identifySmallImprovements</span>(<span style=color:#a6e22e>filePath</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>improvements</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>identifySmallImprovements</span>(<span style=color:#a6e22e>filePath</span>);
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>const</span> <span style=color:#a6e22e>improvement</span> <span style=color:#66d9ef>of</span> <span style=color:#a6e22e>improvements</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>improvement</span>.<span style=color:#a6e22e>effort</span> <span style=color:#f92672>&lt;=</span> <span style=color:#ae81ff>5</span>) { <span style=color:#75715e>// Only small improvements (max 5 minutes)
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>try</span> {
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>try</span> {
 </span></span><span style=display:flex><span>          <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>applyImprovement</span>(<span style=color:#a6e22e>improvement</span>);
 </span></span><span style=display:flex><span>          <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>trackImprovement</span>(<span style=color:#a6e22e>filePath</span>, <span style=color:#a6e22e>improvement</span>);
 </span></span><span style=display:flex><span>        } <span style=color:#66d9ef>catch</span> (<span style=color:#a6e22e>error</span>) {
@@ -1017,7 +1017,7 @@
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>content</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>readFile</span>(<span style=color:#a6e22e>filePath</span>);
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Check for simple improvements
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>content</span>.<span style=color:#a6e22e>includes</span>(<span style=color:#e6db74>&#39;console.log(&#39;</span>)) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>content</span>.<span style=color:#a6e22e>includes</span>(<span style=color:#e6db74>&#39;console.log(&#39;</span>)) {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>improvements</span>.<span style=color:#a6e22e>push</span>({
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>type</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;remove-console-logs&#39;</span>,
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>description</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Remove console.log statements&#39;</span>,
@@ -1098,13 +1098,13 @@
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>detectMagicNumbers</span>(<span style=color:#a6e22e>content</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>boolean</span> {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Detect numeric literals that aren&#39;t 0, 1, or -1
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>magicNumberRegex</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>/\b(?&lt;![\w.])\d{2,}\b(?![\w.])/g</span>;
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>magicNumberRegex</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>/\b(?&lt;![\w.])\d{2,}\b(?![\w.])/g</span>;
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>magicNumberRegex</span>.<span style=color:#a6e22e>test</span>(<span style=color:#a6e22e>content</span>);
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>detectDuplicatedCode</span>(<span style=color:#a6e22e>content</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>boolean</span> {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Simple duplication detection
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>lines</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>content</span>.<span style=color:#a6e22e>split</span>(<span style=color:#e6db74>&#39;\n&#39;</span>).<span style=color:#a6e22e>map</span>(<span style=color:#a6e22e>line</span> <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>line</span>.<span style=color:#a6e22e>trim</span>()).<span style=color:#a6e22e>filter</span>(<span style=color:#a6e22e>line</span> <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>line</span>.<span style=color:#a6e22e>length</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>5</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>lines</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>content</span>.<span style=color:#a6e22e>split</span>(<span style=color:#e6db74>&#39;\n&#39;</span>).<span style=color:#a6e22e>map</span>(<span style=color:#a6e22e>line</span> <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>line</span>.<span style=color:#a6e22e>trim</span>()).<span style=color:#a6e22e>filter</span>(<span style=color:#a6e22e>line</span> <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>line</span>.<span style=color:#a6e22e>length</span> <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>5</span>);
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>seen</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Set</span>&lt;<span style=color:#f92672>string</span>&gt;();
 </span></span><span style=display:flex><span>    
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>const</span> <span style=color:#a6e22e>line</span> <span style=color:#66d9ef>of</span> <span style=color:#a6e22e>lines</span>) {
@@ -1119,12 +1119,12 @@
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>readFile</span>(<span style=color:#a6e22e>filePath</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>string</span>&gt; {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// File reading implementation
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#39;&#39;</span>;
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#39;&#39;</span>;
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>analyzeCode</span>(<span style=color:#a6e22e>content</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>CodeMetrics</span> {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Code analysis implementation
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>return</span> {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>file</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>linesOfCode</span>: <span style=color:#66d9ef>0</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>cyclomaticComplexity</span>: <span style=color:#66d9ef>0</span>,
@@ -1139,28 +1139,28 @@
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>removeConsoleLogs</span>()<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Implementation to remove console.log statements
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  }
+</span></span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>addMissingTypes</span>()<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Implementation to add TypeScript types
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  }
+</span></span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>extractMagicNumbers</span>()<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Implementation to extract magic numbers to constants
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  }
+</span></span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>extractDuplicatedCode</span>()<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Implementation to extract duplicated code
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  }
+</span></span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>}
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>Improvement</span> {
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>type</span><span style=color:#f92672>:</span> <span style=color:#66d9ef>string</span>;
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>description</span>: <span style=color:#66d9ef>string</span>;
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>effort</span>: <span style=color:#66d9ef>number</span>; <span style=color:#75715e>// minutes
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>impact</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;low&#39;</span> <span style=color:#f92672>|</span> <span style=color:#e6db74>&#39;medium&#39;</span> <span style=color:#f92672>|</span> <span style=color:#e6db74>&#39;high&#39;</span>;
+</span></span></span><span style=display:flex><span>  <span style=color:#a6e22e>impact</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;low&#39;</span> <span style=color:#f92672>|</span> <span style=color:#e6db74>&#39;medium&#39;</span> <span style=color:#f92672>|</span> <span style=color:#e6db74>&#39;high&#39;</span>;
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><h2 id=debt-prevention-strategies>Debt Prevention Strategies</h2><h3 id=definition-of-done-checklist>Definition of Done Checklist</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>DefinitionOfDone</span> {
+</span></span></code></pre></div><h2 id=debt-prevention-strategies>Debt Prevention Strategies</h2><h3 id=definition-of-done-checklist>Definition of Done Checklist</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>DefinitionOfDone</span> {
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>codeQuality</span>: <span style=color:#66d9ef>CodeQualityChecks</span>;
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>testing</span>: <span style=color:#66d9ef>TestingChecks</span>;
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>documentation</span>: <span style=color:#66d9ef>DocumentationChecks</span>;
@@ -1266,7 +1266,7 @@
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>violations</span>: <span style=color:#66d9ef>string</span>[] <span style=color:#f92672>=</span> [];
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Check code quality violations
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>checks</span>.<span style=color:#a6e22e>codeQuality</span>.<span style=color:#a6e22e>lintingPassed</span>) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>checks</span>.<span style=color:#a6e22e>codeQuality</span>.<span style=color:#a6e22e>lintingPassed</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>violations</span>.<span style=color:#a6e22e>push</span>(<span style=color:#e6db74>&#39;Linting checks must pass before merge&#39;</span>);
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>checks</span>.<span style=color:#a6e22e>codeQuality</span>.<span style=color:#a6e22e>codeReviewCompleted</span>) {
@@ -1277,7 +1277,7 @@
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Check testing violations
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>checks</span>.<span style=color:#a6e22e>testing</span>.<span style=color:#a6e22e>unitTestsWritten</span>) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>checks</span>.<span style=color:#a6e22e>testing</span>.<span style=color:#a6e22e>unitTestsWritten</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>violations</span>.<span style=color:#a6e22e>push</span>(<span style=color:#e6db74>&#39;Unit tests must be written for new functionality&#39;</span>);
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>checks</span>.<span style=color:#a6e22e>testing</span>.<span style=color:#a6e22e>coverageThresholdMet</span>) {
@@ -1285,7 +1285,7 @@
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Check documentation violations
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>checks</span>.<span style=color:#a6e22e>documentation</span>.<span style=color:#a6e22e>apiDocumentationUpdated</span>) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!</span><span style=color:#a6e22e>checks</span>.<span style=color:#a6e22e>documentation</span>.<span style=color:#a6e22e>apiDocumentationUpdated</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>violations</span>.<span style=color:#a6e22e>push</span>(<span style=color:#e6db74>&#39;API documentation must be updated for public API changes&#39;</span>);
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
@@ -1306,23 +1306,23 @@
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#75715e>// Implementation stubs for various checks
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>checkLintingStatus</span>(<span style=color:#a6e22e>pullRequestId</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>boolean</span>&gt; {
+</span></span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>checkLintingStatus</span>(<span style=color:#a6e22e>pullRequestId</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>boolean</span>&gt; {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Check CI/CD pipeline for linting results
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>true</span>;
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>true</span>;
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>checkCodeReviewStatus</span>(<span style=color:#a6e22e>pullRequestId</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>boolean</span>&gt; {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Check if code review is completed
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>true</span>;
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>true</span>;
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>checkComplexityLimits</span>(<span style=color:#a6e22e>pullRequestId</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>boolean</span>&gt; {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Check if complexity metrics are within limits
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>true</span>;
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>true</span>;
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#75715e>// ... other check implementations
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>}
+</span></span></span><span style=display:flex><span>}
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>WorkItem</span> {
 </span></span><span style=display:flex><span>  <span style=color:#a6e22e>id</span>: <span style=color:#66d9ef>string</span>;
@@ -1493,4 +1493,4 @@
 </a><a href=/tags/well-architected-framework class=tag-cloud-item style=font-size:1rem>well-architected framework
 </a><a href=/tags/x-ray class=tag-cloud-item style=font-size:1rem>x-ray
 </a><a href=/tags/zero-trust class=tag-cloud-item style=font-size:1rem>zero trust</a></div></div><div class=sidebar-widget><h3>Subscribe</h3><div class=subscribe-links><a href=/index.xml class=rss-link><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 019 9"/><path d="M4 4a16 16 0 0116 16"/><circle cx="5" cy="19" r="1"/></svg>
-RSS Feed</a></div></div><div class="sidebar-widget npm-packages"><h3>My NPM Packages</h3><div id=npm-list></div></div></aside></div></div><footer class=site-footer><div class=container><p>&copy; 2025 Scott Obert</p><p class=disclaimer-text style=font-size:.9em;margin-top:.5em>The views and opinions expressed on this site are my own. <a href=/disclaimer/ style=color:#0074d9;text-decoration:underline>Read full disclaimer</a>.</p></div></footer></body></html>
+RSS Feed</a></div></div><div class="sidebar-widget npm-packages"><h3>My NPM Packages</h3><div id=npm-list></div></div></aside></div></div><footer class=site-footer><div class=container><p>&copy; 2026 Scott Obert</p><p class=disclaimer-text style=font-size:.9em;margin-top:.5em>The views and opinions expressed on this site are my own. <a href=/disclaimer/ style=color:#0074d9;text-decoration:underline>Read full disclaimer</a>.</p></div></footer></body></html>

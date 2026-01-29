@@ -7,7 +7,7 @@
     "><meta property="og:type" content="article"><meta property="og:url" content="https://scottobert.com/posts/cross-account-monitoring-observability/"><meta property="og:site_name" content="Scott Obert"><meta name=twitter:card content="summary"><meta name=twitter:title content="Cross-Account Monitoring and Observability: Building Enterprise-Grade Visibility Across AWS Accounts"><meta name=twitter:description content="
   
     
-    "><link rel=stylesheet href=https://scottobert.com/css/style.min.1c2fad2e01192bc8806bc4c2e6eda237e33992ac3b191a1de4ac0d9d50878abd.css><script src=/js/npm-packages.js defer></script><script src=/js/search.js defer></script><script defer src=https://cloud.umami.is/script.js data-website-id=e2461896-021d-422a-b83f-624a8819309b></script><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/site.webmanifest></head><body><header class=site-header><div class=container><div class=header-content><div class=header-left><h1><a href=/>Scott Obert</a></h1><nav><a href=/posts/>Blog</a>
+    "><link rel=stylesheet href=https://scottobert.com/css/style.min.d57a26f1d64b2c7f0df88b12c113d433eaed97b49e5f51c6675b9756126ebb92.css><script src=/js/npm-packages.js defer></script><script src=/js/search.js defer></script><script defer src=https://cloud.umami.is/script.js data-website-id=e2461896-021d-422a-b83f-624a8819309b></script><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/site.webmanifest></head><body><header class=site-header><div class=container><div class=header-content><div class=header-left><h1><a href=/>Scott Obert</a></h1><nav><a href=/posts/>Blog</a>
 <a href=/album/>Photo Album</a>
 <button type=button class=search-toggle id=search-toggle-btn aria-label="Open search" title=Search>
 <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61.0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
@@ -97,8 +97,8 @@ note left of ConfigAgg
   and governance reporting
 end note
 @enduml
-`)</script><h2 id=step-1-setting-up-cross-account-cloudwatch-dashboards>Step 1: Setting Up Cross-Account CloudWatch Dashboards</h2><p>CloudWatch cross-account dashboards provide unified visibility into metrics and alarms across multiple AWS accounts. These dashboards enable teams to monitor distributed applications from a single pane of glass while maintaining appropriate access controls.</p><p>Create IAM roles in source accounts that allow the monitoring account to access CloudWatch data:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// monitoring-role-policy.json - Cross-account CloudWatch access policy
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>{
+`)</script><h2 id=step-1-setting-up-cross-account-cloudwatch-dashboards>Step 1: Setting Up Cross-Account CloudWatch Dashboards</h2><p>CloudWatch cross-account dashboards provide unified visibility into metrics and alarms across multiple AWS accounts. These dashboards enable teams to monitor distributed applications from a single pane of glass while maintaining appropriate access controls.</p><p>Create IAM roles in source accounts that allow the monitoring account to access CloudWatch data:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// monitoring-role-policy.json - Cross-account CloudWatch access policy
+</span></span></span><span style=display:flex><span>{
 </span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;Version&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;2012-10-17&#34;</span>,
 </span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;Statement&#34;</span><span style=color:#f92672>:</span> [
 </span></span><span style=display:flex><span>    {
@@ -118,8 +118,8 @@ end note
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>  ]
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>Create the cross-account trust relationship:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// monitoring-trust-policy.json - Trust policy for monitoring account
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>{
+</span></span></code></pre></div><p>Create the cross-account trust relationship:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// monitoring-trust-policy.json - Trust policy for monitoring account
+</span></span></span><span style=display:flex><span>{
 </span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;Version&#34;</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;2012-10-17&#34;</span>,
 </span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;Statement&#34;</span><span style=color:#f92672>:</span> [
 </span></span><span style=display:flex><span>    {
@@ -136,7 +136,7 @@ end note
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>  ]
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>Deploy the monitoring infrastructure using AWS CDK:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>iam</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-iam&#39;</span>;
+</span></span></code></pre></div><p>Deploy the monitoring infrastructure using AWS CDK:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>iam</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-iam&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>cloudwatch</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-cloudwatch&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>cdk</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>Construct</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;constructs&#39;</span>;
@@ -154,7 +154,7 @@ end note
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>super</span>(<span style=color:#a6e22e>scope</span>, <span style=color:#a6e22e>id</span>, <span style=color:#a6e22e>props</span>);
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Create role that can assume roles in source accounts
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>monitoringRole</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>Role</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CrossAccountMonitoringRole&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>monitoringRole</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>Role</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CrossAccountMonitoringRole&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>assumedBy</span>: <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>ServicePrincipal</span>(<span style=color:#e6db74>&#39;cloudwatch.amazonaws.com&#39;</span>),
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>description</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Role for cross-account CloudWatch monitoring&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>managedPolicies</span><span style=color:#f92672>:</span> [
@@ -163,7 +163,7 @@ end note
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Add policy to assume roles in source accounts
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>monitoringRole</span>.<span style=color:#a6e22e>addToPolicy</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>PolicyStatement</span>({
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>monitoringRole</span>.<span style=color:#a6e22e>addToPolicy</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>PolicyStatement</span>({
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>effect</span>: <span style=color:#66d9ef>iam.Effect.ALLOW</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>actions</span><span style=color:#f92672>:</span> [<span style=color:#e6db74>&#39;sts:AssumeRole&#39;</span>],
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>resources</span>: <span style=color:#66d9ef>props.sourceAccounts.map</span>(<span style=color:#a6e22e>account</span> <span style=color:#f92672>=&gt;</span> 
@@ -177,7 +177,7 @@ end note
 </span></span><span style=display:flex><span>    }));
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Create cross-account dashboard
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>crossAccountDashboard</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>Dashboard</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CrossAccountDashboard&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>crossAccountDashboard</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>Dashboard</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CrossAccountDashboard&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>dashboardName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;cross-account-application-monitoring&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>widgets</span>: <span style=color:#66d9ef>this.createDashboardWidgets</span>(<span style=color:#a6e22e>props</span>.<span style=color:#a6e22e>sourceAccounts</span>)
 </span></span><span style=display:flex><span>    });
@@ -188,7 +188,7 @@ end note
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>sourceAccounts</span>.<span style=color:#a6e22e>forEach</span>((<span style=color:#a6e22e>accountId</span>, <span style=color:#a6e22e>index</span>) <span style=color:#f92672>=&gt;</span> {
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Lambda function metrics across accounts
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>widgets</span>.<span style=color:#a6e22e>push</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>GraphWidget</span>({
+</span></span></span><span style=display:flex><span>      <span style=color:#a6e22e>widgets</span>.<span style=color:#a6e22e>push</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>GraphWidget</span>({
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>title</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`Lambda Functions - Account </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>accountId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>left</span><span style=color:#f92672>:</span> [
 </span></span><span style=display:flex><span>          <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>Metric</span>({
@@ -209,7 +209,7 @@ end note
 </span></span><span style=display:flex><span>      }));
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// API Gateway metrics across accounts
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>widgets</span>.<span style=color:#a6e22e>push</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>GraphWidget</span>({
+</span></span></span><span style=display:flex><span>      <span style=color:#a6e22e>widgets</span>.<span style=color:#a6e22e>push</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>GraphWidget</span>({
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>title</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`API Gateway - Account </span><span style=color:#e6db74>${</span><span style=color:#a6e22e>accountId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>left</span><span style=color:#f92672>:</span> [
 </span></span><span style=display:flex><span>          <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>Metric</span>({
@@ -233,7 +233,7 @@ end note
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>widgets</span>;
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>Create and deploy the source account monitoring roles:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>SourceAccountMonitoringStack</span> <span style=color:#66d9ef>extends</span> <span style=color:#a6e22e>cdk</span>.<span style=color:#a6e22e>Stack</span> {
+</span></span></code></pre></div><p>Create and deploy the source account monitoring roles:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>SourceAccountMonitoringStack</span> <span style=color:#66d9ef>extends</span> <span style=color:#a6e22e>cdk</span>.<span style=color:#a6e22e>Stack</span> {
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>constructor</span>(<span style=color:#a6e22e>scope</span>: <span style=color:#66d9ef>Construct</span>, <span style=color:#a6e22e>id</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>props?</span>: <span style=color:#66d9ef>cdk.StackProps</span> <span style=color:#f92672>&amp;</span> {
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>monitoringAccountId</span>: <span style=color:#66d9ef>string</span>;
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>externalId</span>: <span style=color:#66d9ef>string</span>;
@@ -252,7 +252,7 @@ end note
 </span></span><span style=display:flex><span>    );
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Additional permissions for enhanced monitoring
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>monitoringSourceRole</span>.<span style=color:#a6e22e>addToPolicy</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>PolicyStatement</span>({
+</span></span></span><span style=display:flex><span>    <span style=color:#a6e22e>monitoringSourceRole</span>.<span style=color:#a6e22e>addToPolicy</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>PolicyStatement</span>({
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>effect</span>: <span style=color:#66d9ef>iam.Effect.ALLOW</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>actions</span><span style=color:#f92672>:</span> [
 </span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;xray:GetServiceMap&#39;</span>,
@@ -265,7 +265,7 @@ end note
 </span></span><span style=display:flex><span>    }));
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><h2 id=step-2-implementing-x-ray-cross-account-trace-aggregation>Step 2: Implementing X-Ray Cross-Account Trace Aggregation</h2><p>AWS X-Ray provides distributed tracing capabilities that can aggregate trace data across multiple accounts, enabling end-to-end visibility into request flows that span account boundaries. This aggregation is crucial for understanding performance bottlenecks and dependencies in multi-account architectures.</p><p>Configure X-Ray service linking between accounts:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>XRayClient</span>, <span style=color:#a6e22e>CreateServiceMapCommand</span>, <span style=color:#a6e22e>GetServiceMapCommand</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/client-xray&#39;</span>;
+</span></span></code></pre></div><h2 id=step-2-implementing-x-ray-cross-account-trace-aggregation>Step 2: Implementing X-Ray Cross-Account Trace Aggregation</h2><p>AWS X-Ray provides distributed tracing capabilities that can aggregate trace data across multiple accounts, enabling end-to-end visibility into request flows that span account boundaries. This aggregation is crucial for understanding performance bottlenecks and dependencies in multi-account architectures.</p><p>Configure X-Ray service linking between accounts:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>XRayClient</span>, <span style=color:#a6e22e>CreateServiceMapCommand</span>, <span style=color:#a6e22e>GetServiceMapCommand</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/client-xray&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>STSClient</span>, <span style=color:#a6e22e>AssumeRoleCommand</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/client-sts&#39;</span>;
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>XRayAggregationConfig</span> {
@@ -343,7 +343,7 @@ end note
 </span></span><span style=display:flex><span>  )<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>any</span>&gt; {
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>endTime</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> Date();
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>startTime</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> Date(<span style=color:#a6e22e>endTime</span>.<span style=color:#a6e22e>getTime</span>() <span style=color:#f92672>-</span> (<span style=color:#ae81ff>60</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>60</span> <span style=color:#f92672>*</span> <span style=color:#ae81ff>1000</span>)); <span style=color:#75715e>// Last hour
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>command</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>GetServiceMapCommand</span>({
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>TimeRangeType</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;TraceId&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>StartTime</span>: <span style=color:#66d9ef>startTime</span>,
@@ -359,7 +359,7 @@ end note
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>mergeServiceMap</span>(<span style=color:#a6e22e>aggregatedMap</span>: <span style=color:#66d9ef>any</span>, <span style=color:#a6e22e>sourceMap</span>: <span style=color:#66d9ef>any</span>, <span style=color:#a6e22e>accountId</span>: <span style=color:#66d9ef>string</span>)<span style=color:#f92672>:</span> <span style=color:#66d9ef>void</span> {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Add account context to service names to avoid conflicts
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>sourceMap</span>.<span style=color:#a6e22e>services</span>.<span style=color:#a6e22e>forEach</span>((<span style=color:#a6e22e>service</span>: <span style=color:#66d9ef>any</span>) <span style=color:#f92672>=&gt;</span> {
+</span></span></span><span style=display:flex><span>    <span style=color:#a6e22e>sourceMap</span>.<span style=color:#a6e22e>services</span>.<span style=color:#a6e22e>forEach</span>((<span style=color:#a6e22e>service</span>: <span style=color:#66d9ef>any</span>) <span style=color:#f92672>=&gt;</span> {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>serviceKey</span> <span style=color:#f92672>=</span> <span style=color:#e6db74>`</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>service</span>.<span style=color:#a6e22e>Name</span><span style=color:#e6db74>}</span><span style=color:#e6db74>-</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>accountId</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>;
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>aggregatedMap</span>.<span style=color:#a6e22e>services</span>.<span style=color:#66d9ef>set</span>(<span style=color:#a6e22e>serviceKey</span>, {
 </span></span><span style=display:flex><span>        ...<span style=color:#a6e22e>service</span>,
@@ -371,16 +371,16 @@ end note
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>publishAggregatedServiceMap</span>(<span style=color:#a6e22e>aggregatedMap</span>: <span style=color:#66d9ef>any</span>)<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Publish aggregated service map to centralized storage or dashboard
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#39;Publishing aggregated service map:&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#39;Publishing aggregated service map:&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>totalServices</span>: <span style=color:#66d9ef>aggregatedMap.services.size</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>accounts</span>: <span style=color:#66d9ef>this.aggregationConfig.sourceAccounts.map</span>(<span style=color:#a6e22e>a</span> <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>a</span>.<span style=color:#a6e22e>accountId</span>)
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Implementation would store this in CloudWatch custom metrics, 
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// DynamoDB, or other centralized storage for dashboard consumption
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  }
+</span></span></span><span style=display:flex><span>    <span style=color:#75715e>// DynamoDB, or other centralized storage for dashboard consumption
+</span></span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>Deploy the X-Ray aggregation infrastructure:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>lambda</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-lambda&#39;</span>;
+</span></span></code></pre></div><p>Deploy the X-Ray aggregation infrastructure:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>lambda</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-lambda&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>events</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-events&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>events_targets</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-events-targets&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>iam</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-iam&#39;</span>;
@@ -390,7 +390,7 @@ end note
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>super</span>(<span style=color:#a6e22e>scope</span>, <span style=color:#a6e22e>id</span>, <span style=color:#a6e22e>props</span>);
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Lambda function for X-Ray aggregation
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>xrayAggregatorFunction</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>lambda</span>.Function(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;XRayAggregatorFunction&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>xrayAggregatorFunction</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>lambda</span>.Function(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;XRayAggregatorFunction&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>runtime</span>: <span style=color:#66d9ef>lambda.Runtime.NODEJS_18_X</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>handler</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;index.handler&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>code</span>: <span style=color:#66d9ef>lambda.Code.fromAsset</span>(<span style=color:#e6db74>&#39;lambda/xray-aggregator&#39;</span>),
@@ -405,7 +405,7 @@ end note
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Grant permissions to assume roles in source accounts
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>xrayAggregatorFunction</span>.<span style=color:#a6e22e>addToRolePolicy</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>PolicyStatement</span>({
+</span></span></span><span style=display:flex><span>    <span style=color:#a6e22e>xrayAggregatorFunction</span>.<span style=color:#a6e22e>addToRolePolicy</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>PolicyStatement</span>({
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>effect</span>: <span style=color:#66d9ef>iam.Effect.ALLOW</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>actions</span><span style=color:#f92672>:</span> [<span style=color:#e6db74>&#39;sts:AssumeRole&#39;</span>],
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>resources</span><span style=color:#f92672>:</span> [
@@ -415,7 +415,7 @@ end note
 </span></span><span style=display:flex><span>    }));
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Schedule regular aggregation
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>aggregationSchedule</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>events</span>.<span style=color:#a6e22e>Rule</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;XRayAggregationSchedule&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>aggregationSchedule</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>events</span>.<span style=color:#a6e22e>Rule</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;XRayAggregationSchedule&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>schedule</span>: <span style=color:#66d9ef>events.Schedule.rate</span>(<span style=color:#a6e22e>cdk</span>.<span style=color:#a6e22e>Duration</span>.<span style=color:#a6e22e>minutes</span>(<span style=color:#ae81ff>15</span>)),
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>description</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Trigger X-Ray cross-account aggregation every 15 minutes&#39;</span>
 </span></span><span style=display:flex><span>    });
@@ -423,7 +423,7 @@ end note
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>aggregationSchedule</span>.<span style=color:#a6e22e>addTarget</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>events_targets</span>.<span style=color:#a6e22e>LambdaFunction</span>(<span style=color:#a6e22e>xrayAggregatorFunction</span>));
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><h2 id=step-3-centralized-logging-with-cross-account-log-streams>Step 3: Centralized Logging with Cross-Account Log Streams</h2><p>Centralized logging aggregates log data from multiple AWS accounts into a unified platform for analysis, alerting, and compliance reporting. This pattern enables comprehensive log correlation and analysis across distributed systems.</p><p>Set up cross-account log destination in the central monitoring account:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>logs</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-logs&#39;</span>;
+</span></span></code></pre></div><h2 id=step-3-centralized-logging-with-cross-account-log-streams>Step 3: Centralized Logging with Cross-Account Log Streams</h2><p>Centralized logging aggregates log data from multiple AWS accounts into a unified platform for analysis, alerting, and compliance reporting. This pattern enables comprehensive log correlation and analysis across distributed systems.</p><p>Set up cross-account log destination in the central monitoring account:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>logs</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-logs&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>iam</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-iam&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>kinesis</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-kinesis&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>kinesisfirehose</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-kinesisfirehose&#39;</span>;
@@ -439,7 +439,7 @@ end note
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>super</span>(<span style=color:#a6e22e>scope</span>, <span style=color:#a6e22e>id</span>, <span style=color:#a6e22e>props</span>);
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// S3 bucket for centralized log storage
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>logAnalyticsS3Bucket</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>s3</span>.<span style=color:#a6e22e>Bucket</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;LogAnalyticsS3Bucket&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>logAnalyticsS3Bucket</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>s3</span>.<span style=color:#a6e22e>Bucket</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;LogAnalyticsS3Bucket&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>bucketName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`centralized-logs-</span><span style=color:#e6db74>${</span><span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>account</span><span style=color:#e6db74>}</span><span style=color:#e6db74>-</span><span style=color:#e6db74>${</span><span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>region</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>versioned</span>: <span style=color:#66d9ef>true</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>lifecycleRules</span><span style=color:#f92672>:</span> [{
@@ -453,18 +453,18 @@ end note
 </span></span><span style=display:flex><span>          <span style=color:#a6e22e>transitionAfter</span>: <span style=color:#66d9ef>cdk.Duration.days</span>(<span style=color:#ae81ff>90</span>)
 </span></span><span style=display:flex><span>        }],
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>expiration</span>: <span style=color:#66d9ef>cdk.Duration.days</span>(<span style=color:#ae81ff>2555</span>) <span style=color:#75715e>// 7 years retention
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      }]
+</span></span></span><span style=display:flex><span>      }]
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Kinesis stream for log processing
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>logStream</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>kinesis</span>.<span style=color:#a6e22e>Stream</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CentralizedLogStream&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>logStream</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>kinesis</span>.<span style=color:#a6e22e>Stream</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CentralizedLogStream&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>streamName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;centralized-logs-stream&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>shardCount</span>: <span style=color:#66d9ef>2</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>retentionPeriod</span>: <span style=color:#66d9ef>cdk.Duration.days</span>(<span style=color:#ae81ff>7</span>)
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Kinesis Firehose for S3 delivery
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>logDeliveryRole</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>Role</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;LogDeliveryRole&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>logDeliveryRole</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>Role</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;LogDeliveryRole&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>assumedBy</span>: <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>ServicePrincipal</span>(<span style=color:#e6db74>&#39;firehose.amazonaws.com&#39;</span>),
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>managedPolicies</span><span style=color:#f92672>:</span> [
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>ManagedPolicy</span>.<span style=color:#a6e22e>fromAwsManagedPolicyName</span>(<span style=color:#e6db74>&#39;AmazonKinesisFirehoseFullAccess&#39;</span>)
@@ -489,7 +489,7 @@ end note
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// IAM role for cross-account log destination
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>logDestinationRole</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>Role</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;LogDestinationRole&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>logDestinationRole</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>Role</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;LogDestinationRole&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>assumedBy</span>: <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>ServicePrincipal</span>(<span style=color:#e6db74>&#39;logs.amazonaws.com&#39;</span>),
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>description</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Role for cross-account log destination&#39;</span>
 </span></span><span style=display:flex><span>    });
@@ -497,14 +497,14 @@ end note
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>logStream</span>.<span style=color:#a6e22e>grantWrite</span>(<span style=color:#a6e22e>logDestinationRole</span>);
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Create log destination that source accounts can send logs to
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>logDestination</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>logs</span>.<span style=color:#a6e22e>LogDestination</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CrossAccountLogDestination&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>logDestination</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>logs</span>.<span style=color:#a6e22e>LogDestination</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CrossAccountLogDestination&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>destinationName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;cross-account-centralized-logs&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>targetArn</span>: <span style=color:#66d9ef>logStream.streamArn</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>role</span>: <span style=color:#66d9ef>logDestinationRole</span>
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Grant source accounts permission to put logs to destination
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>logDestinationPolicy</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>PolicyDocument</span>({
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>logDestinationPolicy</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>PolicyDocument</span>({
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>statements</span><span style=color:#f92672>:</span> [
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>PolicyStatement</span>({
 </span></span><span style=display:flex><span>          <span style=color:#a6e22e>effect</span>: <span style=color:#66d9ef>iam.Effect.ALLOW</span>,
@@ -517,13 +517,13 @@ end note
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Apply the policy to the log destination
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>logs</span>.<span style=color:#a6e22e>LogDestinationPolicy</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;LogDestinationPolicy&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>logs</span>.<span style=color:#a6e22e>LogDestinationPolicy</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;LogDestinationPolicy&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>logDestination</span>: <span style=color:#66d9ef>this.logDestination</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>accessPolicy</span>: <span style=color:#66d9ef>logDestinationPolicy</span>
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>Configure log forwarding in source accounts:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>SourceAccountLoggingStack</span> <span style=color:#66d9ef>extends</span> <span style=color:#a6e22e>cdk</span>.<span style=color:#a6e22e>Stack</span> {
+</span></span></code></pre></div><p>Configure log forwarding in source accounts:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>SourceAccountLoggingStack</span> <span style=color:#66d9ef>extends</span> <span style=color:#a6e22e>cdk</span>.<span style=color:#a6e22e>Stack</span> {
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>constructor</span>(<span style=color:#a6e22e>scope</span>: <span style=color:#66d9ef>Construct</span>, <span style=color:#a6e22e>id</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>props?</span>: <span style=color:#66d9ef>cdk.StackProps</span> <span style=color:#f92672>&amp;</span> {
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>centralLoggingDestinationArn</span>: <span style=color:#66d9ef>string</span>;
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>logGroupNames</span>: <span style=color:#66d9ef>string</span>[];
@@ -531,7 +531,7 @@ end note
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>super</span>(<span style=color:#a6e22e>scope</span>, <span style=color:#a6e22e>id</span>, <span style=color:#a6e22e>props</span>);
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Create subscription filters for each log group
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>props</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>logGroupNames</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>forEach</span>((<span style=color:#a6e22e>logGroupName</span>, <span style=color:#a6e22e>index</span>) <span style=color:#f92672>=&gt;</span> {
+</span></span></span><span style=display:flex><span>    <span style=color:#a6e22e>props</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>logGroupNames</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>forEach</span>((<span style=color:#a6e22e>logGroupName</span>, <span style=color:#a6e22e>index</span>) <span style=color:#f92672>=&gt;</span> {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>logGroup</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>logs</span>.<span style=color:#a6e22e>LogGroup</span>.<span style=color:#a6e22e>fromLogGroupName</span>(
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>this</span>, 
 </span></span><span style=display:flex><span>        <span style=color:#e6db74>`LogGroup</span><span style=color:#e6db74>${</span><span style=color:#a6e22e>index</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>, 
@@ -551,7 +551,7 @@ end note
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Lambda function to automatically create subscription filters for new log groups
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>autoSubscriptionFunction</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>lambda</span>.Function(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;AutoSubscriptionFunction&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>autoSubscriptionFunction</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>lambda</span>.Function(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;AutoSubscriptionFunction&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>runtime</span>: <span style=color:#66d9ef>lambda.Runtime.NODEJS_18_X</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>handler</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;index.handler&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>code</span>: <span style=color:#66d9ef>lambda.Code.fromInline</span>(<span style=color:#e6db74>`
@@ -587,7 +587,7 @@ end note
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Grant permissions to manage subscription filters
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>autoSubscriptionFunction</span>.<span style=color:#a6e22e>addToRolePolicy</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>PolicyStatement</span>({
+</span></span></span><span style=display:flex><span>    <span style=color:#a6e22e>autoSubscriptionFunction</span>.<span style=color:#a6e22e>addToRolePolicy</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>PolicyStatement</span>({
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>effect</span>: <span style=color:#66d9ef>iam.Effect.ALLOW</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>actions</span><span style=color:#f92672>:</span> [
 </span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;logs:PutSubscriptionFilter&#39;</span>,
@@ -598,7 +598,7 @@ end note
 </span></span><span style=display:flex><span>    }));
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><h2 id=step-4-aws-config-aggregators-for-compliance>Step 4: AWS Config Aggregators for Compliance</h2><p>AWS Config aggregators provide centralized compliance monitoring and governance across multiple accounts. This capability enables organizations to maintain consistent security postures and regulatory compliance across their multi-account architectures.</p><p>Set up a configuration aggregator in the central monitoring account:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>config</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-config&#39;</span>;
+</span></span></code></pre></div><h2 id=step-4-aws-config-aggregators-for-compliance>Step 4: AWS Config Aggregators for Compliance</h2><p>AWS Config aggregators provide centralized compliance monitoring and governance across multiple accounts. This capability enables organizations to maintain consistent security postures and regulatory compliance across their multi-account architectures.</p><p>Set up a configuration aggregator in the central monitoring account:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>config</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-config&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>iam</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-iam&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>s3</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-s3&#39;</span>;
 </span></span><span style=display:flex><span>
@@ -616,18 +616,18 @@ end note
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>super</span>(<span style=color:#a6e22e>scope</span>, <span style=color:#a6e22e>id</span>, <span style=color:#a6e22e>props</span>);
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// S3 bucket for compliance reports
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>complianceReportsBucket</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>s3</span>.<span style=color:#a6e22e>Bucket</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;ComplianceReportsBucket&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>complianceReportsBucket</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>s3</span>.<span style=color:#a6e22e>Bucket</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;ComplianceReportsBucket&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>bucketName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`config-compliance-reports-</span><span style=color:#e6db74>${</span><span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>account</span><span style=color:#e6db74>}</span><span style=color:#e6db74>-</span><span style=color:#e6db74>${</span><span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>region</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>versioned</span>: <span style=color:#66d9ef>true</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>lifecycleRules</span><span style=color:#f92672>:</span> [{
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>id</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;compliance-report-retention&#39;</span>,
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>enabled</span>: <span style=color:#66d9ef>true</span>,
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>expiration</span>: <span style=color:#66d9ef>cdk.Duration.days</span>(<span style=color:#ae81ff>2555</span>) <span style=color:#75715e>// 7 years retention for compliance
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      }]
+</span></span></span><span style=display:flex><span>      }]
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// IAM role for Config aggregator
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>configAggregatorRole</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>Role</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;ConfigAggregatorRole&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>configAggregatorRole</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>Role</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;ConfigAggregatorRole&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>roleName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;AWSConfigRoleForConfigurationAggregator&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>assumedBy</span>: <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>ServicePrincipal</span>(<span style=color:#e6db74>&#39;config.amazonaws.com&#39;</span>),
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>managedPolicies</span><span style=color:#f92672>:</span> [
@@ -636,7 +636,7 @@ end note
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Grant permissions to access source accounts
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>configAggregatorRole</span>.<span style=color:#a6e22e>addToPolicy</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>PolicyStatement</span>({
+</span></span></span><span style=display:flex><span>    <span style=color:#a6e22e>configAggregatorRole</span>.<span style=color:#a6e22e>addToPolicy</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>PolicyStatement</span>({
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>effect</span>: <span style=color:#66d9ef>iam.Effect.ALLOW</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>actions</span><span style=color:#f92672>:</span> [
 </span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;organizations:DescribeAccount&#39;</span>,
@@ -648,9 +648,9 @@ end note
 </span></span><span style=display:flex><span>    }));
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Create configuration aggregator
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>props</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>organizationId</span>) {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>props</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>organizationId</span>) {
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Organization-based aggregator (recommended for AWS Organizations)
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>configAggregator</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>ConfigurationAggregator</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;OrganizationConfigAggregator&#39;</span>, {
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>configAggregator</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>ConfigurationAggregator</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;OrganizationConfigAggregator&#39;</span>, {
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>configurationAggregatorName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;organization-config-aggregator&#39;</span>,
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>organizationAggregationSource</span><span style=color:#f92672>:</span> {
 </span></span><span style=display:flex><span>          <span style=color:#a6e22e>roleArn</span>: <span style=color:#66d9ef>configAggregatorRole.roleArn</span>,
@@ -659,7 +659,7 @@ end note
 </span></span><span style=display:flex><span>      });
 </span></span><span style=display:flex><span>    } <span style=color:#66d9ef>else</span> {
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Account-based aggregator
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>accountAggregationSources</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>props</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>sourceAccounts</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>map</span>(<span style=color:#a6e22e>account</span> <span style=color:#f92672>=&gt;</span> ({
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>accountAggregationSources</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>props</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>sourceAccounts</span><span style=color:#f92672>?</span>.<span style=color:#a6e22e>map</span>(<span style=color:#a6e22e>account</span> <span style=color:#f92672>=&gt;</span> ({
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>accountIds</span><span style=color:#f92672>:</span> [<span style=color:#a6e22e>account</span>.<span style=color:#a6e22e>accountId</span>],
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>awsRegions</span>: <span style=color:#66d9ef>account.regions</span>,
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>allAwsRegions</span>: <span style=color:#66d9ef>false</span>
@@ -672,26 +672,26 @@ end note
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Config rules for compliance monitoring
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>createComplianceRules</span>();
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>createComplianceRules</span>();
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>createComplianceRules</span>()<span style=color:#f92672>:</span> <span style=color:#66d9ef>void</span> {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Root access key check
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>ManagedRule</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;RootAccessKeyCheck&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>ManagedRule</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;RootAccessKeyCheck&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>configRuleName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;root-access-key-check&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>identifier</span>: <span style=color:#66d9ef>config.ManagedRuleIdentifiers.ROOT_ACCESS_KEY_CHECK</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>description</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Checks whether the root user access key is available&#39;</span>
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// S3 bucket SSL requests only
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>ManagedRule</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;S3BucketSslRequestsOnly&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>ManagedRule</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;S3BucketSslRequestsOnly&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>configRuleName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;s3-bucket-ssl-requests-only&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>identifier</span>: <span style=color:#66d9ef>config.ManagedRuleIdentifiers.S3_BUCKET_SSL_REQUESTS_ONLY</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>description</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Checks whether S3 buckets have policies that require requests to use SSL&#39;</span>
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// IAM password policy
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>ManagedRule</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;IamPasswordPolicy&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>ManagedRule</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;IamPasswordPolicy&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>configRuleName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;iam-password-policy&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>identifier</span>: <span style=color:#66d9ef>config.ManagedRuleIdentifiers.IAM_PASSWORD_POLICY</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>description</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Checks whether the account password policy meets specified requirements&#39;</span>,
@@ -707,14 +707,14 @@ end note
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// CloudTrail enabled
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>ManagedRule</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CloudTrailEnabled&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>ManagedRule</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CloudTrailEnabled&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>configRuleName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;cloudtrail-enabled&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>identifier</span>: <span style=color:#66d9ef>config.ManagedRuleIdentifiers.CLOUD_TRAIL_ENABLED</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>description</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Checks whether AWS CloudTrail is enabled&#39;</span>
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>Create a compliance reporting system:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>ConfigServiceClient</span>, <span style=color:#a6e22e>GetAggregateComplianceDetailsByConfigRuleCommand</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/client-config-service&#39;</span>;
+</span></span></code></pre></div><p>Create a compliance reporting system:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>ConfigServiceClient</span>, <span style=color:#a6e22e>GetAggregateComplianceDetailsByConfigRuleCommand</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/client-config-service&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>S3Client</span>, <span style=color:#a6e22e>PutObjectCommand</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/client-s3&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>SESClient</span>, <span style=color:#a6e22e>SendEmailCommand</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/client-ses&#39;</span>;
 </span></span><span style=display:flex><span>
@@ -896,7 +896,7 @@ end note
 </span></span></span><span style=display:flex><span><span style=color:#e6db74>    `</span>;
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><h2 id=step-5-cost-and-billing-consolidation>Step 5: Cost and Billing Consolidation</h2><p>Cost and billing consolidation provides unified visibility into spending across multiple AWS accounts, enabling better cost management, allocation, and optimization decisions. This pattern is essential for organizations that need to track costs across different business units, projects, or environments.</p><p>Set up cost and billing consolidation using AWS Cost and Usage Reports:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>cur</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-cur&#39;</span>;
+</span></span></code></pre></div><h2 id=step-5-cost-and-billing-consolidation>Step 5: Cost and Billing Consolidation</h2><p>Cost and billing consolidation provides unified visibility into spending across multiple AWS accounts, enabling better cost management, allocation, and optimization decisions. This pattern is essential for organizations that need to track costs across different business units, projects, or environments.</p><p>Set up cost and billing consolidation using AWS Cost and Usage Reports:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>cur</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-cur&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>s3</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-s3&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>iam</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-iam&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>glue</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-glue&#39;</span>;
@@ -913,7 +913,7 @@ end note
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>super</span>(<span style=color:#a6e22e>scope</span>, <span style=color:#a6e22e>id</span>, <span style=color:#a6e22e>props</span>);
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// S3 bucket for Cost and Usage Reports
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>costReportsBucket</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>s3</span>.<span style=color:#a6e22e>Bucket</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CostReportsBucket&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>costReportsBucket</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>s3</span>.<span style=color:#a6e22e>Bucket</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CostReportsBucket&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>bucketName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>`aws-cost-reports-</span><span style=color:#e6db74>${</span><span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>account</span><span style=color:#e6db74>}</span><span style=color:#e6db74>-</span><span style=color:#e6db74>${</span><span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>region</span><span style=color:#e6db74>}</span><span style=color:#e6db74>`</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>versioned</span>: <span style=color:#66d9ef>true</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>lifecycleRules</span><span style=color:#f92672>:</span> [{
@@ -924,11 +924,11 @@ end note
 </span></span><span style=display:flex><span>          <span style=color:#a6e22e>transitionAfter</span>: <span style=color:#66d9ef>cdk.Duration.days</span>(<span style=color:#ae81ff>30</span>)
 </span></span><span style=display:flex><span>        }],
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>expiration</span>: <span style=color:#66d9ef>cdk.Duration.days</span>(<span style=color:#ae81ff>1095</span>) <span style=color:#75715e>// 3 years retention
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      }]
+</span></span></span><span style=display:flex><span>      }]
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Create Cost and Usage Report
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>costReport</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cur</span>.<span style=color:#a6e22e>ReportDefinition</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CrossAccountCostReport&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>costReport</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cur</span>.<span style=color:#a6e22e>ReportDefinition</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CrossAccountCostReport&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>reportName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;cross-account-cost-usage-report&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>timeUnit</span>: <span style=color:#66d9ef>cur.TimeUnit.DAILY</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>format</span>: <span style=color:#66d9ef>cur.Format.PARQUET</span>,
@@ -947,13 +947,13 @@ end note
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Glue database for cost analysis
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>costDatabase</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>glue</span>.<span style=color:#a6e22e>Database</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CostAnalyticsDatabase&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>costDatabase</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>glue</span>.<span style=color:#a6e22e>Database</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CostAnalyticsDatabase&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>databaseName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;cost_analytics_db&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>description</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Database for cross-account cost and usage analysis&#39;</span>
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Athena workgroup for cost queries
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>costAnalyticsWorkgroup</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>athena</span>.<span style=color:#a6e22e>WorkGroup</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CostAnalyticsWorkgroup&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>costAnalyticsWorkgroup</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>athena</span>.<span style=color:#a6e22e>WorkGroup</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CostAnalyticsWorkgroup&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>name</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;cost-analytics-workgroup&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>description</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Workgroup for cross-account cost analysis queries&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>resultConfiguration</span><span style=color:#f92672>:</span> {
@@ -966,7 +966,7 @@ end note
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#a6e22e>createCostAnalyticsResources</span>()<span style=color:#f92672>:</span> <span style=color:#66d9ef>void</span> {
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Lambda function for cost analysis automation
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>costAnalysisFunction</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>lambda</span>.Function(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CostAnalysisFunction&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>costAnalysisFunction</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>lambda</span>.Function(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CostAnalysisFunction&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>runtime</span>: <span style=color:#66d9ef>lambda.Runtime.NODEJS_18_X</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>handler</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;index.handler&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>code</span>: <span style=color:#66d9ef>lambda.Code.fromAsset</span>(<span style=color:#e6db74>&#39;lambda/cost-analysis&#39;</span>),
@@ -979,7 +979,7 @@ end note
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Grant permissions for cost analysis
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>costReportsBucket</span>.<span style=color:#a6e22e>grantRead</span>(<span style=color:#a6e22e>costAnalysisFunction</span>);
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>costReportsBucket</span>.<span style=color:#a6e22e>grantRead</span>(<span style=color:#a6e22e>costAnalysisFunction</span>);
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>costAnalysisFunction</span>.<span style=color:#a6e22e>addToRolePolicy</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>iam</span>.<span style=color:#a6e22e>PolicyStatement</span>({
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>effect</span>: <span style=color:#66d9ef>iam.Effect.ALLOW</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>actions</span><span style=color:#f92672>:</span> [
@@ -993,7 +993,7 @@ end note
 </span></span><span style=display:flex><span>    }));
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Schedule daily cost analysis
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>costAnalysisSchedule</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>events</span>.<span style=color:#a6e22e>Rule</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CostAnalysisSchedule&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>costAnalysisSchedule</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>events</span>.<span style=color:#a6e22e>Rule</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CostAnalysisSchedule&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>schedule</span>: <span style=color:#66d9ef>events.Schedule.rate</span>(<span style=color:#a6e22e>cdk</span>.<span style=color:#a6e22e>Duration</span>.<span style=color:#a6e22e>days</span>(<span style=color:#ae81ff>1</span>)),
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>description</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Daily cross-account cost analysis&#39;</span>
 </span></span><span style=display:flex><span>    });
@@ -1001,7 +1001,7 @@ end note
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>costAnalysisSchedule</span>.<span style=color:#a6e22e>addTarget</span>(<span style=color:#66d9ef>new</span> <span style=color:#a6e22e>events_targets</span>.<span style=color:#a6e22e>LambdaFunction</span>(<span style=color:#a6e22e>costAnalysisFunction</span>));
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>Create a cost analysis and alerting system:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>AthenaClient</span>, <span style=color:#a6e22e>StartQueryExecutionCommand</span>, <span style=color:#a6e22e>GetQueryResultsCommand</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/client-athena&#39;</span>;
+</span></span></code></pre></div><p>Create a cost analysis and alerting system:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>AthenaClient</span>, <span style=color:#a6e22e>StartQueryExecutionCommand</span>, <span style=color:#a6e22e>GetQueryResultsCommand</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/client-athena&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>SNSClient</span>, <span style=color:#a6e22e>PublishCommand</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/client-sns&#39;</span>;
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>CostAnalysisConfig</span> {
@@ -1069,7 +1069,7 @@ end note
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>queryExecutionId</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>startResponse</span>.<span style=color:#a6e22e>QueryExecutionId</span><span style=color:#f92672>!</span>;
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Wait for query completion (simplified - production code should poll)
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Promise</span>(<span style=color:#a6e22e>resolve</span> <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>setTimeout</span>(<span style=color:#a6e22e>resolve</span>, <span style=color:#ae81ff>10000</span>));
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>await</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>Promise</span>(<span style=color:#a6e22e>resolve</span> <span style=color:#f92672>=&gt;</span> <span style=color:#a6e22e>setTimeout</span>(<span style=color:#a6e22e>resolve</span>, <span style=color:#ae81ff>10000</span>));
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>resultsCommand</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>GetQueryResultsCommand</span>({
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>QueryExecutionId</span>: <span style=color:#66d9ef>queryExecutionId</span>
@@ -1146,7 +1146,7 @@ end note
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>alerts</span> <span style=color:#f92672>=</span> [];
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Check daily spend thresholds
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>dailyCosts</span>.<span style=color:#a6e22e>forEach</span>(<span style=color:#a6e22e>cost</span> <span style=color:#f92672>=&gt;</span> {
+</span></span></span><span style=display:flex><span>    <span style=color:#a6e22e>dailyCosts</span>.<span style=color:#a6e22e>forEach</span>(<span style=color:#a6e22e>cost</span> <span style=color:#f92672>=&gt;</span> {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (parseFloat(<span style=color:#a6e22e>cost</span>.<span style=color:#a6e22e>daily_cost</span>) <span style=color:#f92672>&gt;</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>alertThresholds</span>.<span style=color:#a6e22e>dailySpendThreshold</span>) {
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>alerts</span>.<span style=color:#a6e22e>push</span>({
 </span></span><span style=display:flex><span>          <span style=color:#66d9ef>type</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;DAILY_SPEND_THRESHOLD&#39;</span>,
@@ -1159,7 +1159,7 @@ end note
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Check monthly spend thresholds
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>monthlyCosts</span>.<span style=color:#a6e22e>forEach</span>(<span style=color:#a6e22e>cost</span> <span style=color:#f92672>=&gt;</span> {
+</span></span></span><span style=display:flex><span>    <span style=color:#a6e22e>monthlyCosts</span>.<span style=color:#a6e22e>forEach</span>(<span style=color:#a6e22e>cost</span> <span style=color:#f92672>=&gt;</span> {
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (parseFloat(<span style=color:#a6e22e>cost</span>.<span style=color:#a6e22e>monthly_cost</span>) <span style=color:#f92672>&gt;</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>config</span>.<span style=color:#a6e22e>alertThresholds</span>.<span style=color:#a6e22e>monthlySpendThreshold</span>) {
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>alerts</span>.<span style=color:#a6e22e>push</span>({
 </span></span><span style=display:flex><span>          <span style=color:#66d9ef>type</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;MONTHLY_SPEND_THRESHOLD&#39;</span>,
@@ -1182,8 +1182,8 @@ end note
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Implementation would store analysis results in S3, DynamoDB, or other storage
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// for dashboard consumption and historical tracking
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  }
+</span></span></span><span style=display:flex><span>    <span style=color:#75715e>// for dashboard consumption and historical tracking
+</span></span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>async</span> <span style=color:#a6e22e>sendCostAlert</span>(<span style=color:#a6e22e>alerts</span>: <span style=color:#66d9ef>any</span>[])<span style=color:#f92672>:</span> <span style=color:#a6e22e>Promise</span>&lt;<span style=color:#f92672>void</span>&gt; {
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>message</span> <span style=color:#f92672>=</span> {
@@ -1204,7 +1204,7 @@ end note
 </span></span><span style=display:flex><span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#39;Cost alert sent successfully&#39;</span>);
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><h2 id=step-6-monitoring-dashboard-integration>Step 6: Monitoring Dashboard Integration</h2><p>Create unified monitoring dashboards that combine data from all cross-account observability sources:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>UnifiedMonitoringDashboardStack</span> <span style=color:#66d9ef>extends</span> <span style=color:#a6e22e>cdk</span>.<span style=color:#a6e22e>Stack</span> {
+</span></span></code></pre></div><h2 id=step-6-monitoring-dashboard-integration>Step 6: Monitoring Dashboard Integration</h2><p>Create unified monitoring dashboards that combine data from all cross-account observability sources:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>UnifiedMonitoringDashboardStack</span> <span style=color:#66d9ef>extends</span> <span style=color:#a6e22e>cdk</span>.<span style=color:#a6e22e>Stack</span> {
 </span></span><span style=display:flex><span>  <span style=color:#66d9ef>constructor</span>(<span style=color:#a6e22e>scope</span>: <span style=color:#66d9ef>Construct</span>, <span style=color:#a6e22e>id</span>: <span style=color:#66d9ef>string</span>, <span style=color:#a6e22e>props?</span>: <span style=color:#66d9ef>cdk.StackProps</span>) {
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>super</span>(<span style=color:#a6e22e>scope</span>, <span style=color:#a6e22e>id</span>, <span style=color:#a6e22e>props</span>);
 </span></span><span style=display:flex><span>
@@ -1213,9 +1213,9 @@ end note
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Add cross-account metrics widgets
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>dashboard</span>.<span style=color:#a6e22e>addWidgets</span>(
+</span></span></span><span style=display:flex><span>    <span style=color:#a6e22e>dashboard</span>.<span style=color:#a6e22e>addWidgets</span>(
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Application performance across accounts
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>GraphWidget</span>({
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>GraphWidget</span>({
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>title</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Cross-Account Application Performance&#39;</span>,
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>left</span><span style=color:#f92672>:</span> [
 </span></span><span style=display:flex><span>          <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>Metric</span>({
@@ -1236,7 +1236,7 @@ end note
 </span></span><span style=display:flex><span>      }),
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Error rates across accounts
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>GraphWidget</span>({
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>GraphWidget</span>({
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>title</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Cross-Account Error Rates&#39;</span>,
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>left</span><span style=color:#f92672>:</span> [
 </span></span><span style=display:flex><span>          <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>Metric</span>({
@@ -1257,7 +1257,7 @@ end note
 </span></span><span style=display:flex><span>      }),
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>      <span style=color:#75715e>// Cost trends across accounts
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>GraphWidget</span>({
+</span></span></span><span style=display:flex><span>      <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>GraphWidget</span>({
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>title</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Cross-Account Cost Trends&#39;</span>,
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>left</span><span style=color:#f92672>:</span> [
 </span></span><span style=display:flex><span>          <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>Metric</span>({
@@ -1281,7 +1281,7 @@ end note
 </span></span><span style=display:flex><span>    );
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Add compliance status widget
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>dashboard</span>.<span style=color:#a6e22e>addWidgets</span>(
+</span></span></span><span style=display:flex><span>    <span style=color:#a6e22e>dashboard</span>.<span style=color:#a6e22e>addWidgets</span>(
 </span></span><span style=display:flex><span>      <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>SingleValueWidget</span>({
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>title</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;Cross-Account Compliance Status&#39;</span>,
 </span></span><span style=display:flex><span>        <span style=color:#a6e22e>metrics</span><span style=color:#f92672>:</span> [
@@ -1301,7 +1301,7 @@ end note
 </span></span><span style=display:flex><span>    );
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><h2 id=security-best-practices-and-monitoring>Security Best Practices and Monitoring</h2><p>Implementing comprehensive security monitoring across cross-account observability infrastructure ensures that monitoring systems themselves don&rsquo;t become security vulnerabilities while providing the visibility needed for threat detection and compliance.</p><p>Set up security monitoring for cross-account access:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>cloudtrail</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-cloudtrail&#39;</span>;
+</span></span></code></pre></div><h2 id=security-best-practices-and-monitoring>Security Best Practices and Monitoring</h2><p>Implementing comprehensive security monitoring across cross-account observability infrastructure ensures that monitoring systems themselves don&rsquo;t become security vulnerabilities while providing the visibility needed for threat detection and compliance.</p><p>Set up security monitoring for cross-account access:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>cloudtrail</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-cloudtrail&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#f92672>*</span> <span style=color:#66d9ef>as</span> <span style=color:#a6e22e>logs</span> <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;aws-cdk-lib/aws-logs&#39;</span>;
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>SecurityMonitoringStack</span> <span style=color:#66d9ef>extends</span> <span style=color:#a6e22e>cdk</span>.<span style=color:#a6e22e>Stack</span> {
@@ -1309,7 +1309,7 @@ end note
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>super</span>(<span style=color:#a6e22e>scope</span>, <span style=color:#a6e22e>id</span>, <span style=color:#a6e22e>props</span>);
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// CloudTrail for cross-account API monitoring
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>monitoringCloudTrail</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudtrail</span>.<span style=color:#a6e22e>Trail</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CrossAccountMonitoringTrail&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>monitoringCloudTrail</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudtrail</span>.<span style=color:#a6e22e>Trail</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CrossAccountMonitoringTrail&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>trailName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;cross-account-monitoring-trail&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>includeGlobalServiceEvents</span>: <span style=color:#66d9ef>true</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>isLogging</span>: <span style=color:#66d9ef>true</span>,
@@ -1317,7 +1317,7 @@ end note
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// CloudWatch alarms for suspicious cross-account activity
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>suspiciousAssumeRoleAlarm</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>Alarm</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;SuspiciousAssumeRoleActivity&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>suspiciousAssumeRoleAlarm</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>Alarm</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;SuspiciousAssumeRoleActivity&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>alarmName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;cross-account-suspicious-assume-role&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>metric</span>: <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>cloudwatch</span>.<span style=color:#a6e22e>Metric</span>({
 </span></span><span style=display:flex><span>        <span style=color:#66d9ef>namespace</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;AWS/CloudTrail&#39;</span>,
@@ -1331,7 +1331,7 @@ end note
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>// Log metric filter for cross-account access patterns
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>crossAccountAccessFilter</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>logs</span>.<span style=color:#a6e22e>MetricFilter</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CrossAccountAccessFilter&#39;</span>, {
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>crossAccountAccessFilter</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> <span style=color:#a6e22e>logs</span>.<span style=color:#a6e22e>MetricFilter</span>(<span style=color:#66d9ef>this</span>, <span style=color:#e6db74>&#39;CrossAccountAccessFilter&#39;</span>, {
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>logGroup</span>: <span style=color:#66d9ef>monitoringCloudTrail.logGroup</span><span style=color:#f92672>!</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>metricNamespace</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;SecurityMonitoring/CrossAccount&#39;</span>,
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>metricName</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;CrossAccountAccess&#39;</span>,
@@ -1340,8 +1340,8 @@ end note
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>  }
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><h2 id=testing-and-validation>Testing and Validation</h2><p>Comprehensive testing ensures that cross-account monitoring and observability systems function correctly and provide accurate insights across all integrated accounts.</p><p>Create automated tests for monitoring functionality:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// monitoring-integration.test.ts - Integration tests for cross-account monitoring
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>describe</span>, <span style=color:#a6e22e>it</span>, <span style=color:#a6e22e>expect</span>, <span style=color:#a6e22e>beforeAll</span>, <span style=color:#a6e22e>afterAll</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@jest/globals&#39;</span>;
+</span></span></code></pre></div><h2 id=testing-and-validation>Testing and Validation</h2><p>Comprehensive testing ensures that cross-account monitoring and observability systems function correctly and provide accurate insights across all integrated accounts.</p><p>Create automated tests for monitoring functionality:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-typescript data-lang=typescript><span style=display:flex><span><span style=color:#75715e>// monitoring-integration.test.ts - Integration tests for cross-account monitoring
+</span></span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>describe</span>, <span style=color:#a6e22e>it</span>, <span style=color:#a6e22e>expect</span>, <span style=color:#a6e22e>beforeAll</span>, <span style=color:#a6e22e>afterAll</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@jest/globals&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>CloudWatchClient</span>, <span style=color:#a6e22e>GetMetricDataCommand</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/client-cloudwatch&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>XRayClient</span>, <span style=color:#a6e22e>GetServiceMapCommand</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/client-xray&#39;</span>;
 </span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>ConfigServiceClient</span>, <span style=color:#a6e22e>GetConfigRuleEvaluationStatusCommand</span> } <span style=color:#66d9ef>from</span> <span style=color:#e6db74>&#39;@aws-sdk/client-config-service&#39;</span>;
@@ -1371,7 +1371,7 @@ end note
 </span></span><span style=display:flex><span>        }
 </span></span><span style=display:flex><span>      }],
 </span></span><span style=display:flex><span>      <span style=color:#a6e22e>StartTime</span>: <span style=color:#66d9ef>new</span> Date(Date.<span style=color:#a6e22e>now</span>() <span style=color:#f92672>-</span> <span style=color:#ae81ff>3600000</span>), <span style=color:#75715e>// 1 hour ago
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>EndTime</span>: <span style=color:#66d9ef>new</span> Date()
+</span></span></span><span style=display:flex><span>      <span style=color:#a6e22e>EndTime</span>: <span style=color:#66d9ef>new</span> Date()
 </span></span><span style=display:flex><span>    });
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>response</span> <span style=color:#f92672>=</span> <span style=color:#66d9ef>await</span> <span style=color:#a6e22e>cloudWatchClient</span>.<span style=color:#a6e22e>send</span>(<span style=color:#a6e22e>command</span>);
@@ -1556,4 +1556,4 @@ end note
 </a><a href=/tags/well-architected-framework class=tag-cloud-item style=font-size:1rem>well-architected framework
 </a><a href=/tags/x-ray class=tag-cloud-item style=font-size:1rem>x-ray
 </a><a href=/tags/zero-trust class=tag-cloud-item style=font-size:1rem>zero trust</a></div></div><div class=sidebar-widget><h3>Subscribe</h3><div class=subscribe-links><a href=/index.xml class=rss-link><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 019 9"/><path d="M4 4a16 16 0 0116 16"/><circle cx="5" cy="19" r="1"/></svg>
-RSS Feed</a></div></div><div class="sidebar-widget npm-packages"><h3>My NPM Packages</h3><div id=npm-list></div></div></aside></div></div><footer class=site-footer><div class=container><p>&copy; 2025 Scott Obert</p><p class=disclaimer-text style=font-size:.9em;margin-top:.5em>The views and opinions expressed on this site are my own. <a href=/disclaimer/ style=color:#0074d9;text-decoration:underline>Read full disclaimer</a>.</p></div></footer></body></html>
+RSS Feed</a></div></div><div class="sidebar-widget npm-packages"><h3>My NPM Packages</h3><div id=npm-list></div></div></aside></div></div><footer class=site-footer><div class=container><p>&copy; 2026 Scott Obert</p><p class=disclaimer-text style=font-size:.9em;margin-top:.5em>The views and opinions expressed on this site are my own. <a href=/disclaimer/ style=color:#0074d9;text-decoration:underline>Read full disclaimer</a>.</p></div></footer></body></html>
