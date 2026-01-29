@@ -1,7 +1,7 @@
 ---
 title: "From CloudFormation to Diagrams: Automating Architecture Documentation"
 date: 2026-01-29T09:00:00-07:00
-draft: true
+draft: false
 categories: ["Software Development", "DevOps", "Cloud Computing"]
 tags:
 - AWS
