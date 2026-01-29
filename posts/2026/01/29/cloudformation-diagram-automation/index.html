@@ -1,0 +1,727 @@
+<!doctype html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Scott Obert</title><meta name=description content="You&rsquo;re explaining your serverless architecture to a new team member at 2 PM on a Monday. You pull up the architecture diagram from Confluence, walk them …"><link rel=canonical href=https://scottobert.com/posts/2026/01/29/cloudformation-diagram-automation/><meta property="og:title" content="From CloudFormation to Diagrams: Automating Architecture Documentation"><meta property="og:description" content="You&rsquo;re explaining your serverless architecture to a new team member at 2 PM on a Monday. You pull up the architecture diagram from Confluence, walk them …"><meta property="og:type" content="article"><meta property="og:url" content="https://scottobert.com/posts/2026/01/29/cloudformation-diagram-automation/"><meta property="og:site_name" content="Scott Obert"><meta name=twitter:card content="summary"><meta name=twitter:title content="From CloudFormation to Diagrams: Automating Architecture Documentation"><meta name=twitter:description content="You&rsquo;re explaining your serverless architecture to a new team member at 2 PM on a Monday. You pull up the architecture diagram from Confluence, walk them …"><link rel=stylesheet href=https://scottobert.com/css/style.min.d57a26f1d64b2c7f0df88b12c113d433eaed97b49e5f51c6675b9756126ebb92.css><script src=/js/npm-packages.js defer></script><script src=/js/search.js defer></script><script defer src=https://cloud.umami.is/script.js data-website-id=e2461896-021d-422a-b83f-624a8819309b></script><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/site.webmanifest></head><body><header class=site-header><div class=container><div class=header-content><div class=header-left><h1><a href=/>Scott Obert</a></h1><nav><a href=/posts/>Blog</a>
+<a href=/album/>Photo Album</a>
+<button type=button class=search-toggle id=search-toggle-btn aria-label="Open search" title=Search>
+<svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61.0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+<span>Search</span></button></nav></div><div class=social-links><a href=https://www.linkedin.com/in/scott-obert-3a7338b/ target=_blank rel="noopener noreferrer" title="LinkedIn Profile"><svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853.0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601.0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144.0-2.063-.926-2.063-2.065.0-1.138.92-2.063 2.063-2.063 1.14.0 2.064.925 2.064 2.063.0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225.0H1.771C.792.0.0.774.0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2.0 22.222.0h.003z"/></svg>
+<span>LinkedIn</span>
+</a><a href=https://github.com/scottobert target=_blank rel="noopener noreferrer" title="GitHub Profile"><svg viewBox="0 0 24 24"><path d="M12 0C5.37.0.0 5.37.0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577.0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93.0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176.0.0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22.0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22.0 1.605-.015 2.896-.015 3.286.0.315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12"/></svg>
+<span>GitHub</span></a></div></div></div></header><div class=container><nav class=breadcrumbs aria-label="Breadcrumb navigation"><ol class=breadcrumb-list><li class=breadcrumb-item><a href=https://scottobert.com/ title=Home><svg class="breadcrumb-home-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+<span>Home</span></a></li><li class=breadcrumb-item><span class=breadcrumb-separator aria-hidden=true>/</span>
+<a href=https://scottobert.com/posts/ title=Posts>Posts</a></li><li class=breadcrumb-item><span class=breadcrumb-separator aria-hidden=true>/</span>
+<a href=https://scottobert.com/categories/software-development title="Category: Software Development"><svg class="breadcrumb-category-icon" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+<span>Software Development</span></a></li><li class="breadcrumb-item breadcrumb-current"><span class=breadcrumb-separator aria-hidden=true>/</span>
+<span class=breadcrumb-current-page aria-current=page>From CloudFormation to Diagrams: Automating Architecture Documentation</span></li></ol></nav><div class=content-layout><main class=main-content><article class=post><h1>From CloudFormation to Diagrams: Automating Architecture Documentation</h1><div class=post-meta><div class=post-meta-left><span>Jan 29, 2026</span>
+<span>| Tags: AWS, CloudFormation, SAM, Serverless, Documentation, Automation, GitHub Actions, DevOps, Architecture, cfn-diagram</span></div><div class=post-meta-right><div class=quick-social-share><button type=button class=quick-share-toggle id=quick-share-toggle title="Share this post">
+<svg viewBox="0 0 24 24"><path d="M18 16.08c-.76.0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66.0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66.0-3 1.34-3 3s1.34 3 3 3c.79.0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65.0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
+<span>Share</span></button><div class=quick-share-buttons id=quick-share-buttons><a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fscottobert.com%2Fposts%2F2026%2F01%2F29%2Fcloudformation-diagram-automation%2F&text=From+CloudFormation+to+Diagrams%3A+Automating+Architecture+Documentation" target=_blank rel="noopener noreferrer" class="quick-share-button twitter" title="Share on Twitter"><svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+</a><a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fscottobert.com%2Fposts%2F2026%2F01%2F29%2Fcloudformation-diagram-automation%2F" target=_blank rel="noopener noreferrer" class="quick-share-button linkedin" title="Share on LinkedIn"><svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853.0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601.0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144.0-2.063-.926-2.063-2.065.0-1.138.92-2.063 2.063-2.063 1.14.0 2.064.925 2.064 2.063.0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225.0H1.771C.792.0.0.774.0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2.0 22.222.0h.003z"/></svg>
+</a><a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fscottobert.com%2Fposts%2F2026%2F01%2F29%2Fcloudformation-diagram-automation%2F" target=_blank rel="noopener noreferrer" class="quick-share-button facebook" title="Share on Facebook"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312.0 2.686.235 2.686.235v2.953H15.83c-1.491.0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+</a><a href="https://reddit.com/submit?url=https%3A%2F%2Fscottobert.com%2Fposts%2F2026%2F01%2F29%2Fcloudformation-diagram-automation%2F&title=From+CloudFormation+to+Diagrams%3A+Automating+Architecture+Documentation" target=_blank rel="noopener noreferrer" class="quick-share-button reddit" title="Share on Reddit"><svg viewBox="0 0 24 24"><path d="M12 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012 0zm5.01 4.744c.688.0 1.25.561 1.25 1.249a1.25 1.25.0 01-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968.0 1.754.786 1.754 1.754.0.716-.435 1.333-1.01 1.614a3.111 3.111.0 01.042.52c0 2.694-3.13 4.87-7.004 4.87s-7.004-2.176-7.004-4.87c0-.183.015-.366.043-.534A1.748 1.748.0 014.028 12c0-.968.786-1.754 1.754-1.754.463.0.898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342.0 01.14-.197.35.35.0 01.238-.042l2.906.617a1.214 1.214.0 011.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687.0 1.248-.561 1.248-1.249S9.937 12 9.249 12zm5.5.0c-.687.0-1.248.561-1.248 1.25.0.687.561 1.248 1.249 1.248S16 13.937 16 13.249c0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327.0 00-.231.094.33.33.0 000 .463c.842.842 2.484.913 2.961.913s2.105-.056 2.961-.913a.361.361.0 00.029-.463.33.33.0 00-.464.0c-.547.533-1.684.73-2.512.73-.828.0-1.979-.196-2.512-.73a.326.326.0 00-.232-.095z"/></svg>
+</a><a href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fscottobert.com%2Fposts%2F2026%2F01%2F29%2Fcloudformation-diagram-automation%2F&t=From+CloudFormation+to+Diagrams%3A+Automating+Architecture+Documentation" target=_blank rel="noopener noreferrer" class="quick-share-button hackernews" title="Share on Hacker News"><svg viewBox="0 0 24 24"><path d="M0 24V0h24v24H0zM6.951 5.896l4.112 7.708v5.064h1.583v-4.972l4.148-7.799h-1.749l-2.457 4.875c-.372.745-.688 1.434-.688 1.434s-.297-.708-.651-1.434L8.831 5.896h-1.88z"/></svg>
+</a><a href="https://wa.me/?text=From+CloudFormation+to+Diagrams%3A+Automating+Architecture+Documentation+https%3A%2F%2Fscottobert.com%2Fposts%2F2026%2F01%2F29%2Fcloudformation-diagram-automation%2F" target=_blank rel="noopener noreferrer" class="quick-share-button whatsapp" title="Share on WhatsApp"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198.0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479.0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87.0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86.0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64.0 5.122 1.03 6.988 2.898a9.825 9.825.0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815.0 0012.05.0C5.495.0.16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882.0 005.683 1.448h.005c6.554.0 11.89-5.335 11.893-11.893A11.821 11.821.0 0020.465 3.488"/></svg>
+</a><a href="mailto:?subject=From+CloudFormation+to+Diagrams%3A+Automating+Architecture+Documentation&body=Check+out+this+article%3A+From+CloudFormation+to+Diagrams%3A+Automating+Architecture+Documentation+-+https%3A%2F%2Fscottobert.com%2Fposts%2F2026%2F01%2F29%2Fcloudformation-diagram-automation%2F" class="quick-share-button email" title="Share via Email"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1.0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1.0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
+</a><button type=button class="quick-share-button copy-link" data-url=https://scottobert.com/posts/2026/01/29/cloudformation-diagram-automation/ title="Copy link to clipboard">
+<svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1.0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1.0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1.0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button></div></div><script>(function(){const i=document.querySelector(".quick-social-share"),e=document.getElementById("quick-share-toggle"),t=document.getElementById("quick-share-buttons");if(!i||!e||!t)return;let n=!1;e.addEventListener("click",function(){n=!n,n?(t.classList.add("visible"),e.classList.add("active")):(t.classList.remove("visible"),e.classList.remove("active"))});const a=document.querySelectorAll(".quick-share-button.copy-link");a.forEach(e=>{e.addEventListener("click",function(){const e=this.getAttribute("data-url");navigator.clipboard&&window.isSecureContext?navigator.clipboard.writeText(e).then(()=>{o(this)}).catch(()=>{s(e,this)}):s(e,this)})});function s(e,t){const n=document.createElement("textarea");n.value=e,n.style.position="fixed",n.style.left="-999999px",n.style.top="-999999px",document.body.appendChild(n),n.focus(),n.select();try{document.execCommand("copy"),o(t)}catch(e){console.error("Fallback: Unable to copy",e),r(t)}document.body.removeChild(n)}function o(e){const n=e.getAttribute("title");e.setAttribute("title","Copied!"),e.classList.add("copied");const t=document.createElement("div");t.textContent="Copied!",t.style.position="absolute",t.style.bottom="100%",t.style.left="50%",t.style.transform="translateX(-50%)",t.style.background="#28a745",t.style.color="white",t.style.padding="4px 8px",t.style.borderRadius="4px",t.style.fontSize="0.75rem",t.style.whiteSpace="nowrap",t.style.zIndex="1000",t.style.marginBottom="5px",e.style.position="relative",e.appendChild(t),setTimeout(()=>{e.setAttribute("title",n),e.classList.remove("copied"),t.parentNode&&e.removeChild(t)},2e3)}function r(e){const t=e.getAttribute("title");e.setAttribute("title","Copy failed"),e.classList.add("error"),setTimeout(()=>{e.setAttribute("title",t),e.classList.remove("error")},2e3)}})()</script></div></div><div class=post-content><p>You&rsquo;re explaining your serverless architecture to a new team member at 2 PM on a Monday. You pull up the architecture diagram from Confluence, walk them through the API Gateway, Lambda functions, DynamoDB tables, and SNS topics. They nod along, asking good questions. Then they clone the repo, open the CloudFormation template, and immediately notice: &ldquo;Wait, this diagram shows 3 Lambda functions but the template has 7. And where&rsquo;s this SQS queue in the diagram?&rdquo;</p><p>You realize the diagram is 6 months out of date. Someone added new functions, changed the event sources, and refactored the queue architecture—but nobody updated the diagram. Why would they? It takes 30 minutes to open draw.io, find the right shapes, position everything, export it, and upload to Confluence. And next week, it&rsquo;ll be wrong again.</p><p><strong>The core tension:</strong> Architecture diagrams are essential for understanding systems, but maintaining them manually is unsustainable. Every code change makes them more outdated. Teams face a choice: spend hours maintaining diagrams, or abandon them entirely and force everyone to read raw CloudFormation YAML.</p><p><strong>The promise:</strong> There&rsquo;s a better way. What if your architecture diagrams were generated automatically from your CloudFormation templates? Updated on every commit. Always accurate. Multiple formats for different audiences. No manual maintenance required.</p><h2 id=the-documentation-debt-problem>The Documentation Debt Problem</h2><h3 id=the-manual-diagram-trap>The Manual Diagram Trap</h3><p>Most teams create beautiful architecture diagrams during initial design reviews or architecture planning sessions. Someone spends hours in Lucidchart, draw.io, or Visio, carefully arranging AWS service icons, drawing connection arrows, and labeling everything perfectly. The diagram gets uploaded to Confluence, shared in Slack, and presented to stakeholders.</p><p>Fast forward three months. The team has:</p><ul><li>Added two new Lambda functions for async processing</li><li>Replaced the SNS topic with an SQS queue for better error handling</li><li>Introduced DynamoDB streams for change data capture</li><li>Added API Gateway authorizers</li></ul><p>But the diagram? Still shows the original three Lambda functions and the SNS topic that no longer exists. Nobody updated it because:</p><ul><li>It takes 30+ minutes to locate the original file</li><li>The person who created it left the team</li><li>Everyone&rsquo;s focused on shipping features</li><li>&ldquo;We&rsquo;ll update it later&rdquo; becomes &ldquo;We never updated it&rdquo;</li></ul><p>Eventually, the diagram becomes a historical artifact—interesting but misleading. New team members learn to ignore it.</p><h3 id=reading-raw-cloudformation-isnt-the-answer>Reading Raw CloudFormation Isn&rsquo;t the Answer</h3><p>Some teams abandon diagrams entirely and tell people to &ldquo;just read the CloudFormation template.&rdquo; For a simple stack with a dozen resources, this might work. But for a production application with 50+ resources, nested stacks, and complex dependencies, raw YAML is not documentation.</p><p>Consider this excerpt from a typical CloudFormation template:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>OrderProcessingFunction</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::Serverless::Function</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Handler</span>: <span style=color:#ae81ff>index.handler</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Runtime</span>: <span style=color:#ae81ff>nodejs18.x</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Events</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>OrderCreated</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>EventBridgRule</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Pattern</span>:
+</span></span><span style=display:flex><span>            <span style=color:#f92672>source</span>:
+</span></span><span style=display:flex><span>              - <span style=color:#ae81ff>order.service</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>detail-type</span>:
+</span></span><span style=display:flex><span>              - <span style=color:#ae81ff>OrderCreated</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>ProcessQueue</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>SQS</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Queue</span>: !<span style=color:#ae81ff>GetAtt OrderQueue.Arn</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Environment</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Variables</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>TABLE_NAME</span>: !<span style=color:#ae81ff>Ref OrdersTable</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>NOTIFICATION_TOPIC</span>: !<span style=color:#ae81ff>Ref NotificationTopic</span>
+</span></span></code></pre></div><p>A diagram would instantly show that this Lambda function:</p><ul><li>Responds to EventBridge events</li><li>Processes SQS messages</li><li>Reads/writes to DynamoDB</li><li>Publishes to SNS</li></ul><p>But from the YAML alone? You have to trace references, understand intrinsic functions, and mentally construct the architecture.</p><h3 id=the-hidden-costs>The Hidden Costs</h3><p>Documentation debt accumulates interest:</p><p><strong>Onboarding time increases:</strong> New team members spend days understanding the architecture instead of hours. They interrupt senior engineers with questions that a diagram would answer.</p><p><strong>Architecture decisions poorly communicated:</strong> Without visual representation, it&rsquo;s hard to see patterns, identify bottlenecks, or discuss alternatives during design reviews.</p><p><strong>Security reviews take longer:</strong> Security teams need to understand data flow, network boundaries, and IAM relationships. Reading CloudFormation templates is tedious and error-prone.</p><p><strong>Compliance audits require manual work:</strong> Auditors want architecture diagrams. If you don&rsquo;t have current ones, someone has to create them from scratch under deadline pressure.</p><p><strong>Knowledge silos form:</strong> The architecture exists in the heads of a few senior engineers. When they leave, institutional knowledge walks out the door.</p><h2 id=infrastructure-as-diagrams-a-better-philosophy>Infrastructure as Diagrams: A Better Philosophy</h2><p>There&rsquo;s a fundamental insight that changes everything: <strong>your infrastructure code IS your architecture</strong>. The CloudFormation template, SAM template, or CDK app completely describes what exists in your AWS account. It&rsquo;s the single source of truth.</p><p>If the template is the source of truth, why are we maintaining diagrams separately? Why treat them as independent artifacts that need manual synchronization?</p><h3 id=treating-diagrams-as-build-artifacts>Treating Diagrams as Build Artifacts</h3><p>Think about other build artifacts in your development process:</p><ul><li>Source code compiles to binaries</li><li>TypeScript transpiles to JavaScript</li><li>Tests generate coverage reports</li><li>Linters produce analysis results</li></ul><p>These aren&rsquo;t manually maintained—they&rsquo;re generated from source code. The same principle applies to architecture diagrams: they should be <strong>generated from your infrastructure code</strong>, not maintained separately.</p><pre tabindex=0><code>Infrastructure Template (source)
+        ↓
+   cfn-diagram (compiler)
+        ↓
+Architecture Diagrams (artifacts)
+</code></pre><p>This shift in perspective changes everything:</p><p><strong>Single source of truth:</strong> The CloudFormation/SAM template is authoritative. Diagrams are derived views.</p><p><strong>Always accurate:</strong> Diagrams are regenerated from current code, so they can&rsquo;t drift out of sync.</p><p><strong>Zero maintenance burden:</strong> Changes to infrastructure automatically flow through to diagrams.</p><p><strong>Version controlled:</strong> Diagrams change in the same commits as the infrastructure they document.</p><p><strong>Multiple formats:</strong> Generate different views for different audiences from the same source.</p><h3 id=when-automation-makes-sense>When Automation Makes Sense</h3><p>Not every team needs automated diagram generation. Manual diagrams work fine for:</p><ul><li>Stable, rarely-changing infrastructure</li><li>Small projects with a single owner</li><li>High-level conceptual architectures</li><li>Presentation-quality diagrams requiring custom layouts</li></ul><p>But automated generation becomes essential when:</p><ul><li>Multiple developers modify infrastructure regularly</li><li>The team struggles to keep documentation current</li><li>Onboarding new team members is slow and painful</li><li>Compliance or security reviews require architecture diagrams</li><li>Stakeholders need visibility into system architecture</li></ul><p>If you&rsquo;re using CloudFormation, SAM, or CDK and making infrastructure changes more than once a month, automated diagram generation will save you significant time and frustration.</p><h2 id=enter-cfn-diagram-the-swiss-army-knife>Enter cfn-diagram: The Swiss Army Knife</h2><p><a href=https://github.com/ljacobsson/cfn-diagram>cfn-diagram</a> (maintained by @ljacobsson, formerly part of @mhlabs) is an open-source CLI tool that reads CloudFormation templates and generates architecture diagrams in multiple formats. It&rsquo;s production-ready, actively maintained, and widely used in the AWS community.</p><h3 id=what-makes-it-special>What Makes It Special</h3><p>Unlike tools that focus on a single output format, cfn-diagram is a Swiss Army knife:</p><p><strong>Multiple output formats:</strong></p><ul><li><strong>Draw.io</strong> - Editable diagrams for architects who need to refine layouts</li><li><strong>Mermaid</strong> - Markdown-embeddable diagrams that render in GitHub</li><li><strong>HTML with vis.js</strong> - Interactive diagrams for documentation sites</li><li><strong>ASCII art</strong> - Quick terminal views during development</li></ul><p><strong>Works with CloudFormation, SAM, and CDK:</strong></p><ul><li>Native CloudFormation YAML/JSON support</li><li>SAM templates work directly (SAM is CloudFormation with serverless shortcuts)</li><li>CDK apps supported by reading synthesized CloudFormation from <code>cdk.out</code></li></ul><p><strong>CI/CD ready:</strong></p><ul><li>Separate CI mode package for automated screenshot generation</li><li>Filter resource types to focus diagrams</li><li>Watch mode for live updates during development</li></ul><h3 id=installation>Installation</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>npm install -g @mhlabs/cfn-diagram
+</span></span></code></pre></div><p>That&rsquo;s it. No complex dependencies, no cloud credentials required. It&rsquo;s a local tool that reads templates and generates diagrams.</p><h3 id=why-multiple-formats-matter>Why Multiple Formats Matter</h3><p>Different stakeholders need different diagram formats:</p><p><strong>Architects</strong> want editable diagrams they can refine and customize. They need draw.io format to adjust layouts, add annotations, or prepare presentation-quality visuals.</p><p><strong>Developers</strong> want diagrams visible in GitHub pull requests and README files. They need Mermaid format that renders automatically in markdown.</p><p><strong>Product managers and stakeholders</strong> want interactive exploration. They need HTML diagrams where they can zoom, pan, and click on resources to see details.</p><p><strong>DevOps engineers</strong> want quick terminal feedback during development. They need ASCII art for rapid sanity checks without leaving the command line.</p><p>One tool, one source template, four different outputs. Generate all of them and serve different audiences without maintaining separate documentation.</p><h2 id=real-world-example-serverless-order-processing-api>Real-World Example: Serverless Order Processing API</h2><p>Let&rsquo;s walk through a realistic serverless application: an order processing API. This is the kind of architecture you&rsquo;d see in production—not a trivial &ldquo;Hello World&rdquo; but also not overly complex.</p><h3 id=the-architecture>The Architecture</h3><p>Our API handles:</p><ul><li>Creating new orders via REST API</li><li>Storing orders in DynamoDB</li><li>Processing orders asynchronously via SQS</li><li>Sending notifications via SNS</li><li>Capturing order changes with DynamoDB Streams</li></ul><p>Here&rsquo;s the SAM template:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>AWSTemplateFormatVersion</span>: <span style=color:#e6db74>&#39;2010-09-09&#39;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Transform</span>: <span style=color:#ae81ff>AWS::Serverless-2016-10-31</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Description</span>: <span style=color:#ae81ff>Order Processing API</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Globals</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>Function</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Runtime</span>: <span style=color:#ae81ff>nodejs18.x</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>MemorySize</span>: <span style=color:#ae81ff>512</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Timeout</span>: <span style=color:#ae81ff>30</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Environment</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Variables</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>ORDERS_TABLE</span>: !<span style=color:#ae81ff>Ref OrdersTable</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Resources</span>:
+</span></span><span style=display:flex><span>  <span style=color:#75715e># API Gateway</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>OrderApi</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::Serverless::Api</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>StageName</span>: <span style=color:#ae81ff>prod</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Auth</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>DefaultAuthorizer</span>: <span style=color:#ae81ff>CognitoAuthorizer</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Authorizers</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>CognitoAuthorizer</span>:
+</span></span><span style=display:flex><span>            <span style=color:#f92672>UserPoolArn</span>: !<span style=color:#ae81ff>GetAtt UserPool.Arn</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># Lambda Functions</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>CreateOrderFunction</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::Serverless::Function</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>CodeUri</span>: <span style=color:#ae81ff>src/handlers/create-order/</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Handler</span>: <span style=color:#ae81ff>index.handler</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Events</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>CreateOrder</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>Api</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>            <span style=color:#f92672>RestApiId</span>: !<span style=color:#ae81ff>Ref OrderApi</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Path</span>: <span style=color:#ae81ff>/orders</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Method</span>: <span style=color:#ae81ff>POST</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Policies</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>DynamoDBCrudPolicy</span>:
+</span></span><span style=display:flex><span>            <span style=color:#f92672>TableName</span>: !<span style=color:#ae81ff>Ref OrdersTable</span>
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>SQSSendMessagePolicy</span>:
+</span></span><span style=display:flex><span>            <span style=color:#f92672>QueueName</span>: !<span style=color:#ae81ff>GetAtt OrderQueue.QueueName</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Environment</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Variables</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>QUEUE_URL</span>: !<span style=color:#ae81ff>Ref OrderQueue</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>GetOrderFunction</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::Serverless::Function</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>CodeUri</span>: <span style=color:#ae81ff>src/handlers/get-order/</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Handler</span>: <span style=color:#ae81ff>index.handler</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Events</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>GetOrder</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>Api</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>            <span style=color:#f92672>RestApiId</span>: !<span style=color:#ae81ff>Ref OrderApi</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Path</span>: <span style=color:#ae81ff>/orders/{orderId}</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Method</span>: <span style=color:#ae81ff>GET</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Policies</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>DynamoDBReadPolicy</span>:
+</span></span><span style=display:flex><span>            <span style=color:#f92672>TableName</span>: !<span style=color:#ae81ff>Ref OrdersTable</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ProcessOrderFunction</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::Serverless::Function</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>CodeUri</span>: <span style=color:#ae81ff>src/handlers/process-order/</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Handler</span>: <span style=color:#ae81ff>index.handler</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Events</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>OrderQueue</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>SQS</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Queue</span>: !<span style=color:#ae81ff>GetAtt OrderQueue.Arn</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>BatchSize</span>: <span style=color:#ae81ff>10</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Policies</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>DynamoDBCrudPolicy</span>:
+</span></span><span style=display:flex><span>            <span style=color:#f92672>TableName</span>: !<span style=color:#ae81ff>Ref OrdersTable</span>
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>SNSPublishMessagePolicy</span>:
+</span></span><span style=display:flex><span>            <span style=color:#f92672>TopicName</span>: !<span style=color:#ae81ff>GetAtt NotificationTopic.TopicName</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Environment</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Variables</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>TOPIC_ARN</span>: !<span style=color:#ae81ff>Ref NotificationTopic</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>OrderStreamFunction</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::Serverless::Function</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>CodeUri</span>: <span style=color:#ae81ff>src/handlers/order-stream/</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Handler</span>: <span style=color:#ae81ff>index.handler</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Events</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>Stream</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>DynamoDB</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>            <span style=color:#f92672>Stream</span>: !<span style=color:#ae81ff>GetAtt OrdersTable.StreamArn</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>StartingPosition</span>: <span style=color:#ae81ff>TRIM_HORIZON</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>BatchSize</span>: <span style=color:#ae81ff>100</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Policies</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>DynamoDBStreamReadPolicy</span>:
+</span></span><span style=display:flex><span>            <span style=color:#f92672>TableName</span>: !<span style=color:#ae81ff>Ref OrdersTable</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>StreamName</span>: !<span style=color:#ae81ff>GetAtt OrdersTable.StreamArn</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># DynamoDB Table</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>OrdersTable</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::DynamoDB::Table</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>TableName</span>: <span style=color:#ae81ff>orders</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>BillingMode</span>: <span style=color:#ae81ff>PAY_PER_REQUEST</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>AttributeDefinitions</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>AttributeName</span>: <span style=color:#ae81ff>orderId</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>AttributeType</span>: <span style=color:#ae81ff>S</span>
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>AttributeName</span>: <span style=color:#ae81ff>customerId</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>AttributeType</span>: <span style=color:#ae81ff>S</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>KeySchema</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>AttributeName</span>: <span style=color:#ae81ff>orderId</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>KeyType</span>: <span style=color:#ae81ff>HASH</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>GlobalSecondaryIndexes</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>IndexName</span>: <span style=color:#ae81ff>customer-index</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>KeySchema</span>:
+</span></span><span style=display:flex><span>            - <span style=color:#f92672>AttributeName</span>: <span style=color:#ae81ff>customerId</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>KeyType</span>: <span style=color:#ae81ff>HASH</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Projection</span>:
+</span></span><span style=display:flex><span>            <span style=color:#f92672>ProjectionType</span>: <span style=color:#ae81ff>ALL</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>StreamSpecification</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>StreamViewType</span>: <span style=color:#ae81ff>NEW_AND_OLD_IMAGES</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># SQS Queue</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>OrderQueue</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::SQS::Queue</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>QueueName</span>: <span style=color:#ae81ff>order-processing-queue</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>VisibilityTimeout</span>: <span style=color:#ae81ff>180</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>RedrivePolicy</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>deadLetterTargetArn</span>: !<span style=color:#ae81ff>GetAtt OrderDLQ.Arn</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>maxReceiveCount</span>: <span style=color:#ae81ff>3</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>OrderDLQ</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::SQS::Queue</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>QueueName</span>: <span style=color:#ae81ff>order-processing-dlq</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>MessageRetentionPeriod</span>: <span style=color:#ae81ff>1209600</span>  <span style=color:#75715e># 14 days</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># SNS Topic</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>NotificationTopic</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::SNS::Topic</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>TopicName</span>: <span style=color:#ae81ff>order-notifications</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>DisplayName</span>: <span style=color:#ae81ff>Order Notifications</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># Cognito User Pool</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>UserPool</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::Cognito::UserPool</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>UserPoolName</span>: <span style=color:#ae81ff>order-api-users</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>AutoVerifiedAttributes</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#ae81ff>email</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># CloudWatch Alarms</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ProcessOrderErrorAlarm</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Type</span>: <span style=color:#ae81ff>AWS::CloudWatch::Alarm</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Properties</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>AlarmDescription</span>: <span style=color:#ae81ff>Alert on ProcessOrder errors</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>MetricName</span>: <span style=color:#ae81ff>Errors</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Namespace</span>: <span style=color:#ae81ff>AWS/Lambda</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Statistic</span>: <span style=color:#ae81ff>Sum</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Period</span>: <span style=color:#ae81ff>300</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>EvaluationPeriods</span>: <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Threshold</span>: <span style=color:#ae81ff>5</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>ComparisonOperator</span>: <span style=color:#ae81ff>GreaterThanThreshold</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>Dimensions</span>:
+</span></span><span style=display:flex><span>        - <span style=color:#f92672>Name</span>: <span style=color:#ae81ff>FunctionName</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>Ref ProcessOrderFunction</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>Outputs</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>ApiEndpoint</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>API Gateway endpoint URL</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>Sub &#39;https://${OrderApi}.execute-api.${AWS::Region}.amazonaws.com/prod&#39;</span>
+</span></span><span style=display:flex><span>  
+</span></span><span style=display:flex><span>  <span style=color:#f92672>OrdersTableName</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Description</span>: <span style=color:#ae81ff>DynamoDB table name</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>Value</span>: !<span style=color:#ae81ff>Ref OrdersTable</span>
+</span></span></code></pre></div><p>This is a realistic SAM template—not oversimplified, but not overwhelming. It has the complexity you&rsquo;d see in production: multiple Lambda functions, event sources, data stores, queues, topics, and monitoring.</p><p>Now let&rsquo;s generate diagrams from it.</p><h3 id=generating-diagrams>Generating Diagrams</h3><p>Save the template as <code>template.yaml</code> and let&rsquo;s see what cfn-diagram can do.</p><h4 id=drawio-for-architecture-reviews>Draw.io for Architecture Reviews</h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>cfn-dia draw.io -t template.yaml -o architecture.drawio
+</span></span></code></pre></div><p>This generates an editable draw.io diagram. Open it in VS Code with the <a href="https://marketplace.visualstudio.com/items?itemName=hediet.vscode-drawio">Draw.io Integration extension</a>:</p><p>The diagram shows:</p><ul><li>API Gateway connected to CreateOrder and GetOrder functions</li><li>CreateOrderFunction writing to DynamoDB and enqueueing to SQS</li><li>ProcessOrderFunction reading from SQS and publishing to SNS</li><li>OrderStreamFunction triggered by DynamoDB Streams</li><li>Cognito User Pool authorizing the API</li><li>CloudWatch Alarm monitoring ProcessOrderFunction</li></ul><p><strong>Use cases:</strong></p><ul><li>Architecture review meetings (open and discuss)</li><li>Refining layout for presentations (draw.io is editable)</li><li>Adding annotations and notes</li><li>Exporting to PNG/SVG for slides</li></ul><h4 id=mermaid-for-github-readme>Mermaid for GitHub README</h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>cfn-dia mermaid -t template.yaml -o docs/architecture.md
+</span></span></code></pre></div><p>This generates a Mermaid diagram that renders automatically in GitHub:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-markdown data-lang=markdown><span style=display:flex><span><span style=color:#e6db74>```mermaid
+</span></span></span><span style=display:flex><span>graph TD
+</span></span><span style=display:flex><span>    OrderApi[API Gateway: OrderApi]
+</span></span><span style=display:flex><span>    CreateOrderFunction[Lambda: CreateOrderFunction]
+</span></span><span style=display:flex><span>    GetOrderFunction[Lambda: GetOrderFunction]
+</span></span><span style=display:flex><span>    ProcessOrderFunction[Lambda: ProcessOrderFunction]
+</span></span><span style=display:flex><span>    OrderStreamFunction[Lambda: OrderStreamFunction]
+</span></span><span style=display:flex><span>    OrdersTable[DynamoDB: OrdersTable]
+</span></span><span style=display:flex><span>    OrderQueue[SQS: OrderQueue]
+</span></span><span style=display:flex><span>    OrderDLQ[SQS: OrderDLQ]
+</span></span><span style=display:flex><span>    NotificationTopic[SNS: NotificationTopic]
+</span></span><span style=display:flex><span>    UserPool[Cognito: UserPool]
+</span></span><span style=display:flex><span>    ProcessOrderErrorAlarm[CloudWatch: ProcessOrderErrorAlarm]
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    OrderApi --&gt;|POST /orders| CreateOrderFunction
+</span></span><span style=display:flex><span>    OrderApi --&gt;|GET /orders/{id}| GetOrderFunction
+</span></span><span style=display:flex><span>    CreateOrderFunction --&gt;|Write| OrdersTable
+</span></span><span style=display:flex><span>    CreateOrderFunction --&gt;|Enqueue| OrderQueue
+</span></span><span style=display:flex><span>    GetOrderFunction --&gt;|Read| OrdersTable
+</span></span><span style=display:flex><span>    OrderQueue --&gt;|Trigger| ProcessOrderFunction
+</span></span><span style=display:flex><span>    ProcessOrderFunction --&gt;|Update| OrdersTable
+</span></span><span style=display:flex><span>    ProcessOrderFunction --&gt;|Publish| NotificationTopic
+</span></span><span style=display:flex><span>    OrdersTable --&gt;|Stream| OrderStreamFunction
+</span></span><span style=display:flex><span>    OrderQueue --&gt;|DLQ| OrderDLQ
+</span></span><span style=display:flex><span>    UserPool --&gt;|Authorize| OrderApi
+</span></span><span style=display:flex><span>    ProcessOrderErrorAlarm --&gt;|Monitor| ProcessOrderFunction
+</span></span><span style=display:flex><span><span style=color:#e6db74>```</span>
+</span></span></code></pre></div><p><strong>Use cases:</strong></p><ul><li>README.md architecture section</li><li>Pull request descriptions showing changes</li><li>Architecture Decision Records (ADRs)</li><li>Wiki/documentation pages</li></ul><p>The beauty of Mermaid is that it&rsquo;s just text in your markdown. GitHub, GitLab, and many documentation tools render it automatically. No image uploads, no broken links.</p><h4 id=html-for-interactive-documentation>HTML for Interactive Documentation</h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>cfn-dia html -t template.yaml -o docs/
+</span></span></code></pre></div><p>This generates an HTML file with an interactive vis.js diagram. Open <code>docs/index.html</code> in a browser and you get:</p><ul><li>Zoom and pan controls</li><li>Click nodes to see resource details</li><li>Drag to rearrange layout</li><li>Filter by resource type</li><li>Physics-based automatic layout</li></ul><p><strong>Use cases:</strong></p><ul><li>Documentation sites (GitHub Pages, S3 + CloudFront)</li><li>Internal wiki with iframe embeds</li><li>Stakeholder presentations (interactive exploration)</li><li>Architecture workshops (live discussion tool)</li></ul><p>Host it on GitHub Pages:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># In your repo</span>
+</span></span><span style=display:flex><span>mkdir -p docs
+</span></span><span style=display:flex><span>cfn-dia html -t template.yaml -o docs/
+</span></span><span style=display:flex><span>git add docs/
+</span></span><span style=display:flex><span>git commit -m <span style=color:#e6db74>&#34;Add interactive architecture diagram&#34;</span>
+</span></span><span style=display:flex><span>git push
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># Enable GitHub Pages in repo settings pointing to /docs</span>
+</span></span></code></pre></div><p>Now your architecture diagram is accessible at <code>https://&lt;username>.github.io/&lt;repo>/</code>.</p><h4 id=ascii-art-for-quick-checks>ASCII Art for Quick Checks</h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>cfn-dia ascii-art -t template.yaml
+</span></span></code></pre></div><p>Output:</p><pre tabindex=0><code>┌──────────────────┐
+│  OrderApi (API)  │
+└────────┬─────────┘
+         │
+    ┌────┴─────┬──────────────┐
+    │          │              │
+┌───▼────┐  ┌──▼─────┐  ┌────▼────────┐
+│ Create │  │  Get   │  │  UserPool   │
+│ Order  │  │ Order  │  │  (Cognito)  │
+└───┬────┘  └──┬─────┘  └─────────────┘
+    │          │
+    │      ┌───▼──────────┐
+    │      │  OrdersTable │
+    │      │  (DynamoDB)  │◄────┐
+    │      └──────┬───────┘     │
+    │             │ Stream      │
+    │      ┌──────▼───────┐     │
+    │      │ OrderStream  │     │
+    │      │   Function   │     │
+    │      └──────────────┘     │
+    │                           │
+┌───▼──────┐              ┌────┴────┐
+│OrderQueue│              │ Process │
+│  (SQS)   │─────────────►│  Order  │
+└──────────┘              │Function │
+                          └────┬────┘
+                               │
+                          ┌────▼──────────┐
+                          │ Notification  │
+                          │Topic (SNS)    │
+                          └───────────────┘
+</code></pre><p><strong>Use cases:</strong></p><ul><li>Quick sanity checks during development</li><li>Terminal-based code reviews</li><li>Remote SSH sessions without GUI</li><li>Understanding structure before detailed work</li></ul><p>Watch mode is particularly useful:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>cfn-dia ascii-art -t template.yaml --watch
+</span></span></code></pre></div><p>Now every time you save <code>template.yaml</code>, the diagram regenerates instantly. Perfect for rapid iteration.</p><h3 id=filtering-and-customization>Filtering and Customization</h3><p>Real stacks often include dozens of IAM roles, policies, and log groups that clutter diagrams without adding insight. Filter them out:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># Exclude IAM resources to focus on architecture</span>
+</span></span><span style=display:flex><span>cfn-dia draw.io -t template.yaml <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>  -e AWS::IAM::Role <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>     AWS::IAM::Policy <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>     AWS::Logs::LogGroup
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># For multi-stack CDK apps, select specific stacks</span>
+</span></span><span style=display:flex><span>cfn-dia html -t cdk.json --stacks ApiStack,DataStack
+</span></span></code></pre></div><p>This is crucial for large CloudFormation templates. A production stack might have:</p><ul><li>10 Lambda functions</li><li>30 IAM roles (one per function, plus execution roles)</li><li>10 CloudWatch log groups</li><li>5 IAM policies</li></ul><p>That&rsquo;s 55 resources, but only 15 are architecturally interesting. Filtering lets you generate focused diagrams.</p><h2 id=automating-with-github-actions>Automating with GitHub Actions</h2><p>Manual diagram generation is better than manual diagram maintenance, but we can go further: <strong>fully automated diagram updates on every commit</strong>.</p><h3 id=the-workflow-goals>The Workflow Goals</h3><p>Here&rsquo;s what we want:</p><ol><li>Generate diagrams automatically on every push to <code>main</code></li><li>Update diagrams in pull requests so reviewers see changes</li><li>Commit updated diagrams back to the repository</li><li>Optionally: fail CI if diagrams are out of sync (strict mode)</li></ol><h3 id=github-actions-workflow>GitHub Actions Workflow</h3><p>Create <code>.github/workflows/update-diagrams.yml</code>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>name</span>: <span style=color:#ae81ff>Update Architecture Diagrams</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>on</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>push</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>branches</span>:
+</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>main</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>paths</span>:
+</span></span><span style=display:flex><span>      - <span style=color:#e6db74>&#39;template.yaml&#39;</span>
+</span></span><span style=display:flex><span>      - <span style=color:#e6db74>&#39;src/**&#39;</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>pull_request</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>paths</span>:
+</span></span><span style=display:flex><span>      - <span style=color:#e6db74>&#39;template.yaml&#39;</span>
+</span></span><span style=display:flex><span>      - <span style=color:#e6db74>&#39;src/**&#39;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>jobs</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>generate-diagrams</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>runs-on</span>: <span style=color:#ae81ff>ubuntu-latest</span>
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#f92672>steps</span>:
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Checkout code</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>uses</span>: <span style=color:#ae81ff>actions/checkout@v3</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>with</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>token</span>: <span style=color:#ae81ff>${{ secrets.GITHUB_TOKEN }}</span>
+</span></span><span style=display:flex><span>          
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Setup Node.js</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>uses</span>: <span style=color:#ae81ff>actions/setup-node@v3</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>with</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>node-version</span>: <span style=color:#e6db74>&#39;18&#39;</span>
+</span></span><span style=display:flex><span>          
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Install cfn-diagram</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>run</span>: <span style=color:#ae81ff>npm install -g @mhlabs/cfn-diagram</span>
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Generate Draw.io diagram</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>run</span>: <span style=color:#ae81ff>cfn-dia draw.io -t template.yaml -o docs/architecture.drawio -c</span>
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Generate Mermaid diagram</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>run</span>: |<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          mkdir -p docs
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          cfn-dia mermaid -t template.yaml -o docs/architecture.md
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          </span>
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Generate HTML diagram</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>run</span>: <span style=color:#ae81ff>cfn-dia html -t template.yaml -o docs/ -c</span>
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Check for changes</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>id</span>: <span style=color:#ae81ff>check_changes</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>run</span>: |<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          if git diff --quiet docs/; then
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>            echo &#34;changed=false&#34; &gt;&gt; $GITHUB_OUTPUT
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          else
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>            echo &#34;changed=true&#34; &gt;&gt; $GITHUB_OUTPUT
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          fi
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          </span>
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Commit updated diagrams</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>if</span>: <span style=color:#ae81ff>steps.check_changes.outputs.changed == &#39;true&#39; &amp;&amp; github.event_name == &#39;push&#39;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>run</span>: |<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          git config user.name &#34;github-actions[bot]&#34;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          git config user.email &#34;github-actions[bot]@users.noreply.github.com&#34;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          git add docs/
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          git commit -m &#34;docs: update architecture diagrams [skip ci]&#34;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          git push
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          </span>
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Comment on PR with diagram</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>if</span>: <span style=color:#ae81ff>steps.check_changes.outputs.changed == &#39;true&#39; &amp;&amp; github.event_name == &#39;pull_request&#39;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>uses</span>: <span style=color:#ae81ff>actions/github-script@v6</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>with</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>script</span>: |<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>            const fs = require(&#39;fs&#39;);
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>            const diagram = fs.readFileSync(&#39;docs/architecture.md&#39;, &#39;utf8&#39;);
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>            
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>            github.rest.issues.createComment({
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>              issue_number: context.issue.number,
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>              owner: context.repo.owner,
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>              repo: context.repo.repo,
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>              body: `## Updated Architecture Diagram\n\n${diagram}`
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>            });</span>
+</span></span></code></pre></div><h3 id=workflow-breakdown>Workflow Breakdown</h3><p>Let&rsquo;s understand what this workflow does:</p><p><strong>Triggers:</strong></p><ul><li>Runs on pushes to <code>main</code> when <code>template.yaml</code> or source code changes</li><li>Runs on pull requests that modify infrastructure</li><li>The <code>paths</code> filter prevents unnecessary runs when only docs change</li></ul><p><strong>Diagram Generation:</strong></p><ul><li>Installs cfn-diagram via npm</li><li>Generates draw.io, Mermaid, and HTML formats</li><li>The <code>-c</code> flag enables CI mode (non-interactive)</li><li>Outputs go to <code>docs/</code> directory</li></ul><p><strong>Commit Strategy:</strong></p><ul><li>Checks if diagrams actually changed (avoids empty commits)</li><li>On <code>main</code>: commits and pushes updated diagrams</li><li><code>[skip ci]</code> in commit message prevents infinite loops</li><li>On PRs: comments with the updated Mermaid diagram</li></ul><p><strong>PR Comments:</strong>
+The PR comment feature is powerful. When someone opens a PR that changes infrastructure, the bot automatically posts the updated architecture diagram in the PR comments. Reviewers can see how the architecture changes without running cfn-diagram locally.</p><h3 id=advanced-multi-stack-cdk-projects>Advanced: Multi-Stack CDK Projects</h3><p>For CDK projects with multiple stacks:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-yaml data-lang=yaml><span style=display:flex><span>- <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Synthesize CDK app</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>run</span>: |<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    npm ci
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    npm run build
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    npx cdk synth
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    </span>
+</span></span><span style=display:flex><span>- <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Generate diagrams for each stack</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>run</span>: |<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    for stack in ApiStack DataStack AuthStack; do
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>      cfn-dia draw.io \
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>        --cdk-output cdk.out \
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>        --stacks $stack \
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>        -o docs/${stack}.drawio \
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>        -c
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    done</span>
+</span></span></code></pre></div><p>This generates separate diagrams for each stack, making large applications easier to understand.</p><h3 id=advanced-diagram-validation-strict-mode>Advanced: Diagram Validation (Strict Mode)</h3><p>Want to enforce that developers update diagrams? Add validation:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-yaml data-lang=yaml><span style=display:flex><span>- <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Validate diagrams are current</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>run</span>: |<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    cfn-dia draw.io -t template.yaml -o temp.drawio -c
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    if ! diff -q temp.drawio docs/architecture.drawio; then
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>      echo &#34;❌ Diagrams are out of date. Run &#39;cfn-dia draw.io -t template.yaml&#39; and commit.&#34;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>      exit 1
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    fi</span>
+</span></span></code></pre></div><p>This fails the CI build if someone modifies infrastructure without regenerating diagrams. Strict mode is controversial—some teams love it, others find it annoying. Start without it and add if needed.</p><h2 id=real-world-patterns-and-best-practices>Real-World Patterns and Best Practices</h2><h3 id=documentation-site-integration>Documentation Site Integration</h3><p>A polished approach: generate HTML diagrams and deploy them alongside your documentation.</p><p><strong>Structure:</strong></p><pre tabindex=0><code>/
+├── template.yaml
+├── docs/
+│   ├── index.md
+│   ├── architecture/
+│   │   ├── overview.md
+│   │   ├── diagram.html          # Interactive diagram
+│   │   ├── diagram.drawio        # Editable source
+│   │   └── diagram.md            # Mermaid for markdown
+│   └── api/
+│       └── ...
+└── .github/
+    └── workflows/
+        └── update-diagrams.yml
+</code></pre><p><strong>In <code>docs/architecture/overview.md</code>:</strong></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-markdown data-lang=markdown><span style=display:flex><span># Architecture Overview
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Our order processing system uses a serverless architecture on AWS...
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>## Interactive Diagram
+</span></span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>&lt;iframe src=&#34;../diagram.html&#34; width=&#34;100%&#34; height=&#34;600px&#34; frameborder=&#34;0&#34;&gt;&lt;/iframe&gt;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>## Static View
+</span></span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>For a static view, see the [<span style=color:#f92672>diagram source</span>](<span style=color:#a6e22e>diagram.md</span>).
+</span></span></code></pre></div><p>Deploy to GitHub Pages, S3 + CloudFront, or your documentation platform. The interactive diagram becomes part of your living documentation.</p><h3 id=confluencewiki-sync-pattern>Confluence/Wiki Sync Pattern</h3><p>Extend this with Confluence synchronization (building on <a href=/posts/github-actions-plantuml-confluence-sync/>my earlier PlantUML/Confluence post</a>):</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-yaml data-lang=yaml><span style=display:flex><span>- <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Generate PNG for Confluence</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>run</span>: |<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    npm install -g @mhlabs/cfn-diagram-ci
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    cfn-dia-ci html -t template.yaml
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    # Generates screenshot as PNG
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    </span>
+</span></span><span style=display:flex><span>- <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Update Confluence page</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>run</span>: |<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    # Use Confluence API to update page
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    # Attach the PNG diagram
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    # Update page content with metadata</span>
+</span></span></code></pre></div><p>This keeps your Confluence architecture pages synchronized with reality. When infrastructure changes, Confluence updates automatically.</p><h3 id=multiple-audiences-strategy>Multiple Audiences Strategy</h3><p>Serve different audiences with different formats:</p><pre tabindex=0><code>/docs
+  /architecture
+    README.md                    # Links to all versions
+    diagram.drawio               # For architects (editable)
+    diagram.md                   # For developers (GitHub-rendered Mermaid)
+    diagram.html                 # For stakeholders (interactive)
+    api-only.drawio              # Filtered view: just API layer
+    data-flow.drawio             # Filtered view: just data stores
+</code></pre><p><strong>README.md:</strong></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-markdown data-lang=markdown><span style=display:flex><span># Architecture Documentation
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>## For Developers
+</span></span></span><span style=display:flex><span>The [<span style=color:#f92672>Mermaid diagram</span>](<span style=color:#a6e22e>diagram.md</span>) renders directly in GitHub.
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>## For Architects
+</span></span></span><span style=display:flex><span>Download [<span style=color:#f92672>diagram.drawio</span>](<span style=color:#a6e22e>diagram.drawio</span>) and open in draw.io or VS Code.
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>## For Stakeholders
+</span></span></span><span style=display:flex><span>View the [<span style=color:#f92672>interactive diagram</span>](<span style=color:#a6e22e>https://yourteam.github.io/project/architecture/diagram.html</span>).
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>## Focused Views
+</span></span></span><span style=display:flex><span><span style=color:#66d9ef>-</span> [<span style=color:#f92672>API Layer</span>](<span style=color:#a6e22e>api-only.drawio</span>) - Just API Gateway and Lambda functions
+</span></span><span style=display:flex><span><span style=color:#66d9ef>-</span> [<span style=color:#f92672>Data Flow</span>](<span style=color:#a6e22e>data-flow.drawio</span>) - Data stores and processing pipelines
+</span></span></code></pre></div><p>Generate focused views with filtering:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># API layer only</span>
+</span></span><span style=display:flex><span>cfn-dia draw.io -t template.yaml -o docs/api-only.drawio <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>  -e AWS::DynamoDB::Table AWS::SQS::Queue AWS::SNS::Topic
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># Data layer only</span>
+</span></span><span style=display:flex><span>cfn-dia draw.io -t template.yaml -o docs/data-flow.drawio <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>  -e AWS::ApiGateway::RestApi AWS::Lambda::Function AWS::Cognito::UserPool
+</span></span></code></pre></div><h3 id=sam-vs-cloudformation-vs-cdk>SAM vs CloudFormation vs CDK</h3><p>The great news: cfn-diagram works with all three.</p><p><strong>SAM templates work directly:</strong></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>cfn-dia draw.io -t template.yaml
+</span></span></code></pre></div><p>SAM templates are CloudFormation templates with the <code>AWS::Serverless::*</code> resource types. cfn-diagram understands them natively.</p><p><strong>Pure CloudFormation works out of the box:</strong></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>cfn-dia draw.io -t stack-template.json
+</span></span></code></pre></div><p><strong>CDK requires synthesis first:</strong></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>cdk synth
+</span></span><span style=display:flex><span>cfn-dia draw.io --cdk-output cdk.out
+</span></span></code></pre></div><p>CDK generates CloudFormation templates in <code>cdk.out/</code>. cfn-diagram reads those synthesized templates. The <code>-s</code> flag skips synthesis if you&rsquo;ve already run it:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>cfn-dia draw.io --cdk-output cdk.out --skip-synth
+</span></span></code></pre></div><p><strong>The beauty:</strong> Same tool, same workflow, regardless of whether you&rsquo;re using SAM, CloudFormation, or CDK. Your choice of infrastructure-as-code tool doesn&rsquo;t lock you into a specific diagramming solution.</p><h3 id=handling-large-stacks>Handling Large Stacks</h3><p>Production stacks can be massive. A real-world application might have:</p><ul><li>20+ Lambda functions</li><li>Multiple API Gateways</li><li>Dozens of DynamoDB tables and indexes</li><li>Step Functions state machines</li><li>EventBridge rules</li><li>SQS queues and SNS topics</li><li>Hundreds of IAM roles and policies</li></ul><p>Trying to diagram everything at once creates an incomprehensible mess. Instead, generate multiple focused views:</p><p><strong>By layer:</strong></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># API layer</span>
+</span></span><span style=display:flex><span>cfn-dia draw.io -t template.yaml -o docs/api-layer.drawio <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>  --include-types AWS::ApiGateway::* AWS::Lambda::Function AWS::Cognito::*
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># Data layer</span>
+</span></span><span style=display:flex><span>cfn-dia draw.io -t template.yaml -o docs/data-layer.drawio <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>  --include-types AWS::DynamoDB::* AWS::S3::* AWS::RDS::*
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># Processing layer</span>
+</span></span><span style=display:flex><span>cfn-dia draw.io -t template.yaml -o docs/processing.drawio <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>  --include-types AWS::Lambda::Function AWS::SQS::* AWS::SNS::* AWS::StepFunctions::*
+</span></span></code></pre></div><p><strong>By domain:</strong>
+For multi-stack applications, diagram each stack separately:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>cfn-dia draw.io --stacks OrderProcessingStack -o docs/orders.drawio
+</span></span><span style=display:flex><span>cfn-dia draw.io --stacks PaymentStack -o docs/payments.drawio
+</span></span><span style=display:flex><span>cfn-dia draw.io --stacks NotificationStack -o docs/notifications.drawio
+</span></span></code></pre></div><p><strong>Exclude infrastructure clutter:</strong></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>cfn-dia draw.io -t template.yaml -o docs/simplified.drawio <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>  -e AWS::IAM::Role <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>     AWS::IAM::Policy <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>     AWS::IAM::ManagedPolicy <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>     AWS::Logs::LogGroup <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>     AWS::CloudWatch::Alarm
+</span></span></code></pre></div><p>This removes IAM, logging, and monitoring resources that, while important, distract from the core architecture.</p><h3 id=version-control-considerations>Version Control Considerations</h3><p>Should you commit generated diagrams to git? It depends on the format:</p><p><strong>Definitely commit:</strong></p><ul><li><strong>draw.io files</strong> - These are editable artifacts. Someone might make manual refinements.</li><li><strong>Mermaid markdown</strong> - Small text files that render in GitHub. Essential for README visibility.</li></ul><p><strong>Maybe commit:</strong></p><ul><li><strong>HTML files</strong> - Can be large (include vis.js library). Consider hosting separately or building on-demand.</li></ul><p><strong>Don&rsquo;t commit:</strong></p><ul><li><strong>ASCII art output</strong> - Temporary, terminal-only views.</li><li><strong>PNG screenshots</strong> - Binary files that bloat repo size. Generate in CI/CD instead.</li></ul><p><strong>Recommended <code>.gitignore</code>:</strong></p><pre tabindex=0><code class=language-gitignore data-lang=gitignore># Exclude temporary diagram artifacts
+docs/temp*.drawio
+docs/*.html
+
+# But do commit the source diagrams
+!docs/architecture.drawio
+!docs/architecture.md
+</code></pre><p><strong>When to regenerate vs edit manually:</strong></p><p>Generate initially, edit for presentation:</p><ol><li>Run <code>cfn-dia draw.io -t template.yaml</code></li><li>Open in draw.io and refine layout</li><li>Add annotations, adjust positioning</li><li>Save the customized version</li><li>Regenerate periodically when structure changes significantly</li></ol><p>Think of it like compiled code: you can patch the binary, but eventually you need to recompile from source.</p><h2 id=beyond-basic-diagrams-advanced-use-cases>Beyond Basic Diagrams: Advanced Use Cases</h2><h3 id=security-review-automation>Security Review Automation</h3><p>Generate diagrams highlighting security boundaries:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># Focus on security-relevant resources</span>
+</span></span><span style=display:flex><span>cfn-dia draw.io -t template.yaml -o docs/security-review.drawio <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>  --include-types AWS::IAM::* <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>                  AWS::Cognito::* <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>                  AWS::ApiGateway::* <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>                  AWS::EC2::SecurityGroup <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>                  AWS::EC2::VPC <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>                  AWS::KMS::*
+</span></span></code></pre></div><p>This creates a diagram showing:</p><ul><li>IAM roles and policies</li><li>Cognito authentication flows</li><li>API Gateway authorization</li><li>VPC security groups</li><li>KMS encryption keys</li></ul><p>Perfect for security reviews or compliance audits. Include it in your security documentation and regenerate whenever infrastructure changes.</p><h3 id=compliance-documentation>Compliance Documentation</h3><p>Auditors love diagrams. Generate them automatically for SOC2, ISO 27001, or HIPAA compliance:</p><p><strong>Create a compliance-focused workflow:</strong></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>name</span>: <span style=color:#ae81ff>Generate Compliance Diagrams</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>on</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>release</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>types</span>: [<span style=color:#ae81ff>published]</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>jobs</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>compliance-docs</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>runs-on</span>: <span style=color:#ae81ff>ubuntu-latest</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>steps</span>:
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>uses</span>: <span style=color:#ae81ff>actions/checkout@v3</span>
+</span></span><span style=display:flex><span>      
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Install cfn-diagram</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>run</span>: <span style=color:#ae81ff>npm install -g @mhlabs/cfn-diagram @mhlabs/cfn-diagram-ci</span>
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Generate data flow diagram</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>run</span>: <span style=color:#ae81ff>cfn-dia-ci html -t template.yaml</span>
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Archive for audit</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>run</span>: |<span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          mkdir -p compliance-artifacts
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          cp docs/*.png compliance-artifacts/
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          echo &#34;Generated: $(date)&#34; &gt; compliance-artifacts/metadata.txt
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          echo &#34;Template SHA: $(sha256sum template.yaml)&#34; &gt;&gt; compliance-artifacts/metadata.txt
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>          </span>
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>Upload artifact</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>uses</span>: <span style=color:#ae81ff>actions/upload-artifact@v3</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>with</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>name</span>: <span style=color:#ae81ff>compliance-diagrams-${{ github.ref_name }}</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>path</span>: <span style=color:#ae81ff>compliance-artifacts/</span>
+</span></span></code></pre></div><p>This generates timestamped, version-controlled architecture diagrams for every release. When auditors ask &ldquo;show me your architecture as of Q3 2025,&rdquo; you have artifacts ready.</p><h3 id=onboarding-artifacts>Onboarding Artifacts</h3><p>Include generated diagrams in onboarding documentation:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-markdown data-lang=markdown><span style=display:flex><span># Onboarding: Order Processing Service
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>## Architecture Overview
+</span></span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Our service uses AWS serverless technologies:
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>[<span style=color:#f92672>View Interactive Diagram</span>](<span style=color:#a6e22e>https://yourteam.github.io/orders-service/architecture/</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>## Key Components
+</span></span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>The diagram shows:
+</span></span><span style=display:flex><span><span style=color:#66d9ef>-</span> **API Gateway**: REST API for order creation and retrieval
+</span></span><span style=display:flex><span><span style=color:#66d9ef>-</span> **Lambda Functions**: Business logic (create, get, process, stream)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>-</span> **DynamoDB**: Order persistence with streams enabled
+</span></span><span style=display:flex><span><span style=color:#66d9ef>-</span> **SQS**: Async processing queue with DLQ
+</span></span><span style=display:flex><span><span style=color:#66d9ef>-</span> **SNS**: Order notification delivery
+</span></span><span style=display:flex><span><span style=color:#66d9ef>-</span> **Cognito**: User authentication and authorization
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>For detailed component documentation, see...
+</span></span></code></pre></div><p>New hires get an accurate, current architecture diagram on day one. No &ldquo;oh, that&rsquo;s outdated, let me explain the real architecture&rdquo; conversations.</p><h2 id=limitations-and-trade-offs>Limitations and Trade-offs</h2><h3 id=what-cfn-diagram-does-well>What cfn-diagram Does Well</h3><ul><li><strong>Standard AWS resources</strong> - Excellent support for common services</li><li><strong>Resource relationships</strong> - Correctly identifies connections via <code>!Ref</code>, <code>!GetAtt</code>, event sources</li><li><strong>Multiple outputs</strong> - Draw.io, Mermaid, HTML, ASCII all work great</li><li><strong>CloudFormation, SAM, CDK</strong> - Broad compatibility</li></ul><h3 id=current-limitations>Current Limitations</h3><p><strong>Some AWS icons may be missing:</strong> Newer services might lack official AWS icons. The tool uses text labels instead, which is functional but less polished.</p><p><strong>Very large stacks can be cluttered:</strong> A 200-resource stack produces an overwhelming diagram. Solution: use filtering and generate multiple focused views.</p><p><strong>Complex nested stacks require filtering:</strong> Deeply nested CloudFormation stacks can produce recursive diagrams. Solution: target specific stacks with <code>--stacks</code> flag.</p><p><strong>Layout algorithms are automatic:</strong> You can&rsquo;t specify exact positioning (except by editing draw.io output manually). Solution: let the tool generate, then refine in draw.io.</p><h3 id=when-manual-diagrams-still-make-sense>When Manual Diagrams Still Make Sense</h3><p>Automated diagrams excel at <strong>technical accuracy</strong> but sometimes you need <strong>conceptual clarity</strong>:</p><p><strong>High-level system architecture:</strong> When showing how multiple services interact across AWS accounts, or how your system connects to third-party APIs, manual diagrams work better.</p><p><strong>Business process flows:</strong> Diagrams showing business logic, user journeys, or data lifecycle need human judgment about what to include and emphasize.</p><p><strong>Presentation-quality visuals:</strong> Conference talks and executive presentations often need custom layouts, specific color schemes, and carefully crafted visual hierarchy.</p><p><strong>Cross-system architectures:</strong> When diagramming multiple microservices, external integrations, and hybrid cloud setups, manual diagrams provide necessary abstraction.</p><h3 id=the-hybrid-approach>The Hybrid Approach</h3><p>The best strategy: <strong>generate for accuracy, edit for communication</strong>.</p><ol><li><strong>Generate baseline:</strong> Run cfn-diagram to get accurate resource relationships</li><li><strong>Edit in draw.io:</strong> Open the generated <code>.drawio</code> file and refine:<ul><li>Adjust layout for visual appeal</li><li>Add swim lanes or grouping boxes</li><li>Include annotations and notes</li><li>Customize colors and styles</li></ul></li><li><strong>Save customized version:</strong> Commit the edited diagram</li><li><strong>Regenerate periodically:</strong> When infrastructure changes significantly, regenerate and reapply customizations</li></ol><p>Think of it like code formatting: the tool gets you 90% there, you refine the last 10% for readability.</p><h2 id=getting-started-checklist>Getting Started Checklist</h2><p>Ready to implement automated diagram generation? Here&rsquo;s your action plan:</p><h3 id=prerequisites>Prerequisites</h3><ul><li><strong>Node.js and npm</strong> - Already installed if you&rsquo;re doing any JavaScript/TypeScript development</li><li><strong>CloudFormation or SAM template</strong> - Your existing infrastructure code</li><li><strong>GitHub repository</strong> - For automated workflows (or GitLab/Bitbucket with similar CI/CD)</li></ul><h3 id=quick-start-15-minutes>Quick Start (15 minutes)</h3><p><strong>1. Install cfn-diagram</strong></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>npm install -g @mhlabs/cfn-diagram
+</span></span></code></pre></div><p><strong>2. Generate your first diagram</strong></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>cd your-project/
+</span></span><span style=display:flex><span>cfn-dia draw.io -t template.yaml -o architecture.drawio
+</span></span></code></pre></div><p><strong>3. View it</strong></p><ul><li>Install <a href="https://marketplace.visualstudio.com/items?itemName=hediet.vscode-drawio">Draw.io Integration</a> for VS Code</li><li>Open <code>architecture.drawio</code> in VS Code</li><li>See your infrastructure visualized</li></ul><p><strong>4. Try different formats</strong></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>cfn-dia mermaid -t template.yaml -o architecture.md
+</span></span><span style=display:flex><span>cfn-dia html -t template.yaml -o docs/
+</span></span><span style=display:flex><span>cfn-dia ascii-art -t template.yaml
+</span></span></code></pre></div><p><strong>5. Set up GitHub Actions</strong></p><ul><li>Copy the workflow from earlier in this post</li><li>Commit and push</li><li>Watch diagrams update automatically</li></ul><h3 id=team-adoption-strategy>Team Adoption Strategy</h3><p>Don&rsquo;t try to automate everything overnight. Roll out gradually:</p><p><strong>Week 1: Proof of concept</strong></p><ul><li>Pick one project/stack</li><li>Generate diagrams manually</li><li>Demo to team in standup or architecture meeting</li><li>Gather feedback</li></ul><p><strong>Week 2: Document the process</strong></p><ul><li>Add README section: &ldquo;Updating Architecture Diagrams&rdquo;</li><li>Include commands developers need</li><li>Explain when to regenerate</li></ul><p><strong>Week 3: Automate in CI/CD</strong></p><ul><li>Add GitHub Actions workflow</li><li>Test with a few PRs</li><li>Iterate on what formats/filters work best</li></ul><p><strong>Week 4: Expand</strong></p><ul><li>Add to other projects</li><li>Make it part of your definition of done</li><li>Update architecture review template to require diagrams</li></ul><p><strong>Month 2+: Refine</strong></p><ul><li>Create filtered views for different audiences</li><li>Integrate with documentation sites</li><li>Add compliance/audit artifact generation</li></ul><h2 id=conclusion>Conclusion</h2><p>Architecture diagrams are essential, but maintaining them manually is unsustainable. Every time your infrastructure changes, your diagrams drift further from reality. Eventually, they become historical artifacts—interesting but misleading.</p><p><strong>The solution:</strong> Stop maintaining diagrams. Generate them.</p><p>Your CloudFormation or SAM template is the source of truth. It completely describes your infrastructure. Diagrams should be derived from that source, not maintained separately. With cfn-diagram, you can:</p><ul><li>Generate accurate diagrams in seconds, not hours</li><li>Produce multiple formats for different audiences</li><li>Automate updates with every infrastructure change</li><li>Never have outdated diagrams again</li></ul><p><strong>The workflow is simple:</strong></p><ol><li>Write your infrastructure as code (you&rsquo;re already doing this)</li><li>Run cfn-diagram to generate diagrams</li><li>Commit them to your repo</li><li>Automate with GitHub Actions</li><li>Diagrams update automatically forever</li></ol><p><strong>Start today:</strong></p><ul><li>Install cfn-diagram: <code>npm install -g @mhlabs/cfn-diagram</code></li><li>Generate your first diagram: <code>cfn-dia draw.io -t template.yaml</code></li><li>Add GitHub Actions workflow from this post</li><li>Stop maintaining diagrams manually</li></ul><p>Your future self—and your team—will thank you. No more &ldquo;wait, is this diagram current?&rdquo; conversations. No more scrambling to create diagrams for architecture reviews. No more onboarding new team members with outdated documentation.</p><p>Infrastructure as Code enables Infrastructure as Diagrams. Your CloudFormation templates are the truth. Let the tooling handle the visualization.</p><hr><p><strong>Resources:</strong></p><ul><li><a href=https://github.com/ljacobsson/cfn-diagram>cfn-diagram GitHub</a></li><li><a href="https://marketplace.visualstudio.com/items?itemName=hediet.vscode-drawio">Draw.io VS Code Extension</a></li><li><a href=https://mermaid.js.org/>Mermaid Documentation</a></li><li><a href=https://github.com/scottobert/blog-examples/cfn-diagrams>Example workflow in this post&rsquo;s repo</a></li></ul><p>What&rsquo;s your experience with architecture documentation? Have you tried automated diagram generation? Share your stories in the comments below.</p></div><div class=social-share><h3 class=social-share-title>Share this post</h3><div class=social-share-buttons><a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fscottobert.com%2Fposts%2F2026%2F01%2F29%2Fcloudformation-diagram-automation%2F&text=From+CloudFormation+to+Diagrams%3A+Automating+Architecture+Documentation+-+%3Cp%3EYou%26rsquo%3Bre+explaining+your+serverless+architecture+to+a+new+team+member+at+2+PM+on+a+Monday.+You+pull+up+the+architecture+diagram+from+Confluence%2C+walk+them+%E2%80%A6%3C%2Fp%3E" target=_blank rel="noopener noreferrer" class="social-share-button twitter" title="Share on Twitter"><svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+<span>Twitter</span>
+</a><a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fscottobert.com%2Fposts%2F2026%2F01%2F29%2Fcloudformation-diagram-automation%2F" target=_blank rel="noopener noreferrer" class="social-share-button linkedin" title="Share on LinkedIn"><svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853.0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601.0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144.0-2.063-.926-2.063-2.065.0-1.138.92-2.063 2.063-2.063 1.14.0 2.064.925 2.064 2.063.0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225.0H1.771C.792.0.0.774.0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2.0 22.222.0h.003z"/></svg>
+<span>LinkedIn</span>
+</a><a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fscottobert.com%2Fposts%2F2026%2F01%2F29%2Fcloudformation-diagram-automation%2F" target=_blank rel="noopener noreferrer" class="social-share-button facebook" title="Share on Facebook"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312.0 2.686.235 2.686.235v2.953H15.83c-1.491.0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+<span>Facebook</span>
+</a><a href="https://reddit.com/submit?url=https%3A%2F%2Fscottobert.com%2Fposts%2F2026%2F01%2F29%2Fcloudformation-diagram-automation%2F&title=From+CloudFormation+to+Diagrams%3A+Automating+Architecture+Documentation" target=_blank rel="noopener noreferrer" class="social-share-button reddit" title="Share on Reddit"><svg viewBox="0 0 24 24"><path d="M12 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012 0zm5.01 4.744c.688.0 1.25.561 1.25 1.249a1.25 1.25.0 01-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968.0 1.754.786 1.754 1.754.0.716-.435 1.333-1.01 1.614a3.111 3.111.0 01.042.52c0 2.694-3.13 4.87-7.004 4.87s-7.004-2.176-7.004-4.87c0-.183.015-.366.043-.534A1.748 1.748.0 014.028 12c0-.968.786-1.754 1.754-1.754.463.0.898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342.0 01.14-.197.35.35.0 01.238-.042l2.906.617a1.214 1.214.0 011.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687.0 1.248-.561 1.248-1.249S9.937 12 9.249 12zm5.5.0c-.687.0-1.248.561-1.248 1.25.0.687.561 1.248 1.249 1.248S16 13.937 16 13.249c0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327.0 00-.231.094.33.33.0 000 .463c.842.842 2.484.913 2.961.913s2.105-.056 2.961-.913a.361.361.0 00.029-.463.33.33.0 00-.464.0c-.547.533-1.684.73-2.512.73-.828.0-1.979-.196-2.512-.73a.326.326.0 00-.232-.095z"/></svg>
+<span>Reddit</span>
+</a><a href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fscottobert.com%2Fposts%2F2026%2F01%2F29%2Fcloudformation-diagram-automation%2F&t=From+CloudFormation+to+Diagrams%3A+Automating+Architecture+Documentation" target=_blank rel="noopener noreferrer" class="social-share-button hackernews" title="Share on Hacker News"><svg viewBox="0 0 24 24"><path d="M0 24V0h24v24H0zM6.951 5.896l4.112 7.708v5.064h1.583v-4.972l4.148-7.799h-1.749l-2.457 4.875c-.372.745-.688 1.434-.688 1.434s-.297-.708-.651-1.434L8.831 5.896h-1.88z"/></svg>
+<span>Hacker News</span>
+</a><a href="https://wa.me/?text=From+CloudFormation+to+Diagrams%3A+Automating+Architecture+Documentation+https%3A%2F%2Fscottobert.com%2Fposts%2F2026%2F01%2F29%2Fcloudformation-diagram-automation%2F" target=_blank rel="noopener noreferrer" class="social-share-button whatsapp" title="Share on WhatsApp"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198.0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479.0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87.0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86.0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64.0 5.122 1.03 6.988 2.898a9.825 9.825.0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815.0 0012.05.0C5.495.0.16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882.0 005.683 1.448h.005c6.554.0 11.89-5.335 11.893-11.893A11.821 11.821.0 0020.465 3.488"/></svg>
+<span>WhatsApp</span>
+</a><a href="mailto:?subject=From+CloudFormation+to+Diagrams%3A+Automating+Architecture+Documentation&body=Check+out+this+article%3A+From+CloudFormation+to+Diagrams%3A+Automating+Architecture+Documentation+-+https%3A%2F%2Fscottobert.com%2Fposts%2F2026%2F01%2F29%2Fcloudformation-diagram-automation%2F" class="social-share-button email" title="Share via Email"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1.0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1.0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
+<span>Email</span>
+</a><button type=button class="social-share-button copy-link" data-url=https://scottobert.com/posts/2026/01/29/cloudformation-diagram-automation/ title="Copy link to clipboard">
+<svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1.0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1.0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1.0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+<span>Copy Link</span></button></div></div><script>(function(){const n=document.querySelectorAll(".copy-link");n.forEach(n=>{n.addEventListener("click",function(){const n=this.getAttribute("data-url");navigator.clipboard&&window.isSecureContext?navigator.clipboard.writeText(n).then(()=>{t(this)}).catch(()=>{e(n,this)}):e(n,this)})});function e(e,n){const o=document.createElement("textarea");o.value=e,o.style.position="fixed",o.style.left="-999999px",o.style.top="-999999px",document.body.appendChild(o),o.focus(),o.select();try{document.execCommand("copy"),t(n)}catch(e){console.error("Fallback: Unable to copy",e),s(n)}document.body.removeChild(o)}function t(e){const t=e.querySelector("span").textContent;e.querySelector("span").textContent="Copied!",e.classList.add("copied"),setTimeout(()=>{e.querySelector("span").textContent=t,e.classList.remove("copied")},2e3)}function s(e){const t=e.querySelector("span").textContent;e.querySelector("span").textContent="Error",e.classList.add("error"),setTimeout(()=>{e.querySelector("span").textContent=t,e.classList.remove("error")},2e3)}})()</script><div id=comments-section style="margin-top:2rem;padding-top:2rem;border-top:1px solid #e1e5e9"><h3 style=margin-bottom:1rem;color:#586069>Comments</h3><script src=https://giscus.app/client.js data-repo=scottobert/scottobert.github.io data-repo-id=R_kgDOHRSG6A data-category=General data-category-id=DIC_kwDOHRSG6M4CrQaA data-mapping=pathname data-strict=0 data-reactions-enabled=1 data-emit-metadata=1 data-input-position=top data-theme=light data-lang=en data-loading=lazy crossorigin=anonymous async></script></div></article><div class=floating-social-share id=floating-share><div class=floating-share-toggle id=share-toggle title="Share this post"><svg viewBox="0 0 24 24"><path d="M18 16.08c-.76.0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66.0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66.0-3 1.34-3 3s1.34 3 3 3c.79.0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65.0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg></div><div class=floating-share-buttons id=share-buttons><a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fscottobert.com%2Fposts%2F2026%2F01%2F29%2Fcloudformation-diagram-automation%2F&text=From+CloudFormation+to+Diagrams%3A+Automating+Architecture+Documentation" target=_blank rel="noopener noreferrer" class="floating-share-button twitter" title="Share on Twitter"><svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+</a><a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fscottobert.com%2Fposts%2F2026%2F01%2F29%2Fcloudformation-diagram-automation%2F" target=_blank rel="noopener noreferrer" class="floating-share-button linkedin" title="Share on LinkedIn"><svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853.0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601.0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144.0-2.063-.926-2.063-2.065.0-1.138.92-2.063 2.063-2.063 1.14.0 2.064.925 2.064 2.063.0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225.0H1.771C.792.0.0.774.0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2.0 22.222.0h.003z"/></svg>
+</a><a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fscottobert.com%2Fposts%2F2026%2F01%2F29%2Fcloudformation-diagram-automation%2F" target=_blank rel="noopener noreferrer" class="floating-share-button facebook" title="Share on Facebook"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312.0 2.686.235 2.686.235v2.953H15.83c-1.491.0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+</a><a href="https://reddit.com/submit?url=https%3A%2F%2Fscottobert.com%2Fposts%2F2026%2F01%2F29%2Fcloudformation-diagram-automation%2F&title=From+CloudFormation+to+Diagrams%3A+Automating+Architecture+Documentation" target=_blank rel="noopener noreferrer" class="floating-share-button reddit" title="Share on Reddit"><svg viewBox="0 0 24 24"><path d="M12 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012 0zm5.01 4.744c.688.0 1.25.561 1.25 1.249a1.25 1.25.0 01-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968.0 1.754.786 1.754 1.754.0.716-.435 1.333-1.01 1.614a3.111 3.111.0 01.042.52c0 2.694-3.13 4.87-7.004 4.87s-7.004-2.176-7.004-4.87c0-.183.015-.366.043-.534A1.748 1.748.0 014.028 12c0-.968.786-1.754 1.754-1.754.463.0.898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342.0 01.14-.197.35.35.0 01.238-.042l2.906.617a1.214 1.214.0 011.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687.0 1.248-.561 1.248-1.249S9.937 12 9.249 12zm5.5.0c-.687.0-1.248.561-1.248 1.25.0.687.561 1.248 1.249 1.248S16 13.937 16 13.249c0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327.0 00-.231.094.33.33.0 000 .463c.842.842 2.484.913 2.961.913s2.105-.056 2.961-.913a.361.361.0 00.029-.463.33.33.0 00-.464.0c-.547.533-1.684.73-2.512.73-.828.0-1.979-.196-2.512-.73a.326.326.0 00-.232-.095z"/></svg>
+</a><a href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fscottobert.com%2Fposts%2F2026%2F01%2F29%2Fcloudformation-diagram-automation%2F&t=From+CloudFormation+to+Diagrams%3A+Automating+Architecture+Documentation" target=_blank rel="noopener noreferrer" class="floating-share-button hackernews" title="Share on Hacker News"><svg viewBox="0 0 24 24"><path d="M0 24V0h24v24H0zM6.951 5.896l4.112 7.708v5.064h1.583v-4.972l4.148-7.799h-1.749l-2.457 4.875c-.372.745-.688 1.434-.688 1.434s-.297-.708-.651-1.434L8.831 5.896h-1.88z"/></svg>
+</a><a href="https://wa.me/?text=From+CloudFormation+to+Diagrams%3A+Automating+Architecture+Documentation+https%3A%2F%2Fscottobert.com%2Fposts%2F2026%2F01%2F29%2Fcloudformation-diagram-automation%2F" target=_blank rel="noopener noreferrer" class="floating-share-button whatsapp" title="Share on WhatsApp"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198.0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479.0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87.0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86.0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64.0 5.122 1.03 6.988 2.898a9.825 9.825.0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815.0 0012.05.0C5.495.0.16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882.0 005.683 1.448h.005c6.554.0 11.89-5.335 11.893-11.893A11.821 11.821.0 0020.465 3.488"/></svg>
+</a><a href="mailto:?subject=From+CloudFormation+to+Diagrams%3A+Automating+Architecture+Documentation&body=Check+out+this+article%3A+From+CloudFormation+to+Diagrams%3A+Automating+Architecture+Documentation+-+https%3A%2F%2Fscottobert.com%2Fposts%2F2026%2F01%2F29%2Fcloudformation-diagram-automation%2F" class="floating-share-button email" title="Share via Email"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1.0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1.0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
+</a><button type=button class="floating-share-button copy-link" data-url=https://scottobert.com/posts/2026/01/29/cloudformation-diagram-automation/ title="Copy link">
+<svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1.0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1.0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1.0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button></div></div><script>(function(){const s=document.getElementById("floating-share"),t=document.getElementById("share-toggle"),n=document.getElementById("share-buttons");if(!s||!t||!n)return;let e=!1,o;t.addEventListener("click",function(){e=!e,e?(n.classList.add("visible"),t.classList.add("active"),clearTimeout(o)):(n.classList.remove("visible"),t.classList.remove("active"))});function i(){clearTimeout(o),o=setTimeout(()=>{e&&(n.classList.remove("visible"),t.classList.remove("active"),e=!1)},5e3)}s.addEventListener("mouseenter",()=>{clearTimeout(o)}),s.addEventListener("mouseleave",()=>{e&&i()}),t.addEventListener("click",()=>{e&&i()});let l=0;const d=300;window.addEventListener("scroll",function(){const o=window.pageYOffset||document.documentElement.scrollTop;o>d?s.classList.add("visible"):(s.classList.remove("visible"),e&&(n.classList.remove("visible"),t.classList.remove("active"),e=!1)),l=o});const a=n.querySelector(".copy-link");a&&a.addEventListener("click",function(){const e=this.getAttribute("data-url");navigator.clipboard&&window.isSecureContext?navigator.clipboard.writeText(e).then(()=>{c(this)}).catch(()=>{r(e,this)}):r(e,this)});function r(e,t){const n=document.createElement("textarea");n.value=e,n.style.position="fixed",n.style.left="-999999px",n.style.top="-999999px",document.body.appendChild(n),n.focus(),n.select();try{document.execCommand("copy"),c(t)}catch(e){console.error("Fallback: Unable to copy",e)}document.body.removeChild(n)}function c(e){e.classList.add("copied"),setTimeout(()=>{e.classList.remove("copied")},2e3)}})()</script></main><aside class=blog-sidebar><div class=sidebar-widget><h3>Recent Posts</h3><ul class=recent-posts><li><a href=/posts/2026/01/29/cloudformation-diagram-automation/>From CloudFormation to Diagrams: Automating Architecture Documentation</a>
+<span class=post-date>Jan 29, 2026</span></li><li><a href=/posts/2025/08/20/simplified-aws-backup-cross-account/>Simplified Cross-Account Backup and Disaster Recovery with AWS Backup</a>
+<span class=post-date>Aug 20, 2025</span></li><li><a href=/posts/cross-account-monitoring-observability/>Cross-Account Monitoring and Observability: Building Enterprise-Grade Visibility Across AWS Accounts</a>
+<span class=post-date>Aug 13, 2025</span></li><li><a href=/posts/2025/08/06/cross-account-cicd-pipelines/>Implementing Cross-Account CI/CD Pipelines: DevOps Patterns for Multi-Account AWS Architectures</a>
+<span class=post-date>Aug 6, 2025</span></li><li><a href=/posts/2025/07/30/cross-account-eventbridge-integration/>Cross-Account EventBridge Integration: Building Event-Driven Architectures Across AWS Accounts</a>
+<span class=post-date>Jul 30, 2025</span></li></ul></div><div class=sidebar-widget><h3>Post Series</h3><ul class=recent-posts><li><a href=/posts/2025/08/20/simplified-aws-backup-cross-account/>AWS Cross-Account Patterns: Simplified Cross-Account Backup and Disaster Recovery with AWS Backup</a>
+<span class=post-date>Aug 20, 2025</span><div class=series-meta><a href=/series/aws-cross-account-patterns/ class=series-link>View 5 posts in series →</a></div></li><li><a href=/posts/lambda-to-lambda-vs-sns-chaining/>AWS and Typescript: Lambda-to-Lambda Calls vs. SNS Chaining in AWS: When and How to Use Each</a>
+<span class=post-date>Jun 19, 2025</span><div class=series-meta><a href=/series/aws-and-typescript/ class=series-link>View 8 posts in series →</a></div></li><li><a href=/posts/real-time-processing-architectures/>Cloud Architecture Patterns: Real-time Processing Architectures</a>
+<span class=post-date>Apr 11, 2021</span><div class=series-meta><a href=/series/cloud-architecture-patterns/ class=series-link>View 7 posts in series →</a></div></li><li><a href=/posts/technical-debt-management-growing-codebases/>Modern Development Practices: Technical Debt Management in Growing Codebases: Strategies for Sustainable Development</a>
+<span class=post-date>Dec 19, 2021</span><div class=series-meta><a href=/series/modern-development-practices/ class=series-link>View 7 posts in series →</a></div></li><li><a href=/posts/threat-modeling-cloud-applications/>Security in Cloud-Native Applications: Threat Modeling for Cloud Applications: A Comprehensive Approach to Security Design</a>
+<span class=post-date>Oct 19, 2019</span><div class=series-meta><a href=/series/security-in-cloud-native-applications/ class=series-link>View 7 posts in series →</a></div></li></ul></div><div class=sidebar-widget><h3>Categories</h3><ul class=categories><li><a href=/categories/api-development>api development (2)</a></li><li><a href=/categories/architecture>architecture (2)</a></li><li><a href=/categories/architecture-and-design>architecture and design (14)</a></li><li><a href=/categories/artificial-intelligence>artificial intelligence (1)</a></li><li><a href=/categories/aws>aws (3)</a></li><li><a href=/categories/ci/cd>ci/cd (1)</a></li><li><a href=/categories/cloud-computing>cloud computing (30)</a></li><li><a href=/categories/code-quality>code quality (1)</a></li><li><a href=/categories/compliance>compliance (1)</a></li><li><a href=/categories/cost-optimization>cost optimization (1)</a></li><li><a href=/categories/data-engineering>data-engineering (3)</a></li><li><a href=/categories/database>database (1)</a></li><li><a href=/categories/database-design>database design (1)</a></li><li><a href=/categories/debugging-and-troubleshooting>debugging and troubleshooting (1)</a></li><li><a href=/categories/developer-experience>developer experience (1)</a></li><li><a href=/categories/development-tools>development tools (3)</a></li><li><a href=/categories/development-tutorials>development tutorials (2)</a></li><li><a href=/categories/devops>devops (2)</a></li><li><a href=/categories/infrastructure-as-code>infrastructure as code (1)</a></li><li><a href=/categories/microservices>microservices (1)</a></li><li><a href=/categories/performance>performance (1)</a></li><li><a href=/categories/quality-assurance>quality assurance (1)</a></li><li><a href=/categories/real-time-applications>real-time applications (1)</a></li><li><a href=/categories/security>security (8)</a></li><li><a href=/categories/serverless>serverless (2)</a></li><li><a href=/categories/software-development>software development (10)</a></li><li><a href=/categories/technical-debt>technical debt (1)</a></li><li><a href=/categories/testing>testing (2)</a></li><li><a href=/categories/version-control>version control (2)</a></li></ul></div><div class=sidebar-widget><h3>Tags</h3><div class=tag-cloud><a href=/tags/acm class=tag-cloud-item style=font-size:1rem>acm
+</a><a href=/tags/ai class=tag-cloud-item style=font-size:1rem>ai
+</a><a href=/tags/api-design class=tag-cloud-item style=font-size:1rem>api design
+</a><a href=/tags/api-gateway class=tag-cloud-item style=font-size:1rem>api gateway
+</a><a href=/tags/api-security class=tag-cloud-item style=font-size:1rem>api security
+</a><a href=/tags/architecture class=tag-cloud-item style=font-size:1rem>architecture
+</a><a href=/tags/athena class=tag-cloud-item style=font-size:1rem>athena
+</a><a href=/tags/authentication class=tag-cloud-item style=font-size:1rem>authentication
+</a><a href=/tags/authorization class=tag-cloud-item style=font-size:1rem>authorization
+</a><a href=/tags/automation class=tag-cloud-item style=font-size:1rem>automation
+</a><a href=/tags/aws class=tag-cloud-item style=font-size:2rem>aws
+</a><a href=/tags/aws-backup class=tag-cloud-item style=font-size:1rem>aws backup
+</a><a href=/tags/aws-lambda class=tag-cloud-item style=font-size:1rem>aws lambda
+</a><a href=/tags/backup class=tag-cloud-item style=font-size:1rem>backup
+</a><a href=/tags/best-practices class=tag-cloud-item style=font-size:1rem>best practices
+</a><a href=/tags/cdk class=tag-cloud-item style=font-size:1rem>cdk
+</a><a href=/tags/cfn-diagram class=tag-cloud-item style=font-size:1rem>cfn-diagram
+</a><a href=/tags/chaos-engineering class=tag-cloud-item style=font-size:1rem>chaos engineering
+</a><a href=/tags/ci/cd class=tag-cloud-item style=font-size:1rem>ci/cd
+</a><a href=/tags/cloud-architecture class=tag-cloud-item style=font-size:1rem>cloud architecture
+</a><a href=/tags/cloud-native class=tag-cloud-item style=font-size:1rem>cloud native
+</a><a href=/tags/cloudformation class=tag-cloud-item style=font-size:1rem>cloudformation
+</a><a href=/tags/cloudnative class=tag-cloud-item style=font-size:1rem>cloudnative
+</a><a href=/tags/cloudwatch class=tag-cloud-item style=font-size:1rem>cloudwatch
+</a><a href=/tags/code-quality class=tag-cloud-item style=font-size:1rem>code quality
+</a><a href=/tags/codepipeline class=tag-cloud-item style=font-size:1rem>codepipeline
+</a><a href=/tags/communication-patterns class=tag-cloud-item style=font-size:1rem>communication patterns
+</a><a href=/tags/compliance class=tag-cloud-item style=font-size:1rem>compliance
+</a><a href=/tags/config class=tag-cloud-item style=font-size:1rem>config
+</a><a href=/tags/confluence class=tag-cloud-item style=font-size:1rem>confluence
+</a><a href=/tags/containers class=tag-cloud-item style=font-size:1rem>containers
+</a><a href=/tags/cost-management class=tag-cloud-item style=font-size:1rem>cost management
+</a><a href=/tags/cost-optimization class=tag-cloud-item style=font-size:1rem>cost optimization
+</a><a href=/tags/cqrs class=tag-cloud-item style=font-size:1rem>cqrs
+</a><a href=/tags/cross-account class=tag-cloud-item style=font-size:1rem>cross-account
+</a><a href=/tags/data-architecture class=tag-cloud-item style=font-size:1rem>data architecture
+</a><a href=/tags/data-lake class=tag-cloud-item style=font-size:1rem>data lake
+</a><a href=/tags/data-modeling class=tag-cloud-item style=font-size:1rem>data modeling
+</a><a href=/tags/database class=tag-cloud-item style=font-size:1rem>database
+</a><a href=/tags/database-design class=tag-cloud-item style=font-size:1rem>database design
+</a><a href=/tags/debugging class=tag-cloud-item style=font-size:1rem>debugging
+</a><a href=/tags/debugging-and-troubleshooting class=tag-cloud-item style=font-size:1rem>debugging and troubleshooting
+</a><a href=/tags/developer-tips class=tag-cloud-item style=font-size:1rem>developer tips
+</a><a href=/tags/development class=tag-cloud-item style=font-size:2rem>development
+</a><a href=/tags/devops class=tag-cloud-item style=font-size:1rem>devops
+</a><a href=/tags/devsecops class=tag-cloud-item style=font-size:1rem>devsecops
+</a><a href=/tags/disaster-recovery class=tag-cloud-item style=font-size:1rem>disaster recovery
+</a><a href=/tags/distributed-systems class=tag-cloud-item style=font-size:1rem>distributed systems
+</a><a href=/tags/docker class=tag-cloud-item style=font-size:1rem>docker
+</a><a href=/tags/documentation class=tag-cloud-item style=font-size:1rem>documentation
+</a><a href=/tags/dynamodb class=tag-cloud-item style=font-size:1rem>dynamodb
+</a><a href=/tags/ec2 class=tag-cloud-item style=font-size:1rem>ec2
+</a><a href=/tags/encryption class=tag-cloud-item style=font-size:1rem>encryption
+</a><a href=/tags/enterprise-architecture class=tag-cloud-item style=font-size:1rem>enterprise architecture
+</a><a href=/tags/ethics class=tag-cloud-item style=font-size:1rem>ethics
+</a><a href=/tags/event-sourcing class=tag-cloud-item style=font-size:1rem>event sourcing
+</a><a href=/tags/event-driven-architecture class=tag-cloud-item style=font-size:1rem>event-driven architecture
+</a><a href=/tags/eventbridge class=tag-cloud-item style=font-size:1rem>eventbridge
+</a><a href=/tags/fault-tolerance class=tag-cloud-item style=font-size:1rem>fault tolerance
+</a><a href=/tags/gdpr class=tag-cloud-item style=font-size:1rem>gdpr
+</a><a href=/tags/git class=tag-cloud-item style=font-size:1rem>git
+</a><a href=/tags/github-actions class=tag-cloud-item style=font-size:1rem>github actions
+</a><a href=/tags/glue class=tag-cloud-item style=font-size:1rem>glue
+</a><a href=/tags/governance class=tag-cloud-item style=font-size:1rem>governance
+</a><a href=/tags/graphql class=tag-cloud-item style=font-size:1rem>graphql
+</a><a href=/tags/hipaa class=tag-cloud-item style=font-size:1rem>hipaa
+</a><a href=/tags/iam class=tag-cloud-item style=font-size:1rem>iam
+</a><a href=/tags/identity-management class=tag-cloud-item style=font-size:1rem>identity management
+</a><a href=/tags/infrastructure class=tag-cloud-item style=font-size:1rem>infrastructure
+</a><a href=/tags/infrastructure-as-code class=tag-cloud-item style=font-size:1rem>infrastructure as code
+</a><a href=/tags/jwt class=tag-cloud-item style=font-size:1rem>jwt
+</a><a href=/tags/kinesis class=tag-cloud-item style=font-size:1rem>kinesis
+</a><a href=/tags/kubernetes class=tag-cloud-item style=font-size:1rem>kubernetes
+</a><a href=/tags/lambda class=tag-cloud-item style=font-size:1rem>lambda
+</a><a href=/tags/load-testing class=tag-cloud-item style=font-size:1rem>load testing
+</a><a href=/tags/metrics class=tag-cloud-item style=font-size:1rem>metrics
+</a><a href=/tags/microservices class=tag-cloud-item style=font-size:1rem>microservices
+</a><a href=/tags/monitoring class=tag-cloud-item style=font-size:1rem>monitoring
+</a><a href=/tags/multi-account class=tag-cloud-item style=font-size:1rem>multi-account
+</a><a href=/tags/nosql class=tag-cloud-item style=font-size:1rem>nosql
+</a><a href=/tags/oauth class=tag-cloud-item style=font-size:1rem>oauth
+</a><a href=/tags/observability class=tag-cloud-item style=font-size:1rem>observability
+</a><a href=/tags/octave class=tag-cloud-item style=font-size:1rem>octave
+</a><a href=/tags/opensearch class=tag-cloud-item style=font-size:1rem>opensearch
+</a><a href=/tags/pasta class=tag-cloud-item style=font-size:1rem>pasta
+</a><a href=/tags/patterns class=tag-cloud-item style=font-size:1rem>patterns
+</a><a href=/tags/pci-dss class=tag-cloud-item style=font-size:1rem>pci-dss
+</a><a href=/tags/performance-testing class=tag-cloud-item style=font-size:1rem>performance testing
+</a><a href=/tags/plantuml class=tag-cloud-item style=font-size:1rem>plantuml
+</a><a href=/tags/productivity class=tag-cloud-item style=font-size:1rem>productivity
+</a><a href=/tags/professionalism class=tag-cloud-item style=font-size:1rem>professionalism
+</a><a href=/tags/rate-limiting class=tag-cloud-item style=font-size:1rem>rate limiting
+</a><a href=/tags/real-time class=tag-cloud-item style=font-size:1rem>real-time
+</a><a href=/tags/refactoring class=tag-cloud-item style=font-size:1rem>refactoring
+</a><a href=/tags/reliability class=tag-cloud-item style=font-size:1rem>reliability
+</a><a href=/tags/resilience class=tag-cloud-item style=font-size:1rem>resilience
+</a><a href=/tags/resource-management class=tag-cloud-item style=font-size:1rem>resource management
+</a><a href=/tags/responsibility class=tag-cloud-item style=font-size:1rem>responsibility
+</a><a href=/tags/rest class=tag-cloud-item style=font-size:1rem>rest
+</a><a href=/tags/rest-api class=tag-cloud-item style=font-size:1rem>rest api
+</a><a href=/tags/riskassessment class=tag-cloud-item style=font-size:1rem>riskassessment
+</a><a href=/tags/s3 class=tag-cloud-item style=font-size:1rem>s3
+</a><a href=/tags/sam class=tag-cloud-item style=font-size:1rem>sam
+</a><a href=/tags/search class=tag-cloud-item style=font-size:1rem>search
+</a><a href=/tags/secrets-management class=tag-cloud-item style=font-size:1rem>secrets management
+</a><a href=/tags/security class=tag-cloud-item style=font-size:1rem>security
+</a><a href=/tags/securitydesign class=tag-cloud-item style=font-size:1rem>securitydesign
+</a><a href=/tags/serverless class=tag-cloud-item style=font-size:2rem>serverless
+</a><a href=/tags/soc2 class=tag-cloud-item style=font-size:1rem>soc2
+</a><a href=/tags/software-engineering class=tag-cloud-item style=font-size:1rem>software engineering
+</a><a href=/tags/standards class=tag-cloud-item style=font-size:1rem>standards
+</a><a href=/tags/stream-processing class=tag-cloud-item style=font-size:1rem>stream processing
+</a><a href=/tags/streams class=tag-cloud-item style=font-size:1rem>streams
+</a><a href=/tags/stride class=tag-cloud-item style=font-size:1rem>stride
+</a><a href=/tags/tdd class=tag-cloud-item style=font-size:1rem>tdd
+</a><a href=/tags/technical-debt class=tag-cloud-item style=font-size:1rem>technical debt
+</a><a href=/tags/testing class=tag-cloud-item style=font-size:1rem>testing
+</a><a href=/tags/threatmodeling class=tag-cloud-item style=font-size:1rem>threatmodeling
+</a><a href=/tags/typescript class=tag-cloud-item style=font-size:2rem>typescript
+</a><a href=/tags/version-control class=tag-cloud-item style=font-size:1rem>version control
+</a><a href=/tags/websockets class=tag-cloud-item style=font-size:1rem>websockets
+</a><a href=/tags/well-architected-framework class=tag-cloud-item style=font-size:1rem>well-architected framework
+</a><a href=/tags/x-ray class=tag-cloud-item style=font-size:1rem>x-ray
+</a><a href=/tags/zero-trust class=tag-cloud-item style=font-size:1rem>zero trust</a></div></div><div class=sidebar-widget><h3>Subscribe</h3><div class=subscribe-links><a href=/index.xml class=rss-link><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 019 9"/><path d="M4 4a16 16 0 0116 16"/><circle cx="5" cy="19" r="1"/></svg>
+RSS Feed</a></div></div><div class="sidebar-widget npm-packages"><h3>My NPM Packages</h3><div id=npm-list></div></div></aside></div></div><footer class=site-footer><div class=container><p>&copy; 2026 Scott Obert</p><p class=disclaimer-text style=font-size:.9em;margin-top:.5em>The views and opinions expressed on this site are my own. <a href=/disclaimer/ style=color:#0074d9;text-decoration:underline>Read full disclaimer</a>.</p></div></footer></body></html>

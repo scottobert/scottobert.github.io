@@ -14,7 +14,7 @@ const nationalParks = [
   
   // Arizona
   { name: "Grand Canyon", lat: 36.0544, lng: -112.1401, state: "Arizona", visited: true },
-  { name: "Petrified Forest", lat: 34.9095, lng: -109.8067, state: "Arizona", visited: false },
+  { name: "Petrified Forest", lat: 34.9095, lng: -109.8067, state: "Arizona", visited: true },
   { name: "Saguaro", lat: 32.2500, lng: -110.5000, state: "Arizona", visited: true },
   
   // Arkansas
