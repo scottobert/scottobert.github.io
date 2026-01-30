@@ -16,7 +16,7 @@
     "clean": "npx rimraf public"
   },
   "devDependencies": {
-    "@playwright/test": "^1.40.0",
+    "@playwright/test": "^1.56.1",
     "@types/node": "^24.0.1"
   },
   "engines": {
