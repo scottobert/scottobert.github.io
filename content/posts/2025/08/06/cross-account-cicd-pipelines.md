@@ -12,7 +12,7 @@ tags:
 - DevOps
 - Security
 - CodePipeline
-series: AWS Cross-Account Patterns
+series: "AWS Cross-Account Patterns"
 ---
 
 Here's a scene that plays out daily in engineering teams worldwide: you're a senior engineer at a growing SaaS company. Your team has maturely segmented production, staging, and development environments into separate AWS accounts for security and compliance reasons. However, your deployment process has become a manual nightmare of shared credentials, context switching between accounts, and error-prone coordination steps. Each release requires logging into multiple AWS consoles, remembering different IAM roles, and manually orchestrating deployments—a process that takes hours and keeps everyone on edge.
@@ -85,25 +85,37 @@ end note
 
 The foundation of secure cross-account CI/CD lies in properly configured IAM roles that GitHub Actions can assume in each target account. These roles must trust the GitHub OIDC provider and include only the minimum permissions necessary for deployment operations.
 
-Create deployment roles in each target account with appropriate trust policies for GitHub Actions:
+Create deployment roles in each target account with appropriate trust policies for GitHub Actions.
 
-```typescript
-// deployment-role-trust-policy.json - Trust policy for GitHub Actions OIDC
+**The `sub` condition is the entire security boundary of this design, so get it right before anything else.** A trust policy that ends in `:*` is the most common and most dangerous mistake in GitHub Actions OIDC setups:
+
+```json
+// DO NOT DO THIS -- any workflow in the repo can assume this role
+"StringLike": {
+  "token.actions.githubusercontent.com:sub": "repo:your-org/your-repo:*"
+}
+```
+
+That wildcard matches every `sub` GitHub can mint for the repository: every branch, every tag, every pull request, every environment. Anyone who can get a workflow to run — a contributor pushing a branch, a pull request that touches the workflow file — can assume your **production** deployment role. The blast radius of a wildcard here is the whole target account.
+
+Scope each role to the exact context that is allowed to assume it. For production, bind it to a GitHub Environment and use `StringEquals`, not `StringLike`:
+
+```json
+// deployment-role-trust-policy.json - production role, scoped to an environment
 {
   "Version": "2012-10-17",
   "Statement": [
     {
       "Effect": "Allow",
       "Principal": {
-        "Federated": "arn:aws:iam::111111111111:oidc-provider/token.actions.githubusercontent.com"
+        "Federated": "arn:aws:iam::333333333333:oidc-provider/token.actions.githubusercontent.com"
       },
       "Action": "sts:AssumeRoleWithWebIdentity",
       "Condition": {
-        "StringLike": {
-          "token.actions.githubusercontent.com:sub": "repo:your-org/your-repo:*"
-        },
         "StringEquals": {
-          "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+          "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+          "token.actions.githubusercontent.com:sub":
+            "repo:your-org/your-repo:environment:production"
         }
       }
     }
@@ -111,7 +123,20 @@ Create deployment roles in each target account with appropriate trust policies f
 }
 ```
 
-Define deployment permissions that follow the principle of least privilege while enabling necessary CI/CD operations:
+Note the `Federated` principal names the OIDC provider in **the account the role lives in** — `333333333333` for the production role. Each target account needs its own OIDC provider resource; there is no shared one.
+
+The `sub` value to use depends on what triggers the deployment:
+
+| Deployment trigger | `sub` claim to require |
+| --- | --- |
+| A GitHub Environment (recommended for staging/prod) | `repo:org/repo:environment:production` |
+| Pushes to the default branch only | `repo:org/repo:ref:refs/heads/main` |
+| Tag-triggered releases | `repo:org/repo:ref:refs/tags/v*` (with `StringLike`) |
+| Pull request validation (dev account only) | `repo:org/repo:pull_request` |
+
+Pairing the environment-scoped `sub` with a GitHub Environment that has required reviewers is what actually gates production: GitHub only issues a token with `environment:production` in the `sub` after the reviewers approve, so the approval requirement is enforced by the token itself rather than by workflow logic that a workflow edit could bypass.
+
+Define deployment permissions that follow the principle of least privilege while enabling necessary CI/CD operations. Two details worth calling out: pin the account ID rather than using `arn:aws:iam::*:role/...` (a wildcard account in a resource ARN is meaningless at best and misleading at worst), and constrain `iam:PassRole` with an `iam:PassedToService` condition. An unconstrained `iam:PassRole` combined with `iam:CreateRole` is a privilege-escalation path: the pipeline can create a role with any permissions and pass it to a service it controls.
 
 ```typescript
 // deployment-permissions-policy.json - Deployment permissions
@@ -156,7 +181,6 @@ Define deployment permissions that follow the principle of least privilege while
         "iam:CreateRole",
         "iam:DeleteRole",
         "iam:GetRole",
-        "iam:PassRole",
         "iam:AttachRolePolicy",
         "iam:DetachRolePolicy",
         "iam:PutRolePolicy",
@@ -165,8 +189,21 @@ Define deployment permissions that follow the principle of least privilege while
         "iam:UntagRole"
       ],
       "Resource": [
-        "arn:aws:iam::*:role/your-app-*"
+        "arn:aws:iam::333333333333:role/your-app-*"
       ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": "arn:aws:iam::333333333333:role/your-app-*",
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": [
+            "lambda.amazonaws.com",
+            "cloudformation.amazonaws.com"
+          ]
+        }
+      }
     },
     {
       "Effect": "Allow",
@@ -198,25 +235,28 @@ export class GitHubActionsRoleStack extends cdk.Stack {
   }) {
     super(scope, id, props);
 
-    // Create OIDC provider for GitHub Actions (only needed once per account)
+    // Create OIDC provider for GitHub Actions (only needed once per account).
+    // Do not pin a thumbprint. IAM no longer relies on the thumbprint for
+    // token.actions.githubusercontent.com -- it validates against the trusted
+    // root CAs instead -- and hardcoded thumbprints broke deployments
+    // everywhere the last time GitHub rotated its certificate.
     const oidcProvider = new iam.OpenIdConnectProvider(this, 'GitHubOidcProvider', {
       url: 'https://token.actions.githubusercontent.com',
-      clientIds: ['sts.amazonaws.com'],
-      thumbprints: ['6938fd4d98bab03faadb97b34396831e3780aea1']
+      clientIds: ['sts.amazonaws.com']
     });
 
     // Create deployment role with GitHub Actions trust policy
     this.deploymentRole = new iam.Role(this, 'GitHubActionsDeploymentRole', {
       roleName: `GitHubActions${props?.environment || 'Dev'}`,
       description: `Deployment role for GitHub Actions in ${props?.environment || 'development'} environment`,
+      // Scope to this environment's GitHub Environment, not `:*`.
       assumedBy: new iam.WebIdentityPrincipal(
         oidcProvider.openIdConnectProviderArn,
         {
-          'StringLike': {
-            'token.actions.githubusercontent.com:sub': `repo:${props?.githubRepository}:*`
-          },
           'StringEquals': {
-            'token.actions.githubusercontent.com:aud': 'sts.amazonaws.com'
+            'token.actions.githubusercontent.com:aud': 'sts.amazonaws.com',
+            'token.actions.githubusercontent.com:sub':
+              `repo:${props?.githubRepository}:environment:${props?.environment}`
           }
         }
       ),
@@ -257,7 +297,6 @@ export class GitHubActionsRoleStack extends cdk.Stack {
                 'iam:CreateRole',
                 'iam:DeleteRole',
                 'iam:GetRole',
-                'iam:PassRole',
                 'iam:AttachRolePolicy',
                 'iam:DetachRolePolicy',
                 'iam:PutRolePolicy',
@@ -266,6 +305,19 @@ export class GitHubActionsRoleStack extends cdk.Stack {
                 'iam:UntagRole'
               ],
               resources: [`arn:aws:iam::${this.account}:role/your-app-*`]
+            }),
+            new iam.PolicyStatement({
+              effect: iam.Effect.ALLOW,
+              actions: ['iam:PassRole'],
+              resources: [`arn:aws:iam::${this.account}:role/your-app-*`],
+              conditions: {
+                StringEquals: {
+                  'iam:PassedToService': [
+                    'lambda.amazonaws.com',
+                    'cloudformation.amazonaws.com'
+                  ]
+                }
+              }
             }),
             new iam.PolicyStatement({
               effect: iam.Effect.ALLOW,
@@ -305,15 +357,32 @@ on:
   pull_request:
     branches: [main]
 
+# `id-token: write` is what lets a job request an OIDC token, so grant it at
+# the job level rather than the workflow level -- a build or lint job has no
+# business being able to mint AWS credentials.
 permissions:
-  id-token: write
   contents: read
+
+# Never let two deployments to the same environment run concurrently. Without
+# this, two merges in quick succession race each other through CloudFormation
+# and one of them fails mid-update.
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   deploy-dev:
     name: Deploy to Development
     runs-on: ubuntu-latest
     environment: development
+    # Pull requests validate; they do not deploy. Without this guard, opening a
+    # PR deploys to the dev account -- and combined with a wildcard `sub` claim
+    # that is a straightforward path to using your account as someone else's
+    # compute.
+    if: github.event_name == 'push'
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -321,7 +390,7 @@ jobs:
       - name: Configure AWS credentials for Development
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN_DEV }}
+          role-to-assume: ${{ vars.AWS_ROLE_ARN_DEV }}
           role-session-name: GitHubActions-Dev-${{ github.run_id }}
           aws-region: us-east-1
 
@@ -336,7 +405,10 @@ jobs:
     runs-on: ubuntu-latest
     environment: staging
     needs: deploy-dev
-    if: github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -344,7 +416,7 @@ jobs:
       - name: Configure AWS credentials for Staging
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN_STAGING }}
+          role-to-assume: ${{ vars.AWS_ROLE_ARN_STAGING }}
           role-session-name: GitHubActions-Staging-${{ github.run_id }}
           aws-region: us-east-1
 
@@ -358,7 +430,10 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     needs: deploy-staging
-    if: github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -366,7 +441,7 @@ jobs:
       - name: Configure AWS credentials for Production
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN_PROD }}
+          role-to-assume: ${{ vars.AWS_ROLE_ARN_PROD }}
           role-session-name: GitHubActions-Prod-${{ github.run_id }}
           aws-region: us-east-1
 
@@ -376,14 +451,20 @@ jobs:
           npm run deploy:prod
 ```
 
-Configure GitHub repository secrets for each environment's role ARN:
+Configure the role ARNs for each environment. Use **variables**, not secrets: a role ARN is not sensitive (it grants nothing without a matching trust policy), and storing it as a secret means GitHub masks it in every log line, which makes debugging a failed `AssumeRoleWithWebIdentity` needlessly painful.
 
 ```bash
-# GitHub CLI commands to set up secrets
-gh secret set AWS_ROLE_ARN_DEV --body "arn:aws:iam::111111111111:role/GitHubActionsDev"
-gh secret set AWS_ROLE_ARN_STAGING --body "arn:aws:iam::222222222222:role/GitHubActionsStaging"  
-gh secret set AWS_ROLE_ARN_PROD --body "arn:aws:iam::333333333333:role/GitHubActionsProd"
+# Scope each variable to its GitHub Environment so a job can only ever see
+# the ARN for the environment it is deploying to.
+gh variable set AWS_ROLE_ARN_DEV     --env development \
+  --body "arn:aws:iam::111111111111:role/GitHubActionsDev"
+gh variable set AWS_ROLE_ARN_STAGING --env staging \
+  --body "arn:aws:iam::222222222222:role/GitHubActionsStaging"
+gh variable set AWS_ROLE_ARN_PROD    --env production \
+  --body "arn:aws:iam::333333333333:role/GitHubActionsProd"
 ```
+
+Then configure the **production** environment in repository settings with required reviewers. That, combined with the `environment:production` scoped `sub` claim from Step 1, is what makes production deployments genuinely gated.
 
 ## Step 3: Secure Secrets Management
 
@@ -475,28 +556,29 @@ export class CrossAccountDeployer {
     console.log(`Starting deployment to ${config.environment} environment`);
 
     try {
-      // Retrieve application secrets for this environment
-      const secrets = await this.secretsManager.getApplicationSecrets(config.environment);
+      // Confirm the secret exists and is readable before touching the stack,
+      // so a missing secret fails fast instead of mid-deploy.
+      await this.secretsManager.getApplicationSecrets(config.environment);
 
-      // Prepare CloudFormation parameters
+      // Pass only non-sensitive values as CloudFormation parameters. Parameter
+      // values are returned in plaintext by DescribeStacks to anyone holding
+      // `cloudformation:DescribeStacks`, and they persist in the stack's
+      // history, so a database URL or API key passed this way is effectively
+      // published to every reader of the account.
       const parameters = [
         {
           ParameterKey: 'Environment',
           ParameterValue: config.environment
         },
+        // The secret's *name*, not its value. The template resolves it at
+        // deploy time with a dynamic reference:
+        //   DatabaseUrl: '{{resolve:secretsmanager:your-app/prod/config:SecretString:databaseUrl}}'
+        // CloudFormation never stores the resolved value.
         {
-          ParameterKey: 'DatabaseUrl',
-          ParameterValue: secrets.databaseUrl
+          ParameterKey: 'ConfigSecretName',
+          ParameterValue: `your-app/${config.environment}/config`
         }
       ];
-
-      // Add additional parameters from secrets
-      Object.entries(secrets.apiKeys).forEach(([key, value]) => {
-        parameters.push({
-          ParameterKey: `ApiKey${this.capitalizeFirst(key)}`,
-          ParameterValue: value
-        });
-      });
 
       // Check if stack exists
       const stackExists = await this.stackExists(config.stackName);
@@ -516,26 +598,50 @@ export class CrossAccountDeployer {
 
   private async stackExists(stackName: string): Promise<boolean> {
     try {
-      const command = new DescribeStacksCommand({ StackName: stackName });
-      await this.cloudFormation.send(command);
+      await this.cloudFormation.send(
+        new DescribeStacksCommand({ StackName: stackName })
+      );
       return true;
     } catch (error) {
-      return false;
+      // Only "does not exist" means the stack is absent. Catching everything
+      // and returning false turns a throttle or an AccessDenied into a
+      // CreateStack attempt against a stack that already exists, which then
+      // fails with a confusing AlreadyExistsException.
+      if (
+        error instanceof Error &&
+        error.name === 'ValidationError' &&
+        /does not exist/.test(error.message)
+      ) {
+        return false;
+      }
+      throw error;
     }
   }
 
   private async updateStack(
-    config: DeploymentConfig, 
+    config: DeploymentConfig,
     parameters: Array<{ ParameterKey: string; ParameterValue: string }>
   ): Promise<void> {
-    const command = new UpdateStackCommand({
-      StackName: config.stackName,
-      TemplateURL: config.templateUrl,
-      Parameters: parameters,
-      Capabilities: ['CAPABILITY_IAM', 'CAPABILITY_NAMED_IAM']
-    });
-
-    await this.cloudFormation.send(command);
+    try {
+      await this.cloudFormation.send(new UpdateStackCommand({
+        StackName: config.stackName,
+        TemplateURL: config.templateUrl,
+        Parameters: parameters,
+        Capabilities: ['CAPABILITY_IAM', 'CAPABILITY_NAMED_IAM']
+      }));
+    } catch (error) {
+      // Redeploying an unchanged template throws ValidationError with this
+      // message. It means "already up to date", not "failed" -- treating it as
+      // an error is a classic red build for a successful no-op deploy.
+      if (
+        error instanceof Error &&
+        /No updates are to be performed/.test(error.message)
+      ) {
+        console.log(`Stack ${config.stackName} is already up to date`);
+        return;
+      }
+      throw error;
+    }
   }
 
   private async createStack(
@@ -603,13 +709,11 @@ runs:
       run: |
         echo "Assumed role identity:"
         aws sts get-caller-identity
-        echo "Available permissions test:"
-        aws iam list-attached-role-policies --role-name $(aws sts get-caller-identity --query Arn --output text | cut -d'/' -f2) || echo "Limited permissions - this is expected"
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '22'
         cache: 'npm'
 
     - name: Install dependencies
@@ -712,7 +816,12 @@ jobs:
 
 Complex cross-account deployments often require sophisticated patterns for handling database migrations, feature flags, and rollback scenarios. These patterns ensure reliable deployments while maintaining system stability across multiple environments.
 
-Implement blue-green deployment across accounts:
+Implement blue-green deployment across accounts. Before the code, two caveats about the DNS-based approach shown here, because they determine whether it is appropriate for your workload:
+
+- **DNS cutover is not a fast rollback.** Resolvers and JVM/client-side caches routinely ignore a 60-second TTL, so some traffic keeps hitting the old environment for minutes after the record changes. If you need a cutover you can reverse in seconds, shift traffic at the load balancer instead — weighted target groups on a single ALB listener, or CodeDeploy's built-in blue/green for ECS and Lambda.
+- **The active-environment marker has to be durable.** The implementation below reads which colour is live from a CloudFormation stack parameter, so whatever performs the cutover must also write that marker back. If it does not, the next deployment reads a stale value, picks the colour that is currently serving traffic, and deploys straight over production.
+
+
 
 ```typescript
 // blue-green-deployer.ts - Blue-green deployment implementation
@@ -735,7 +844,9 @@ export class BlueGreenDeployer {
 
   constructor(region: string = 'us-east-1') {
     this.cloudFormation = new CloudFormationClient({ region });
-    this.route53 = new Route53Client({ region });
+    // Route 53 is a global service with a single endpoint in us-east-1;
+    // passing the deployment region here does not do what it looks like.
+    this.route53 = new Route53Client({ region: 'us-east-1' });
     this.secretsManager = new SecretsManager(region);
   }
 
@@ -758,14 +869,42 @@ export class BlueGreenDeployer {
       // Switch traffic to new environment
       await this.switchTraffic(config, newEnvironment);
 
-      // Verify traffic switch was successful
-      await this.verifyTrafficSwitch(config, newEnvironment);
+      try {
+        // Verify traffic switch was successful
+        await this.verifyTrafficSwitch(config, newEnvironment);
+      } catch (verificationError) {
+        // Roll the record back before rethrowing. Without this the deployment
+        // fails *after* traffic has already moved to an environment that just
+        // failed verification -- the worst of both states.
+        console.error('Verification failed after cutover, rolling traffic back');
+        await this.switchTraffic(config, currentEnvironment);
+        throw verificationError;
+      }
+
+      // Persist which colour is now live, so the next deployment picks the
+      // other one. Skipping this makes the next deploy overwrite production.
+      await this.recordActiveEnvironment(config, newEnvironment);
 
       console.log(`Blue-green deployment completed successfully for ${config.environment}`);
     } catch (error) {
       console.error(`Blue-green deployment failed for ${config.environment}:`, error);
       throw error;
     }
+  }
+
+  private async recordActiveEnvironment(
+    config: BlueGreenConfig,
+    activeEnvironment: 'blue' | 'green'
+  ): Promise<void> {
+    await this.cloudFormation.send(new UpdateStackCommand({
+      StackName: `${config.stackName}-traffic`,
+      UsePreviousTemplate: true,
+      Parameters: [
+        { ParameterKey: 'ActiveEnvironment', ParameterValue: activeEnvironment }
+      ]
+    }));
+
+    await this.waitForStackUpdate(`${config.stackName}-traffic`);
   }
 
   private async getCurrentActiveEnvironment(config: BlueGreenConfig): Promise<'blue' | 'green'> {
@@ -861,12 +1000,18 @@ export class BlueGreenDeployer {
     
     const outputs = response.Stacks?.[0]?.Outputs;
     const loadBalancerDns = outputs?.find(o => o.OutputKey === 'LoadBalancerDns')?.OutputValue;
+    // Every ALB exposes its canonical hosted zone ID; export it from the
+    // application stack alongside the DNS name.
+    const albHostedZoneId = outputs?.find(o => o.OutputKey === 'LoadBalancerHostedZoneId')?.OutputValue;
 
-    if (!loadBalancerDns) {
-      throw new Error(`LoadBalancer DNS not found for ${newEnvironment} environment`);
+    if (!loadBalancerDns || !albHostedZoneId) {
+      throw new Error(`LoadBalancer DNS/zone not found for ${newEnvironment} environment`);
     }
 
-    // Update Route 53 record to point to new environment
+    // Use an ALIAS record, not a CNAME. DNS forbids a CNAME at a zone apex
+    // (`example.com`), so a CNAME here works for `app.example.com` and fails
+    // outright for the bare domain. An A-record alias to the ALB works for
+    // both, costs nothing to resolve, and needs no TTL management.
     const changeCommand = new ChangeResourceRecordSetsCommand({
       HostedZoneId: config.hostedZoneId,
       ChangeBatch: {
@@ -875,9 +1020,12 @@ export class BlueGreenDeployer {
             Action: 'UPSERT',
             ResourceRecordSet: {
               Name: config.domainName,
-              Type: 'CNAME',
-              TTL: 60,
-              ResourceRecords: [{ Value: loadBalancerDns }]
+              Type: 'A',
+              AliasTarget: {
+                DNSName: loadBalancerDns,
+                HostedZoneId: albHostedZoneId,   // the ALB's zone ID, not yours
+                EvaluateTargetHealth: true
+              }
             }
           }
         ]
@@ -913,21 +1061,46 @@ export class BlueGreenDeployer {
   }
 
   private async waitForStackUpdate(stackName: string): Promise<void> {
+    // Prefer the SDK's own waiter over a hand-rolled poll loop -- it already
+    // handles backoff and the full set of terminal states:
+    //
+    //   import { waitUntilStackUpdateComplete } from '@aws-sdk/client-cloudformation';
+    //   await waitUntilStackUpdateComplete(
+    //     { client: this.cloudFormation, maxWaitTime: 1800 },
+    //     { StackName: stackName }
+    //   );
+    //
+    // If you do write it by hand, match statuses exactly. A substring test for
+    // 'COMPLETE' also matches UPDATE_ROLLBACK_COMPLETE and ROLLBACK_COMPLETE,
+    // so a deployment that failed and rolled back gets reported as a success
+    // and the pipeline goes green on a stack that never changed.
+    const SUCCESS = new Set(['UPDATE_COMPLETE', 'CREATE_COMPLETE']);
+    const FAILURE = new Set([
+      'UPDATE_FAILED',
+      'UPDATE_ROLLBACK_COMPLETE',
+      'UPDATE_ROLLBACK_FAILED',
+      'ROLLBACK_COMPLETE',
+      'ROLLBACK_FAILED',
+      'CREATE_FAILED',
+      'DELETE_FAILED'
+    ]);
+
     const maxWaitTime = 30 * 60 * 1000; // 30 minutes
-    const pollInterval = 30 * 1000; // 30 seconds
+    const pollInterval = 30 * 1000;     // 30 seconds
     const startTime = Date.now();
 
     while (Date.now() - startTime < maxWaitTime) {
-      const command = new DescribeStacksCommand({ StackName: stackName });
-      const response = await this.cloudFormation.send(command);
-      const status = response.Stacks?.[0]?.StackStatus;
+      const response = await this.cloudFormation.send(
+        new DescribeStacksCommand({ StackName: stackName })
+      );
+      const status = response.Stacks?.[0]?.StackStatus ?? '';
 
-      if (status?.includes('COMPLETE')) {
+      if (SUCCESS.has(status)) {
         console.log(`Stack ${stackName} update completed with status: ${status}`);
         return;
       }
 
-      if (status?.includes('FAILED') || status?.includes('ROLLBACK')) {
+      if (FAILURE.has(status)) {
         throw new Error(`Stack ${stackName} update failed with status: ${status}`);
       }
 
@@ -985,6 +1158,10 @@ export class DeploymentAuditor {
     await this.storeAuditEvent(event);
   }
 
+  // A note on `LookupEvents`: it only reaches back 90 days, it is throttled to
+  // roughly two requests per second, and it is not paginated below. It is fine
+  // for ad-hoc investigation but it is not an audit trail. For retention and
+  // querying, send an organization trail to S3 and query it with Athena.
   async getRecentDeploymentEvents(
     startTime: Date,
     endTime: Date,
@@ -1024,9 +1201,14 @@ export class DeploymentAuditor {
     return events;
   }
 
+  // `targetAccount` is a 12-digit account ID (see extractTargetAccount), so
+  // testing it for the substring 'prod' never matches and every production
+  // deployment is silently classified as low risk. Compare against the actual
+  // account IDs instead.
+  private static readonly PRODUCTION_ACCOUNT_IDS = new Set(['333333333333']);
+
   private isHighRiskEvent(event: AuditEvent): boolean {
-    // Define criteria for high-risk events
-    return event.targetAccount.includes('prod') || 
+    return DeploymentAuditor.PRODUCTION_ACCOUNT_IDS.has(event.targetAccount) ||
            event.action.includes('Delete') ||
            event.result === 'FAILURE';
   }
@@ -1295,4 +1477,14 @@ Remember that successful cross-account CI/CD is as much about organizational pro
 
 Begin your cross-account CI/CD journey by implementing the foundational IAM roles and OIDC authentication patterns outlined in this post. Focus on getting basic deployments working reliably before adding complexity. Once you have a solid foundation, consider exploring **AWS CodePipeline integration** for more complex orchestration needs, **AWS Systems Manager Parameter Store** for additional configuration management, and **AWS CloudTrail integration** for enhanced audit capabilities.
 
-In our next post in the AWS Cross-Account Patterns series, we'll dive into cross-account monitoring and observability strategies, showing how to maintain visibility into your distributed applications across account boundaries while preserving security isolation.
+In our next post in the AWS Cross-Account Patterns series, we'll dive into [cross-account monitoring and observability strategies](/posts/cross-account-monitoring-observability/), showing how to maintain visibility into your distributed applications across account boundaries while preserving security isolation.
+
+## More in This Series
+
+This is post 3 of 5 in the **AWS Cross-Account Patterns** series:
+
+1. [Cross-Account Lambda Access to S3](/posts/cross-account-lambda-s3-access/)
+2. [Cross-Account EventBridge Integration](/posts/2025/07/30/cross-account-eventbridge-integration/)
+3. **Implementing Cross-Account CI/CD Pipelines** (this post)
+4. [Cross-Account Monitoring and Observability](/posts/cross-account-monitoring-observability/)
+5. [Simplified Cross-Account Backup and Disaster Recovery](/posts/2025/08/20/simplified-aws-backup-cross-account/)

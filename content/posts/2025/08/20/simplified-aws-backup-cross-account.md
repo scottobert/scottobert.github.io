@@ -23,7 +23,7 @@ Welcome to what I call "backup fragmentation syndrome" - the hidden liability th
 
 **The Problem**: Traditional backup strategies assume single-account environments. When data, backups, and recovery resources span multiple AWS accounts, complexity explodes exponentially. Simple operations like "restore from last night's backup" become multi-step orchestrations requiring cross-account permissions, manual coordination, and deep knowledge of distributed recovery procedures.
 
-**The Solution**: AWS Backup's native cross-account capabilities that eliminate 80% of the custom orchestration while delivering enterprise-grade backup and disaster recovery. This streamlined approach provides automated backup coordination, compliance reporting, and disaster recovery testing with dramatically reduced implementation complexity.
+**The Solution**: AWS Backup's native cross-account capabilities replace most of the custom orchestration you would otherwise write — scheduling, cross-account copying, lifecycle transitions and compliance reporting are all service features rather than Lambda functions you maintain. What remains custom is the part AWS does not do for you, which turns out to be restore *testing*, and that is the part this post treats most carefully.
 
 In this guide, you'll learn how to implement a production-ready cross-account backup and disaster recovery solution using AWS Backup's managed services. We'll cover everything from project setup to deployment validation, showing you exactly how to organize the code and deploy a system that recovers from failures in minutes instead of hours.
 
@@ -37,7 +37,7 @@ Traditional backup solutions require complex orchestration across multiple servi
 - **Built-in Cross-Account Support**: Native cross-account backup copying without complex IAM policy management
 - **Automated Compliance**: Built-in compliance frameworks and reporting eliminate custom validation logic
 - **Integrated Monitoring**: CloudWatch integration and AWS Backup console provide comprehensive visibility
-- **Cost Optimization**: Intelligent tiering and lifecycle management reduce storage costs automatically
+- **Cost Optimization**: Lifecycle rules move recovery points to cold storage automatically, at roughly a quarter of warm storage cost for the resource types that support it
 
 ## Architecture Overview
 
@@ -171,10 +171,9 @@ First, create a new CDK project to organize the backup infrastructure:
 mkdir aws-backup-cross-account
 cd aws-backup-cross-account
 npx cdk init app --language typescript
-
-# Install additional dependencies
-npm install @aws-cdk/aws-backup @aws-cdk/aws-sns-subscriptions
 ```
+
+There are no extra packages to install. `cdk init` scaffolds a CDK v2 project, and in v2 every stable service module ships inside the single `aws-cdk-lib` dependency — `import * as backup from 'aws-cdk-lib/aws-backup'`. The `@aws-cdk/aws-backup` and `@aws-cdk/aws-sns-subscriptions` packages are CDK **v1** artifacts; v1 reached end of support in 2023, and installing them alongside `aws-cdk-lib` produces two incompatible copies of the construct library and a stream of confusing type errors.
 
 Organize your project structure like this:
 
@@ -209,26 +208,39 @@ import { BackupMonitoringStack } from '../lib/monitoring-stack';
 
 const app = new cdk.App();
 
-// Configuration for your environment
+// Configuration for your environment.
+//
+// These stacks deploy into the PRODUCTION account (the one holding the
+// resources being backed up); the backup and DR account IDs identify the
+// copy destinations. Keep them consistent with the architecture diagram
+// above -- 111122223333 is production, so using it as `backupAccountId`
+// would point the copy action back at the account you are copying from.
 const config = {
   env: {
-    account: process.env.CDK_DEFAULT_ACCOUNT,
+    account: process.env.CDK_DEFAULT_ACCOUNT,   // 111122223333 (production)
     region: process.env.CDK_DEFAULT_REGION || 'us-west-2'
   },
-  backupAccountId: '111122223333',        // Replace with your backup account ID
-  drAccountId: '444455556666',            // Replace with your DR account ID
+  backupAccountId: '444455556666',        // Replace with your backup account ID
+  drAccountId: '777788889999',            // Replace with your DR account ID
+  // The destination vault ARNs, which must already exist in those accounts.
+  // Cross-account copy targets are referenced by ARN, not by name.
+  backupVaultArn: 'arn:aws:backup:us-west-2:444455556666:backup-vault:central-backup-vault',
+  drVaultArn: 'arn:aws:backup:us-east-1:777788889999:backup-vault:dr-backup-vault',
   complianceFrameworks: ['SOC2', 'HIPAA', 'PCI_DSS'],
   notificationEmail: 'admin@yourcompany.com', // Replace with your email
+  // Retention must clear the cold-storage floor: a recovery point moved to
+  // cold storage must stay there at least 90 days, so `deleteAfter` has to be
+  // at least `moveToColdStorageAfter + 90`. See Step 2.
   retentionDays: {
-    daily: 30,
-    weekly: 90,
-    monthly: 365,
-    yearly: 2555  // 7 years
+    daily: 35,     // warm only, no cold transition
+    weekly: 180,   // cold at 30 -> delete at 180 (150 days in cold)
+    monthly: 365,  // cold at 90 -> delete at 365
+    yearly: 2555   // cold at 365 -> delete at 2555 (7 years)
   },
   crossRegionCopy: {
     enabled: true,
     destinationRegion: 'us-east-1',
-    retentionDays: 90
+    retentionDays: 180
   }
 };
 
@@ -238,10 +250,12 @@ const backupStack = new SimplifiedCrossAccountBackupStack(app, 'BackupStack', {
   stackName: 'cross-account-backup-infrastructure'
 });
 
-// Deploy disaster recovery testing
+// Deploy disaster recovery testing. The restore role comes from the backup
+// stack -- it must be a role AWS Backup can assume, not the Lambda's own.
 const drTestingStack = new DisasterRecoveryTestingStack(app, 'DRTestingStack', {
   env: config.env,
   backupVault: backupStack.backupVault,
+  restoreRole: backupStack.restoreRole,
   stackName: 'cross-account-dr-testing'
 });
 
@@ -253,7 +267,10 @@ const monitoringStack = new BackupMonitoringStack(app, 'MonitoringStack', {
   stackName: 'cross-account-backup-monitoring'
 });
 
-// Add dependencies
+// Passing constructs between stacks already creates the CloudFormation
+// export/import dependency, so these calls are redundant. Keep them only if
+// you switch to passing plain strings (ARNs, names) instead of constructs,
+// which is generally the better choice for cross-stack references anyway.
 drTestingStack.addDependency(backupStack);
 monitoringStack.addDependency(backupStack);
 ```
@@ -267,6 +284,7 @@ Create `lib/backup-stack.ts` with the core backup infrastructure:
 import * as backup from 'aws-cdk-lib/aws-backup';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as kms from 'aws-cdk-lib/aws-kms';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as events_targets from 'aws-cdk-lib/aws-events-targets';
 import * as sns from 'aws-cdk-lib/aws-sns';
@@ -276,6 +294,10 @@ import { Construct } from 'constructs';
 export interface SimplifiedBackupProps extends cdk.StackProps {
   backupAccountId: string;
   drAccountId: string;
+  /** ARN of the destination vault in the backup account. */
+  backupVaultArn: string;
+  /** ARN of the destination vault in the DR account. */
+  drVaultArn: string;
   complianceFrameworks: string[];
   notificationEmail: string;
   retentionDays: {
@@ -295,6 +317,7 @@ export class SimplifiedCrossAccountBackupStack extends cdk.Stack {
   public readonly backupVault: backup.BackupVault;
   public readonly backupPlan: backup.BackupPlan;
   public readonly crossAccountRole: iam.Role;
+  public readonly restoreRole: iam.Role;
 
   constructor(scope: Construct, id: string, props: SimplifiedBackupProps) {
     super(scope, id, props);
@@ -313,21 +336,57 @@ export class SimplifiedCrossAccountBackupStack extends cdk.Stack {
       accessPolicy: this.createVaultAccessPolicy(props.backupAccountId, props.drAccountId)
     });
 
-    // Create cross-account IAM role
+    // The AWS Backup service role. Only AWS Backup should be able to assume
+    // it.
+    //
+    // Adding `AccountPrincipal(backupAccountId)` and
+    // `AccountPrincipal(drAccountId)` -- as is often done to "enable
+    // cross-account backup" -- makes a role carrying
+    // AWSBackupServiceRolePolicyForRestores assumable by *any* principal in
+    // two entire accounts, with no external ID and no conditions. That policy
+    // can create and overwrite RDS instances, EBS volumes and DynamoDB tables.
+    // It is a serious over-grant, and it is not needed: cross-account copying
+    // is authorised by the destination vault's resource policy, not by the
+    // source role's trust policy.
+    //
+    // Restores are also a separate concern from backups. Split them so a
+    // scheduled backup cannot restore over live data.
     this.crossAccountRole = new iam.Role(this, 'CrossAccountBackupRole', {
-      assumedBy: new iam.CompositePrincipal(
-        new iam.ServicePrincipal('backup.amazonaws.com'),
-        new iam.AccountPrincipal(props.backupAccountId),
-        new iam.AccountPrincipal(props.drAccountId)
-      ),
+      assumedBy: new iam.ServicePrincipal('backup.amazonaws.com'),
+      description: 'Service role AWS Backup assumes to create and copy backups',
       managedPolicies: [
-        iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSBackupServiceRolePolicyForBackup'),
-        iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSBackupServiceRolePolicyForRestores')
+        iam.ManagedPolicy.fromAwsManagedPolicyName(
+          'service-role/AWSBackupServiceRolePolicyForBackup'
+        )
+      ]
+    });
+
+    // A separate, narrowly used role for restores, including DR test restores.
+    this.restoreRole = new iam.Role(this, 'BackupRestoreRole', {
+      assumedBy: new iam.ServicePrincipal('backup.amazonaws.com'),
+      description: 'Service role AWS Backup assumes to perform restores',
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName(
+          'service-role/AWSBackupServiceRolePolicyForRestores'
+        )
       ]
     });
 
     // Create comprehensive backup plan
     this.backupPlan = this.createBackupPlan(props);
+
+    // Two lifecycle rules will fail deployment if you get them wrong, so they
+    // are worth stating plainly:
+    //
+    //  1. A recovery point moved to cold storage must remain there for at
+    //     least 90 days. AWS Backup enforces this as
+    //     `deleteAfter >= moveToColdStorageAfter + 90`, and a plan violating
+    //     it is rejected at create time -- so `moveToColdStorageAfter: 30`
+    //     with `deleteAfter: 30` (or even 90) never deploys.
+    //  2. Cold storage is not supported for every resource type. EFS supports
+    //     it, and DynamoDB and S3 support it with advanced features enabled;
+    //     EBS, EC2 and RDS do not. Attaching a cold transition to a rule whose
+    //     selection is mostly RDS and EBS buys nothing.
 
     // Create backup selections (resources to backup)
     this.createBackupSelections(props);
@@ -338,10 +397,9 @@ export class SimplifiedCrossAccountBackupStack extends cdk.Stack {
     // Create compliance reporting
     this.setupComplianceReporting(props);
 
-    // Configure cross-region copying if enabled
-    if (props.crossRegionCopy.enabled) {
-      this.setupCrossRegionCopy(props);
-    }
+    // Cross-account and cross-region copying is expressed entirely by the
+    // `copyActions` on the plan rules above -- there is no separate wiring
+    // step, which is exactly why AWS Backup is worth using here.
 
     // Output important values
     new cdk.CfnOutput(this, 'BackupVaultName', {
@@ -397,22 +455,41 @@ export class SimplifiedCrossAccountBackupStack extends cdk.Stack {
     });
   }
 
+  // Which account grants what, for cross-account copy:
+  //
+  //   source vault (production)  --copy-->  destination vault (backup account)
+  //
+  // `backup:CopyIntoBackupVault` is required on the **destination** vault,
+  // granted to the **source** account. Putting it on the production vault and
+  // granting it to the backup account -- the arrangement you will often see --
+  // permits a copy in the opposite direction to the one you want, and the
+  // copies you actually configured still fail with AccessDenied.
+  //
+  // So this policy, on the production vault, is for read access: it lets the
+  // backup and DR accounts inspect and restore from recovery points here.
+  // The `CopyIntoBackupVault` grant belongs in the stack that creates the
+  // destination vaults, shown immediately below.
   private createVaultAccessPolicy(backupAccountId: string, drAccountId: string): iam.PolicyDocument {
     return new iam.PolicyDocument({
       statements: [
         new iam.PolicyStatement({
-          sid: 'Allow cross-account backup copy',
+          sid: 'AllowCentralAccountsToReadRecoveryPoints',
           effect: iam.Effect.ALLOW,
           principals: [
             new iam.AccountPrincipal(backupAccountId),
             new iam.AccountPrincipal(drAccountId)
           ],
           actions: [
-            'backup:CopyIntoBackupVault',
+            'backup:DescribeBackupVault',
+            'backup:DescribeRecoveryPoint',
             'backup:ListRecoveryPointsByBackupVault',
-            'backup:ListBackupVaults',
-            'backup:DescribeBackupVault'
+            'backup:GetRecoveryPointRestoreMetadata',
+            'backup:StartRestoreJob'
           ],
+          // A vault access policy is evaluated against this vault, so `*`
+          // means "this vault". `backup:ListBackupVaults` is omitted because
+          // it is an account-level action -- it has no effect in a vault
+          // policy.
           resources: ['*']
         })
       ]
@@ -420,10 +497,28 @@ export class SimplifiedCrossAccountBackupStack extends cdk.Stack {
   }
 
   private createBackupPlan(props: SimplifiedBackupProps): backup.BackupPlan {
+    // Cross-account copy destinations are referenced by ARN. Do NOT use
+    // `BackupVault.fromBackupVaultName` for these: it builds an ARN using the
+    // *current* stack's account and region, so a vault named
+    // "...-us-east-1" resolves to a same-account, same-region ARN that does
+    // not exist, and the copy silently targets the wrong place.
+    const centralBackupVault = backup.BackupVault.fromBackupVaultArn(
+      this, 'CentralBackupVault', props.backupVaultArn
+    );
+    const drBackupVault = backup.BackupVault.fromBackupVaultArn(
+      this, 'DrBackupVault', props.drVaultArn
+    );
+
     return new backup.BackupPlan(this, 'ComprehensiveBackupPlan', {
       backupPlanName: 'cross-account-enterprise-backup',
       backupPlanRules: [
-        // Daily backups with lifecycle management
+        // Daily backups. Deliberately warm-only: with a 35-day retention there
+        // is no legal cold transition (see the note below), and daily points
+        // are the ones you actually restore from, where cold storage retrieval
+        // latency hurts most.
+        //
+        // This rule carries the cross-account copy -- the whole point of the
+        // architecture. Note that AWS Backup schedules are always UTC.
         new backup.BackupPlanRule({
           ruleName: 'DailyBackupRule',
           backupVault: this.backupVault,
@@ -432,18 +527,21 @@ export class SimplifiedCrossAccountBackupStack extends cdk.Stack {
             minute: '0'
           }),
           deleteAfter: cdk.Duration.days(props.retentionDays.daily),
-          moveToColdStorageAfter: cdk.Duration.days(30),
-          copyActions: props.crossRegionCopy.enabled ? [{
-            destinationBackupVault: backup.BackupVault.fromBackupVaultName(
-              this,
-              'DestinationVault',
-              `cross-account-backup-vault-${props.crossRegionCopy.destinationRegion}`
-            ),
-            deleteAfter: cdk.Duration.days(props.crossRegionCopy.retentionDays),
-            moveToColdStorageAfter: cdk.Duration.days(30)
-          }] : undefined
+          copyActions: [
+            // Cross-account copy into the backup account.
+            {
+              destinationBackupVault: centralBackupVault,
+              deleteAfter: cdk.Duration.days(props.retentionDays.daily)
+            },
+            // Cross-account AND cross-region copy into the DR account.
+            ...(props.crossRegionCopy.enabled ? [{
+              destinationBackupVault: drBackupVault,
+              deleteAfter: cdk.Duration.days(props.crossRegionCopy.retentionDays),
+              moveToColdStorageAfter: cdk.Duration.days(30)
+            }] : [])
+          ]
         }),
-        
+
         // Weekly backups with extended retention
         new backup.BackupPlanRule({
           ruleName: 'WeeklyBackupRule',
@@ -454,7 +552,12 @@ export class SimplifiedCrossAccountBackupStack extends cdk.Stack {
             minute: '0'
           }),
           deleteAfter: cdk.Duration.days(props.retentionDays.weekly),
-          moveToColdStorageAfter: cdk.Duration.days(30)
+          moveToColdStorageAfter: cdk.Duration.days(30),
+          copyActions: [{
+            destinationBackupVault: centralBackupVault,
+            deleteAfter: cdk.Duration.days(props.retentionDays.weekly),
+            moveToColdStorageAfter: cdk.Duration.days(30)
+          }]
         }),
 
         // Monthly backups for long-term retention
@@ -467,7 +570,12 @@ export class SimplifiedCrossAccountBackupStack extends cdk.Stack {
             minute: '0'
           }),
           deleteAfter: cdk.Duration.days(props.retentionDays.monthly),
-          moveToColdStorageAfter: cdk.Duration.days(90)
+          moveToColdStorageAfter: cdk.Duration.days(90),
+          copyActions: [{
+            destinationBackupVault: centralBackupVault,
+            deleteAfter: cdk.Duration.days(props.retentionDays.monthly),
+            moveToColdStorageAfter: cdk.Duration.days(90)
+          }]
         }),
 
         // Yearly backups for compliance
@@ -481,24 +589,38 @@ export class SimplifiedCrossAccountBackupStack extends cdk.Stack {
             minute: '0'
           }),
           deleteAfter: cdk.Duration.days(props.retentionDays.yearly),
-          moveToColdStorageAfter: cdk.Duration.days(365)
+          moveToColdStorageAfter: cdk.Duration.days(365),
+          copyActions: [{
+            destinationBackupVault: centralBackupVault,
+            deleteAfter: cdk.Duration.days(props.retentionDays.yearly),
+            moveToColdStorageAfter: cdk.Duration.days(365)
+          }]
         })
       ]
     });
   }
 
   private createBackupSelections(props: SimplifiedBackupProps): void {
-    // Production resources backup selection
+    // Production resources backup selection.
+    //
+    // The two selection mechanisms behave differently and must not be mixed:
+    //
+    //  * Multiple `fromTag(...)` entries become AWS Backup's legacy
+    //    `ListOfTags`, which is evaluated as **OR**. Passing three tags there
+    //    does not mean "all three" -- anything carrying `BackupRequired=true`
+    //    alone is selected, which is usually a much wider net than intended.
+    //  * `conditions` is evaluated as **AND**, and supports negation.
+    //
+    // Use `conditions` alone when you mean AND. Here we want: everything in
+    // production that is marked for backup, minus anything explicitly opted
+    // out.
     new backup.BackupSelection(this, 'ProductionResourcesSelection', {
       backupPlan: this.backupPlan,
       selectionName: 'production-resources',
       role: this.crossAccountRole,
-      resources: [
-        // Include all resources with specific tags
-        backup.BackupResource.fromTag('Environment', 'Production'),
-        backup.BackupResource.fromTag('BackupRequired', 'true'),
-        backup.BackupResource.fromTag('DataClassification', 'Critical')
-      ],
+      // `fromArn('arn:aws:*')` would be the "all supported types" wildcard;
+      // the conditions below do the real filtering.
+      resources: [backup.BackupResource.fromArn('*')],
       conditions: {
         stringEquals: {
           'aws:ResourceTag/Environment': ['Production'],
@@ -554,33 +676,41 @@ export class SimplifiedCrossAccountBackupStack extends cdk.Stack {
       new cdk.aws_sns_subscriptions.EmailSubscription(props.notificationEmail)
     );
 
-    // EventBridge rules for backup events
-    const backupCompletedRule = new events.Rule(this, 'BackupCompletedRule', {
+    // EventBridge rules for backup events.
+    //
+    // Only failures go to email. Subscribing `COMPLETED` sends one message per
+    // successful backup per resource per rule -- for a tag-based selection
+    // across a production account that is hundreds of emails a day, and the
+    // reliable outcome is a filter rule that hides the failures too. Success
+    // belongs on a dashboard; email is for things that need a human.
+    const backupFailedRule = new events.Rule(this, 'BackupFailedRule', {
       eventPattern: {
         source: ['aws.backup'],
         detailType: ['Backup Job State Change'],
         detail: {
-          state: ['COMPLETED', 'FAILED', 'ABORTED']
+          state: ['FAILED', 'ABORTED', 'EXPIRED']
         }
       }
     });
 
-    backupCompletedRule.addTarget(new events_targets.SnsTopic(backupTopic));
+    backupFailedRule.addTarget(new events_targets.SnsTopic(backupTopic));
 
-    // Rule for copy job events
+    // Copy job failures are the ones to watch most closely: a backup can
+    // succeed locally while the cross-account copy fails, which leaves you
+    // believing you have off-site protection that does not exist.
     const copyJobRule = new events.Rule(this, 'CopyJobRule', {
       eventPattern: {
         source: ['aws.backup'],
         detailType: ['Copy Job State Change'],
         detail: {
-          state: ['COMPLETED', 'FAILED']
+          state: ['FAILED']
         }
       }
     });
 
     copyJobRule.addTarget(new events_targets.SnsTopic(backupTopic));
 
-    // Rule for restore job events
+    // Restores are rare and always worth knowing about, success or failure.
     const restoreJobRule = new events.Rule(this, 'RestoreJobRule', {
       eventPattern: {
         source: ['aws.backup'],
@@ -595,21 +725,49 @@ export class SimplifiedCrossAccountBackupStack extends cdk.Stack {
   }
 
   private setupComplianceReporting(props: SimplifiedBackupProps): void {
-    // Create compliance frameworks
+    // Framework and report plan names must match `[a-zA-Z][_a-zA-Z0-9]*` --
+    // hyphens are rejected. `cross-account-soc2-compliance` fails validation
+    // at deploy time, which is an annoying thing to discover after a
+    // twelve-minute stack rollback. Use underscores.
     props.complianceFrameworks.forEach(framework => {
       new backup.CfnFramework(this, `${framework}Framework`, {
-        frameworkName: `cross-account-${framework.toLowerCase()}-compliance`,
+        frameworkName: `CrossAccount_${framework}_Compliance`,
         frameworkDescription: `Cross-account backup compliance for ${framework}`,
         frameworkControls: this.getFrameworkControls(framework)
       });
     });
 
-    // Create audit report plan
+    // The report plan needs a bucket that actually exists, and AWS Backup
+    // needs permission to write to it. Create it here rather than referencing
+    // a name and hoping.
+    const reportsBucket = new s3.Bucket(this, 'ComplianceReportsBucket', {
+      bucketName: `backup-compliance-reports-${cdk.Aws.ACCOUNT_ID}`,
+      enforceSSL: true,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      lifecycleRules: [{
+        id: 'compliance-report-retention',
+        enabled: true,
+        expiration: cdk.Duration.days(2555)
+      }]
+    });
+
+    reportsBucket.addToResourcePolicy(new iam.PolicyStatement({
+      sid: 'AllowBackupAuditManagerToWriteReports',
+      effect: iam.Effect.ALLOW,
+      principals: [new iam.ServicePrincipal('backup.amazonaws.com')],
+      actions: ['s3:PutObject'],
+      resources: [reportsBucket.arnForObjects('compliance-reports/*')],
+      conditions: {
+        StringEquals: { 's3:x-amz-acl': 'bucket-owner-full-control' }
+      }
+    }));
+
     new backup.CfnReportPlan(this, 'ComplianceAuditReport', {
-      reportPlanName: 'cross-account-compliance-report',
+      reportPlanName: 'CrossAccount_Compliance_Report',
       reportPlanDescription: 'Cross-account backup compliance audit report',
       reportDeliveryChannel: {
-        s3BucketName: `backup-compliance-reports-${cdk.Aws.ACCOUNT_ID}`,
+        s3BucketName: reportsBucket.bucketName,
         s3KeyPrefix: 'compliance-reports/',
         formats: ['CSV', 'JSON']
       },
@@ -619,6 +777,13 @@ export class SimplifiedCrossAccountBackupStack extends cdk.Stack {
     });
   }
 
+  // A word on naming these after SOC 2, HIPAA and PCI DSS: AWS Backup Audit
+  // Manager provides *controls*, not certified compliance packs. Naming a
+  // framework "HIPAA" does not make anything HIPAA-compliant -- it groups a
+  // set of backup checks you have decided are relevant to that audit. Treat
+  // these as evidence for an auditor, not as a compliance attestation, and
+  // map the controls to your actual control matrix rather than assuming the
+  // label does that work.
   private getFrameworkControls(framework: string): any[] {
     const baseControls = [
       {
@@ -644,7 +809,13 @@ export class SimplifiedCrossAccountBackupStack extends cdk.Stack {
       }
     ];
 
-    // Framework-specific controls
+    // Framework-specific controls.
+    //
+    // A control may appear only once per framework -- CreateFramework rejects
+    // duplicates. `BACKUP_RECOVERY_POINT_ENCRYPTED` is already in
+    // `baseControls`, so listing it again under PCI_DSS (an easy mistake when
+    // mapping standards to controls) fails validation. PCI_DSS therefore adds
+    // a retention control instead.
     const frameworkSpecificControls: { [key: string]: any[] } = {
       'HIPAA': [
         {
@@ -654,8 +825,10 @@ export class SimplifiedCrossAccountBackupStack extends cdk.Stack {
       ],
       'PCI_DSS': [
         {
-          controlName: 'BACKUP_RECOVERY_POINT_ENCRYPTED',
-          controlInputParameters: []
+          controlName: 'BACKUP_RECOVERY_POINT_MINIMUM_RETENTION_CHECK',
+          controlInputParameters: [
+            { parameterName: 'requiredRetentionDays', parameterValue: '365' }
+          ]
         }
       ],
       'SOC2': [
@@ -678,10 +851,58 @@ export class SimplifiedCrossAccountBackupStack extends cdk.Stack {
     return [...baseControls, ...(frameworkSpecificControls[framework] || [])];
   }
 
-  private setupCrossRegionCopy(props: SimplifiedBackupProps): void {
-    // Note: Cross-region copy is handled automatically by backup rules
-    // This is a placeholder for any additional cross-region setup
-    console.log(`Cross-region backup copying enabled to ${props.crossRegionCopy.destinationRegion}`);
+}
+```
+
+### The destination side
+
+The copy actions above will not work until the receiving vaults grant this account permission to write into them. Deploy this stack in the **backup account** (and an equivalent one in the DR account):
+
+```typescript
+// Deployed in the BACKUP account (444455556666)
+export class CentralBackupVaultStack extends cdk.Stack {
+  constructor(scope: Construct, id: string, props: cdk.StackProps & {
+    sourceAccountIds: string[];
+  }) {
+    super(scope, id, props);
+
+    // The destination vault needs its own KMS key, in this account. A copy
+    // is re-encrypted at the destination -- it cannot use the source
+    // account's key.
+    const vaultKey = new kms.Key(this, 'CentralBackupKey', {
+      description: 'Encryption key for centralised cross-account backups',
+      enableKeyRotation: true
+    });
+
+    new backup.BackupVault(this, 'CentralBackupVault', {
+      backupVaultName: 'central-backup-vault',
+      encryptionKey: vaultKey,
+      // Vault Lock is the reason to have a separate backup account at all: in
+      // compliance mode nobody -- including this account's administrators and
+      // AWS itself -- can shorten retention or delete a recovery point before
+      // it expires. That is what makes these copies ransomware-resistant
+      // rather than merely off-site. It is irreversible once the cooling-off
+      // window closes, so set `changeableForDays` and graduate deliberately.
+      lockConfiguration: {
+        minRetention: cdk.Duration.days(30),
+        maxRetention: cdk.Duration.days(2555),
+        changeableFor: cdk.Duration.days(3)
+      },
+      accessPolicy: new iam.PolicyDocument({
+        statements: [
+          new iam.PolicyStatement({
+            sid: 'AllowSourceAccountsToCopyIn',
+            effect: iam.Effect.ALLOW,
+            principals: props.sourceAccountIds.map(
+              accountId => new iam.AccountPrincipal(accountId)
+            ),
+            actions: ['backup:CopyIntoBackupVault'],
+            resources: ['*']
+          })
+        ]
+      })
+    });
+
   }
 }
 ```
@@ -702,6 +923,11 @@ import { Construct } from 'constructs';
 
 export interface DRTestingProps extends cdk.StackProps {
   backupVault: backup.BackupVault;
+  /**
+   * The role AWS Backup assumes to perform the restore. This is NOT the
+   * Lambda's execution role -- see the note below.
+   */
+  restoreRole: iam.IRole;
 }
 
 export class DisasterRecoveryTestingStack extends cdk.Stack {
@@ -724,6 +950,7 @@ export class DisasterRecoveryTestingStack extends cdk.Stack {
       actions: [
         'backup:ListRecoveryPointsByBackupVault',
         'backup:DescribeRecoveryPoint',
+        'backup:GetRecoveryPointRestoreMetadata',
         'backup:StartRestoreJob',
         'backup:DescribeRestoreJob',
         'backup:ListRestoreJobs',
@@ -732,17 +959,48 @@ export class DisasterRecoveryTestingStack extends cdk.Stack {
       resources: ['*']
     }));
 
+    // `StartRestoreJob` takes an `IamRoleArn` that **AWS Backup** assumes to
+    // create the restored resource. Two things follow, and getting either
+    // wrong produces an AccessDenied that looks like a permissions problem
+    // with the Lambda:
+    //
+    //  1. That role must trust `backup.amazonaws.com`. Passing the Lambda's
+    //     own execution role -- which only trusts `lambda.amazonaws.com` --
+    //     fails, so `TEST_RESTORE_ROLE_ARN: drTestRole.roleArn` cannot work.
+    //  2. The caller needs `iam:PassRole` for it.
+    props.restoreRole.grantPassRole(drTestRole);
+
+    // Cleanup needs to delete what the restore created. Scope it to resources
+    // tagged as DR test artefacts so this can never touch production.
+    drTestRole.addToPolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: [
+        'ec2:DeleteVolume',
+        'rds:DeleteDBInstance',
+        'dynamodb:DeleteTable',
+        'ec2:DescribeVolumes',
+        'rds:DescribeDBInstances'
+      ],
+      resources: ['*'],
+      conditions: {
+        StringEquals: { 'aws:ResourceTag/DrTestArtifact': 'true' }
+      }
+    }));
+
     // Create the DR testing Lambda function
     this.drTestFunction = new lambda.Function(this, 'DRTestFunction', {
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'index.handler',
+      // Prefer NodejsFunction for a TypeScript handler -- it runs esbuild for
+      // you. `fromAsset` uploads the directory as-is, so `index.ts` is
+      // shipped uncompiled and the runtime cannot load it.
       code: lambda.Code.fromAsset('lambda/dr-testing'),
-      timeout: cdk.Duration.minutes(15),
+      timeout: cdk.Duration.minutes(5),
       memorySize: 512,
       role: drTestRole,
       environment: {
         BACKUP_VAULT_NAME: props.backupVault.backupVaultName,
-        TEST_RESTORE_ROLE_ARN: drTestRole.roleArn
+        TEST_RESTORE_ROLE_ARN: props.restoreRole.roleArn
       }
     });
 
@@ -792,59 +1050,80 @@ Create `lambda/dr-testing/package.json`:
     "test": "jest"
   },
   "devDependencies": {
-    "@types/node": "^18.0.0",
-    "typescript": "^4.9.0"
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
   }
 }
 ```
 
-Create `lambda/dr-testing/index.ts` with the DR testing logic:
+### Why this is a Step Functions job, not a Lambda
+
+The obvious implementation — loop over recovery points, start a restore, wait for it, check the result — cannot work, and it is worth being explicit about why before showing code:
+
+- **Lambda's hard ceiling is 15 minutes.** Restores take far longer: an RDS instance is typically 20–40 minutes, and a large EBS volume can be hours. A `waitForRestoreCompletion` helper that polls for "30 minutes maximum" is killed by the runtime at 15, mid-poll. The function times out, the metric never gets published, and the restore keeps running unattended.
+- **Nothing cleans up.** This is the expensive one. Each test restore creates a *real* RDS instance, EBS volume or DynamoDB table. If cleanup is a `console.log` placeholder — as it very often is — every monthly DR test leaks live billable resources indefinitely. A quarterly test of three resources leaves a dozen orphaned instances by year end, which is a genuinely surprising line item to trace back to your backup testing.
+
+So: use Step Functions. Start the restore in one short Lambda, let the state machine's `Wait` state poll for completion at no compute cost, and run cleanup in a state that executes even when validation fails.
 
 ```typescript
-import * as lambda from 'aws-cdk-lib/aws-lambda';
+// lib/dr-testing-stack.ts (state machine)
+const startRestore = new tasks.LambdaInvoke(this, 'StartRestore', {
+  lambdaFunction: startRestoreFn,
+  outputPath: '$.Payload'
+});
 
-export class DisasterRecoveryTestingStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props: cdk.StackProps) {
-    super(scope, id, props);
+const checkRestore = new tasks.LambdaInvoke(this, 'CheckRestore', {
+  lambdaFunction: checkRestoreFn,
+  outputPath: '$.Payload'
+});
 
-    // Automated DR testing function
-    const drTestFunction = new lambda.Function(this, 'DRTestFunction', {
-      runtime: lambda.Runtime.NODEJS_18_X,
-      handler: 'index.handler',
-      code: lambda.Code.fromAsset('lambda/dr-testing'),
-      timeout: cdk.Duration.minutes(15),
-      environment: {
-        BACKUP_VAULT_NAME: 'cross-account-backup-vault',
-        TEST_RESTORE_ROLE_ARN: 'arn:aws:iam::ACCOUNT:role/BackupRestoreRole'
-      }
-    });
+// Cleanup runs on both the success and failure paths. Registering it only on
+// the happy path is how orphaned test resources happen.
+const cleanup = new tasks.LambdaInvoke(this, 'CleanupTestResources', {
+  lambdaFunction: cleanupFn,
+  outputPath: '$.Payload'
+});
 
-    // Schedule monthly DR tests
-    const drTestRule = new events.Rule(this, 'DRTestSchedule', {
-      schedule: events.Schedule.cron({
-        day: '15',
-        hour: '10',
-        minute: '0'
-      }),
-      description: 'Monthly disaster recovery testing'
-    });
+const definition = startRestore
+  .next(new sfn.Wait(this, 'WaitForRestore', {
+    time: sfn.WaitTime.duration(cdk.Duration.minutes(2))
+  }))
+  .next(checkRestore)
+  .next(new sfn.Choice(this, 'RestoreComplete?')
+    .when(sfn.Condition.stringEquals('$.status', 'RUNNING'),
+      new sfn.Wait(this, 'WaitAgain', {
+        time: sfn.WaitTime.duration(cdk.Duration.minutes(2))
+      }).next(checkRestore))
+    .otherwise(cleanup));
 
-    drTestRule.addTarget(new events_targets.LambdaFunction(drTestFunction));
-  }
-}
+new sfn.StateMachine(this, 'DrTestStateMachine', {
+  definitionBody: sfn.DefinitionBody.fromChainable(definition),
+  // Generous: a large RDS restore genuinely takes this long.
+  timeout: cdk.Duration.hours(6)
+});
 ```
 
-Create the DR testing Lambda function:
-
-Create `lambda/dr-testing/index.ts` with the DR testing logic:
+Now the handlers. `lambda/dr-testing/index.ts`:
 
 ```typescript
 // lambda/dr-testing/index.ts
-import { BackupClient, ListRecoveryPointsByBackupVaultCommand, StartRestoreJobCommand, DescribeRestoreJobCommand } from '@aws-sdk/client-backup';
+import {
+  BackupClient,
+  ListRecoveryPointsByBackupVaultCommand,
+  GetRecoveryPointRestoreMetadataCommand,
+  StartRestoreJobCommand,
+  DescribeRestoreJobCommand
+} from '@aws-sdk/client-backup';
 import { CloudWatchClient, PutMetricDataCommand } from '@aws-sdk/client-cloudwatch';
+import { DynamoDBClient, DeleteTableCommand } from '@aws-sdk/client-dynamodb';
+import { RDSClient, DeleteDBInstanceCommand } from '@aws-sdk/client-rds';
+import { EC2Client, DeleteVolumeCommand } from '@aws-sdk/client-ec2';
 
 const backup = new BackupClient({});
 const cloudwatch = new CloudWatchClient({});
+const dynamodb = new DynamoDBClient({});
+const rds = new RDSClient({});
+const ec2 = new EC2Client({});
 
 interface DRTestEvent {
   testType: 'full' | 'sample' | 'validation';
@@ -865,6 +1144,7 @@ export const handler = async (event: DRTestEvent): Promise<any> => {
   console.log('Starting DR test with event:', JSON.stringify(event, null, 2));
   
   const startTime = Date.now();
+  const restoreDurations: number[] = [];
   const testResults: TestResults = {
     totalTests: 0,
     successfulTests: 0,
@@ -906,24 +1186,36 @@ export const handler = async (event: DRTestEvent): Promise<any> => {
         
         if (restoreResult.status === 'COMPLETED') {
           testResults.successfulTests++;
+          restoreDurations.push(restoreDuration);
           console.log(`Restore test successful in ${restoreDuration}ms`);
-          
-          // Clean up test resources
-          await cleanupTestRestore(restoreJobId);
         } else {
           testResults.failedTests++;
           console.error(`Restore test failed with status: ${restoreResult.status}`);
         }
+
+        // Always clean up, whatever the outcome. A restore that reached
+        // FAILED may still have created a partial resource, and a TIMEOUT
+        // almost certainly created a resource that is still provisioning.
+        await cleanupTestRestore(restoreJobId);
       } catch (error) {
         console.error(`Restore test failed for recovery point ${recoveryPoint.RecoveryPointArn}:`, error);
         testResults.failedTests++;
       }
     }
 
-    // Calculate final metrics
+    // Calculate final metrics.
+    //
+    // RTO is per-restore elapsed time, so average the individual
+    // `restoreDuration` values -- dividing total handler wall-clock by the
+    // number of tests conflates sequential restores with each other and
+    // includes list/setup overhead, understating each restore's real duration.
     testResults.testDuration = Date.now() - startTime;
-    testResults.averageRTO = testResults.totalTests > 0 ? testResults.testDuration / testResults.totalTests : 0;
-    testResults.successRate = testResults.totalTests > 0 ? (testResults.successfulTests / testResults.totalTests) * 100 : 0;
+    testResults.averageRTO = restoreDurations.length > 0
+      ? restoreDurations.reduce((sum, d) => sum + d, 0) / restoreDurations.length
+      : 0;
+    testResults.successRate = testResults.totalTests > 0
+      ? (testResults.successfulTests / testResults.totalTests) * 100
+      : 0;
 
     // Publish metrics to CloudWatch
     await publishTestMetrics(testResults);
@@ -963,52 +1255,65 @@ export const handler = async (event: DRTestEvent): Promise<any> => {
 };
 
 async function startTestRestore(recoveryPoint: any): Promise<string> {
-  // Configure restore metadata based on resource type
-  const restoreMetadata = getRestoreMetadata(recoveryPoint);
+  const restoreMetadata = await getRestoreMetadata(recoveryPoint);
 
   const result = await backup.send(new StartRestoreJobCommand({
     RecoveryPointArn: recoveryPoint.RecoveryPointArn,
     Metadata: restoreMetadata,
+    // Must be a role AWS Backup can assume -- not the Lambda's own role.
     IamRoleArn: process.env.TEST_RESTORE_ROLE_ARN!,
-    IdempotencyToken: `dr-test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    // `substr` is deprecated; and note this token is only idempotent within
+    // the same millisecond, which is fine here but would not be if the state
+    // machine retried this task.
+    IdempotencyToken: `dr-test-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
   }));
 
   return result.RestoreJobId!;
 }
 
-function getRestoreMetadata(recoveryPoint: any): Record<string, string> {
-  // Default metadata for test restores
-  const baseMetadata = {
-    'newInstanceType': 't3.micro',  // Use smallest instance for cost efficiency
-    'targetAvailabilityZone': 'us-west-2a'
-  };
+// Do not hand-write restore metadata. The valid keys are service-specific and
+// differ from the corresponding API's parameter names -- EBS wants
+// `volumeType`/`availabilityZone`/`encrypted`, DynamoDB wants
+// `targetTableName`, and none of them are `newInstanceType` or `DBInstanceClass`.
+// Guessing produces InvalidParameterValueException at restore time, hours after
+// the pipeline reported success in starting the job.
+//
+// Ask AWS Backup for the correct metadata for this specific recovery point,
+// then override only what you need to.
+async function getRestoreMetadata(recoveryPoint: any): Promise<Record<string, string>> {
+  const { RestoreMetadata } = await backup.send(
+    new GetRecoveryPointRestoreMetadataCommand({
+      BackupVaultName: process.env.BACKUP_VAULT_NAME!,
+      RecoveryPointArn: recoveryPoint.RecoveryPointArn
+    })
+  );
 
-  // Resource-specific metadata
-  if (recoveryPoint.ResourceArn?.includes(':rds:')) {
-    return {
-      ...baseMetadata,
-      'DBInstanceClass': 'db.t3.micro',
-      'Engine': 'mysql'  // Will be determined from backup
-    };
-  } else if (recoveryPoint.ResourceArn?.includes(':ec2:')) {
-    return {
-      ...baseMetadata,
-      'InstanceType': 't3.micro',
-      'SubnetId': 'subnet-12345678'  // Replace with your test subnet
-    };
-  } else if (recoveryPoint.ResourceArn?.includes(':dynamodb:')) {
-    return {
-      'BillingMode': 'PAY_PER_REQUEST',
-      'TableName': `test-restore-${Date.now()}`
-    };
+  const metadata: Record<string, string> = { ...RestoreMetadata };
+
+  // Restore under a new identity so a test can never overwrite the live
+  // resource, and tag it so the cleanup step can find it -- and so the
+  // cleanup IAM policy's tag condition permits deleting it.
+  const suffix = `drtest-${Date.now()}`;
+
+  if (recoveryPoint.ResourceType === 'DynamoDB') {
+    metadata.targetTableName = `${suffix}`;
+  }
+  if (recoveryPoint.ResourceType === 'RDS') {
+    metadata.DBInstanceIdentifier = suffix;
+    metadata.DBInstanceClass = 'db.t3.micro';   // cheapest viable test size
+    metadata.MultiAZ = 'false';
   }
 
-  return baseMetadata;
+  return metadata;
 }
 
+// Retained here for the single-resource case, but note the ceiling: this
+// polls for up to 30 minutes inside a function whose own timeout is far
+// shorter, so for anything slower than a small EBS volume the Lambda is
+// killed mid-wait. That is what the Step Functions definition above replaces.
 async function waitForRestoreCompletion(restoreJobId: string): Promise<{ status: string }> {
   let attempts = 0;
-  const maxAttempts = 30; // 30 minutes maximum wait
+  const maxAttempts = 30; // 30 minutes -- exceeds any Lambda timeout
   
   while (attempts < maxAttempts) {
     try {
@@ -1037,16 +1342,41 @@ async function waitForRestoreCompletion(restoreJobId: string): Promise<{ status:
   return { status: 'TIMEOUT' };
 }
 
+// This function is the difference between a DR test and a recurring bill.
+// A restore creates a real, running resource; if nothing deletes it, every
+// test leaks one forever.
 async function cleanupTestRestore(restoreJobId: string): Promise<void> {
   console.log(`Cleaning up test restore ${restoreJobId}`);
-  
-  // In a real implementation, you would:
-  // 1. Get the restored resource details
-  // 2. Delete the test resource to avoid costs
-  // 3. Remove any associated resources (security groups, etc.)
-  
-  // For now, just log the cleanup action
-  console.log('Test resource cleanup completed');
+
+  const job = await backup.send(new DescribeRestoreJobCommand({
+    RestoreJobId: restoreJobId
+  }));
+
+  const arn = job.CreatedResourceArn;
+  if (!arn) {
+    // Nothing was created (the restore failed early), so nothing to clean up.
+    return;
+  }
+
+  if (arn.includes(':dynamodb:')) {
+    const tableName = arn.split('/').pop()!;
+    await dynamodb.send(new DeleteTableCommand({ TableName: tableName }));
+  } else if (arn.includes(':rds:')) {
+    const id = arn.split(':').pop()!;
+    await rds.send(new DeleteDBInstanceCommand({
+      DBInstanceIdentifier: id,
+      SkipFinalSnapshot: true,
+      DeleteAutomatedBackups: true
+    }));
+  } else if (arn.includes(':volume/')) {
+    const volumeId = arn.split('/').pop()!;
+    await ec2.send(new DeleteVolumeCommand({ VolumeId: volumeId }));
+  } else {
+    // Fail loudly rather than silently leaking an unrecognised resource type.
+    throw new Error(`No cleanup handler for restored resource ${arn}`);
+  }
+
+  console.log(`Deleted test resource ${arn}`);
 }
 
 async function publishTestMetrics(testResults: TestResults): Promise<void> {
@@ -1181,9 +1511,14 @@ export class BackupMonitoringStack extends cdk.Stack {
           height: 6
         }),
 
-        // Cost tracking widget
+        // Cost tracking widget.
+        //
+        // `AWS/Billing` metrics are published only by the payer account, only
+        // into us-east-1, and only when "Receive Billing Alerts" is enabled in
+        // billing preferences. Without `region: 'us-east-1'` this widget is
+        // empty in any other region, which reads as "no backup costs".
         new cloudwatch.SingleValueWidget({
-          title: 'Monthly Backup Costs',
+          title: 'Estimated Backup Charges (payer account)',
           metrics: [
             new cloudwatch.Metric({
               namespace: 'AWS/Billing',
@@ -1193,20 +1528,24 @@ export class BackupMonitoringStack extends cdk.Stack {
                 ServiceName: 'AWSBackup'
               },
               statistic: 'Maximum',
-              period: cdk.Duration.days(1)
+              period: cdk.Duration.days(1),
+              region: 'us-east-1'
             })
           ],
           width: 6,
           height: 6
         }),
 
-        // Recovery point count widget
+        // Recovery point count widget.
+        // The metric is `NumberOfRecoveryPointsCompleted` -- there is no
+        // `...Created` metric, and a widget pointed at a nonexistent metric
+        // renders an empty graph rather than an error.
         new cloudwatch.SingleValueWidget({
           title: 'Total Recovery Points',
           metrics: [
             new cloudwatch.Metric({
               namespace: 'AWS/Backup',
-              metricName: 'NumberOfRecoveryPointsCreated',
+              metricName: 'NumberOfRecoveryPointsCompleted',
               statistic: 'Sum',
               period: cdk.Duration.days(1)
             })
@@ -1324,28 +1663,43 @@ Deploy the complete solution step by step:
 # 1. Install dependencies
 npm install
 
-# 2. Build the Lambda function
-cd lambda/dr-testing
-npm install
-npm run build
-cd ../..
+# 2. Bootstrap CDK in every account/region pair involved, including the
+#    backup and DR accounts -- a cross-account deployment fails on the first
+#    unbootstrapped target.
+npx cdk bootstrap aws://111122223333/us-west-2
+npx cdk bootstrap aws://444455556666/us-west-2
+npx cdk bootstrap aws://777788889999/us-east-1
 
-# 3. Bootstrap CDK (if not done before)
-npx cdk bootstrap
+# 3. Create the destination vaults FIRST. The copy actions in the backup plan
+#    reference them by ARN, and AWS Backup validates the destination at
+#    create time.
+npx cdk deploy CentralBackupVaultStack --profile backup-account
+npx cdk deploy DrBackupVaultStack      --profile dr-account
 
-# 4. Deploy the backup infrastructure first
-npx cdk deploy BackupStack \
-    --parameters backupAccountId=111122223333 \
-    --parameters drAccountId=444455556666
+# 4. Then the source account's backup infrastructure
+npx cdk deploy BackupStack
 
-# 5. Deploy DR testing stack
-npx cdk deploy DRTestingStack
+# 5. DR testing and monitoring
+npx cdk deploy DRTestingStack MonitoringStack
 
-# 6. Deploy monitoring stack
-npx cdk deploy MonitoringStack
-
-# 7. Verify deployment
+# 6. Verify
 npx cdk list
+```
+
+Note the absence of `--parameters` here. The account IDs and retention values
+live in `bin/app.ts` as plain TypeScript, so they are resolved at synthesis
+time; they are not CloudFormation `Parameters`. Passing
+`--parameters backupAccountId=...` fails with *"Parameters: [backupAccountId] do
+not exist in the template"*. To vary these per deployment, use CDK context
+instead:
+
+```bash
+npx cdk deploy BackupStack -c backupAccountId=444455556666
+```
+
+```typescript
+// and read it in bin/app.ts
+const backupAccountId = app.node.tryGetContext('backupAccountId') ?? '444455556666';
 ```
 
 ## Step 8: Testing and Validation
@@ -1377,74 +1731,6 @@ aws backup list-report-jobs
 
 This structured approach provides clear implementation guidance for each component, showing exactly how to organize and deploy the TypeScript code in a real AWS environment.
 
-## Deployment and Cost Optimization
-
-Now that you have all the components structured properly, deploy the complete solution:
-
-Now that you have all the components structured properly, deploy the complete solution:
-
-```bash
-# Navigate to your project directory
-cd aws-backup-cross-account
-
-# Install dependencies
-npm install
-
-# Build the Lambda function
-cd lambda/dr-testing
-npm install
-npm run build
-cd ../..
-
-# Bootstrap CDK (if not done before)
-npx cdk bootstrap
-
-# Deploy all stacks
-npx cdk deploy --all \
-  --parameters BackupStack:backupAccountId=111122223333 \
-  --parameters BackupStack:drAccountId=444455556666 \
-  --parameters BackupStack:complianceFrameworks=SOC2,HIPAA,PCI_DSS \
-  --parameters BackupStack:notificationEmail=admin@yourcompany.com
-```
-
-## Post-Deployment Validation
-
-After deployment, validate that everything is working correctly:
-
-After deployment, validate that everything is working correctly:
-
-```bash
-# 1. Check that all stacks deployed successfully
-npx cdk list
-
-# 2. Verify backup vault creation
-aws backup describe-backup-vault --backup-vault-name cross-account-backup-vault
-
-# 3. Check backup plan creation
-aws backup get-backup-plan --backup-plan-id $(aws cloudformation describe-stacks \
-    --stack-name BackupStack \
-    --query 'Stacks[0].Outputs[?OutputKey==`BackupPlanId`].OutputValue' \
-    --output text)
-
-# 4. Test the DR function manually
-aws lambda invoke \
-    --function-name $(aws cloudformation describe-stacks \
-        --stack-name DRTestingStack \
-        --query 'Stacks[0].Outputs[?OutputKey==`DRTestFunctionName`].OutputValue' \
-        --output text) \
-    --payload '{"testType":"sample","maxTestRestores":1,"resourceTypes":["EBS"]}' \
-    response.json && cat response.json
-
-# 5. View the monitoring dashboard
-echo "Dashboard URL: $(aws cloudformation describe-stacks \
-    --stack-name MonitoringStack \
-    --query 'Stacks[0].Outputs[?OutputKey==`DashboardURL`].OutputValue' \
-    --output text)"
-
-# 6. Check CloudWatch logs for any issues
-aws logs describe-log-groups --log-group-name-prefix /aws/lambda/DRTestingStack
-```
-
 ## Ongoing Operations
 
 Once deployed, your backup solution will run automatically. Here's how to manage it:
@@ -1469,69 +1755,38 @@ Once deployed, your backup solution will run automatically. Here's how to manage
 
 ## Key Benefits of the Simplified Approach
 
-**Reduced Complexity**: The AWS Backup-based solution eliminates 80% of the custom code while providing the same enterprise capabilities:
+**Reduced Complexity**: Scheduling, cross-account copying, lifecycle transitions, retention enforcement and audit reporting are all declarative configuration rather than code you own. The custom code that remains in this post is entirely restore *testing* — which is the part worth your attention anyway.
 
-- **Before**: 2000+ lines of custom orchestration code
-- **After**: 300 lines of configuration and integration code
+**Native AWS Integration**: AWS Backup covers RDS, Aurora, EBS, EC2, DynamoDB, EFS, FSx, Storage Gateway, DocumentDB, Neptune, Redshift, S3, Timestream and SAP HANA on EC2 through one API, so you are not writing per-service snapshot logic. Check the [supported resources list](https://docs.aws.amazon.com/aws-backup/latest/devguide/whatisbackup.html#supported-resources) before assuming coverage — the gaps tend to be where custom work reappears.
 
-**Native AWS Integration**: AWS Backup provides built-in integration with all AWS services, eliminating the need for custom service-specific backup logic.
+**Cost Optimization**: Cold storage is roughly a quarter the price of warm storage, so lifecycle rules genuinely help — subject to the two constraints in Step 2: only some resource types support cold storage, and a 90-day minimum applies once a recovery point moves there. Budget for the copies as well: a cross-account plus cross-region copy means you are storing three of everything.
 
-**Automatic Cost Optimization**: AWS Backup's intelligent tiering automatically moves backups to cold storage, reducing costs by up to 70% without manual intervention.
-
-**Compliance Automation**: Built-in compliance frameworks and audit reporting eliminate the need for custom compliance validation logic.
+**Compliance Automation**: Audit Manager gives you controls and scheduled reports, which is the evidence an auditor asks for. It does not certify anything against a standard — see the note on framework naming above.
 
 **Operational Simplicity**: Single console for monitoring, alerting, and management across all backup operations and accounts.
 
-## Monitoring and Alerting
-
-AWS Backup provides comprehensive monitoring through CloudWatch:
-
-```typescript
-// Simplified monitoring setup
-const backupDashboard = new cloudwatch.Dashboard(this, 'BackupDashboard', {
-  dashboardName: 'SimplifiedCrossAccountBackup',
-  widgets: [
-    new cloudwatch.GraphWidget({
-      title: 'Backup Job Success Rate',
-      left: [
-        new cloudwatch.Metric({
-          namespace: 'AWS/Backup',
-          metricName: 'NumberOfBackupJobsCompleted',
-          statistic: 'Sum'
-        }),
-        new cloudwatch.Metric({
-          namespace: 'AWS/Backup',
-          metricName: 'NumberOfBackupJobsFailed',
-          statistic: 'Sum'
-        })
-      ]
-    }),
-    new cloudwatch.SingleValueWidget({
-      title: 'Monthly Backup Costs',
-      metrics: [
-        new cloudwatch.Metric({
-          namespace: 'AWS/Billing',
-          metricName: 'EstimatedCharges',
-          dimensionsMap: {
-            ServiceName: 'AWSBackup'
-          }
-        })
-      ]
-    })
-  ]
-});
-```
-
 ## Conclusion
 
-The simplified AWS Backup approach delivers enterprise-grade cross-account backup and disaster recovery capabilities with significantly reduced complexity. By leveraging AWS Backup's native features, organizations can achieve the same business outcomes with 80% less code, reduced operational overhead, and automatic cost optimization.
+The simplified AWS Backup approach delivers enterprise-grade cross-account backup and disaster recovery capabilities with significantly reduced complexity. By leveraging AWS Backup's native features you move scheduling, copying, lifecycle and reporting out of code you maintain and into service configuration — and you get to spend the time you save on the thing that actually determines whether the strategy works, which is testing restores.
 
 **Key Advantages:**
 
 - **Simplified Architecture**: Single managed service replaces complex orchestration
 - **Reduced Maintenance**: AWS manages the underlying infrastructure and updates
-- **Native Compliance**: Built-in frameworks eliminate custom validation logic
-- **Cost Efficiency**: Automatic lifecycle management and intelligent tiering
+- **Auditable Compliance**: Scheduled reports and controls produce the evidence auditors ask for
+- **Cost Efficiency**: Lifecycle management moves eligible recovery points to cold storage automatically
 - **Operational Excellence**: Integrated monitoring and alerting through CloudWatch
 
+**The one thing to get right**: an untested backup is a hypothesis. The Vault Lock configuration and the restore-testing pipeline are what turn this from a scheduled snapshot job into a disaster recovery capability — and they are the two parts most often skipped.
+
 This approach is ideal for organizations that want enterprise-grade backup and DR capabilities without the complexity of custom solutions. The simplified implementation maintains security, compliance, and operational requirements while dramatically reducing development and maintenance overhead.
+
+## More in This Series
+
+This is post 5 of 5 in the **AWS Cross-Account Patterns** series:
+
+1. [Cross-Account Lambda Access to S3](/posts/cross-account-lambda-s3-access/)
+2. [Cross-Account EventBridge Integration](/posts/2025/07/30/cross-account-eventbridge-integration/)
+3. [Implementing Cross-Account CI/CD Pipelines](/posts/2025/08/06/cross-account-cicd-pipelines/)
+4. [Cross-Account Monitoring and Observability](/posts/cross-account-monitoring-observability/)
+5. **Simplified Cross-Account Backup and Disaster Recovery** (this post)

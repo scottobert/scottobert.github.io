@@ -11,7 +11,7 @@ tags:
 - IAM
 - Lambda
 - Microservices
-series: AWS Cross-Account Patterns
+series: "AWS Cross-Account Patterns"
 ---
 
 Imagine running an e-commerce platform that processes thousands of orders daily across multiple AWS accounts. The Orders team manages customer transactions in Account A, while the Fulfillment team handles inventory and shipping from Account B. Without proper integration, these teams find themselves trapped in a cycle of polling APIs, batch file transfers, and—worse yet—manual processes that introduce delays and potential data inconsistencies.
@@ -118,10 +118,14 @@ export class EventBusStack extends cdk.Stack {
       description: 'Receives and processes cross-account events'
     });
 
-    // Export the ARN for cross-account reference
+    // Surface the ARN so you can copy it into the consumer account's config.
+    // Note: `exportName` creates a CloudFormation export, which is resolvable
+    // only within this account and region -- `Fn::ImportValue` cannot cross an
+    // account boundary. Treat this as a convenience output, not a wiring
+    // mechanism; the consumer account gets the ARN via SSM, config file or
+    // pipeline variable.
     new cdk.CfnOutput(this, 'OrdersEventBusArn', {
-      value: this.ordersEventBus.eventBusArn,
-      exportName: 'OrdersEventBusArn'
+      value: this.ordersEventBus.eventBusArn
     });
   }
 }
@@ -134,92 +138,114 @@ export class EventBusStack extends cdk.Stack {
 > aws events create-event-bus --name consumer-events
 > ```
 
-### Step 2: Cross-Account Permissions - The Security Layer
+### Step 2: Which Account Grants What — Getting the Direction Right
 
-This is where the magic happens. We need to tell the producer account's event bus that it's okay to receive rules and targets from the consumer account. Think of this as giving the consumer account a key to the producer's mailbox.
-
-The cleanest approach uses CDK to set up these permissions declaratively:
+This is the step people get backwards, so it's worth being precise. Events flow producer → consumer, and **the resource policy goes on the receiving end**: the *consumer's* event bus grants `events:PutEvents` to the producer. The producer's bus does not need a policy for this pattern at all.
 
 ```typescript
 import * as iam from 'aws-cdk-lib/aws-iam';
 
-export class ProducerAccountStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props: { consumerAccountId: string }) {
-    super(scope, id);
+export class ConsumerAccountStack extends cdk.Stack {
+  public readonly consumerEventBus: events.EventBus;
 
-    const ordersEventBus = new events.EventBus(this, 'OrdersEventBus', {
-      eventBusName: 'orders-events'
+  constructor(scope: Construct, id: string, props: cdk.StackProps & {
+    producerAccountId: string;
+  }) {
+    super(scope, id, props);
+
+    this.consumerEventBus = new events.EventBus(this, 'ConsumerEventBus', {
+      eventBusName: 'consumer-events'
     });
 
-    // Grant the consumer account permission to create rules and targets
-    ordersEventBus.addToResourcePolicy(new iam.PolicyStatement({
-      sid: 'AllowCrossAccountAccess',
+    // Let the producer account deliver events into our bus.
+    this.consumerEventBus.addToResourcePolicy(new iam.PolicyStatement({
+      sid: 'AllowProducerAccountToPutEvents',
       effect: iam.Effect.ALLOW,
-      principals: [new iam.AccountPrincipal(props.consumerAccountId)],
-      actions: [
-        'events:PutRule',
-        'events:PutTargets',
-        'events:DeleteRule',
-        'events:RemoveTargets'
-      ],
-      resources: [ordersEventBus.eventBusArn]
+      principals: [new iam.AccountPrincipal(props.producerAccountId)],
+      actions: ['events:PutEvents'],
+      resources: [this.consumerEventBus.eventBusArn],
+      // Narrow the grant to the events we actually expect. Without this the
+      // producer account can push anything at all onto our bus.
+      conditions: {
+        StringEquals: { 'events:source': 'mycompany.orders' }
+      }
     }));
   }
 }
 ```
 
-This resource policy essentially says: "Consumer account 987654321098, you're allowed to create rules on my event bus and tell me where to send matching events."
+In an AWS Organization, prefer `new iam.OrganizationPrincipal('o-abc123')` over enumerating account IDs — new producer accounts then work without a policy change.
+
+You may also see the reverse arrangement, where the producer's bus grants `events:PutRule` and `events:PutTargets` so the *consumer* can create a rule directly on the producer's bus. EventBridge does support this (the `PutRule` family accepts a full bus ARN), but it is the harder road: the rule lives in the producer's account, so the IAM role EventBridge assumes to deliver the event must also live there, which means the producer has to pre-create that role and grant `iam:PassRole` anyway. You end up coordinating more, not less. Use the `PutEvents` direction above unless you have a specific reason not to.
 
 ### Step 3: Creating the Event Flow
 
-Now we connect the dots. The consumer account creates a rule on the producer's event bus that says "when you see order events, send them to my event bus." Here's how that works:
+Now the producer forwards matching events to the consumer's bus. Two things are mandatory here and both are easy to omit:
+
+- **A rule target for a cross-account bus needs a `RoleArn`.** EventBridge assumes that role to call `PutEvents` on the destination. CDK creates it for you when you use `targets.EventBus`; if you are writing raw CloudFormation or CLI calls, you must supply it yourself.
+- **A dead-letter queue.** Cross-account delivery can fail for reasons entirely outside the producer's control — the consumer's policy changed, the bus was deleted. Without a DLQ those events are silently dropped after EventBridge exhausts its retries.
 
 ```typescript
 import * as events_targets from 'aws-cdk-lib/aws-events-targets';
+import * as sqs from 'aws-cdk-lib/aws-sqs';
 
-export class ConsumerAccountStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props: {
-    producerAccountId: string;
-    producerEventBusArn: string;
+export class ProducerAccountStack extends cdk.Stack {
+  constructor(scope: Construct, id: string, props: cdk.StackProps & {
+    consumerEventBusArn: string;
   }) {
-    super(scope, id);
+    super(scope, id, props);
 
-    // Consumer's event bus for processing
-    const consumerEventBus = new events.EventBus(this, 'ConsumerEventBus', {
-      eventBusName: 'consumer-events'
+    const ordersEventBus = new events.EventBus(this, 'OrdersEventBus', {
+      eventBusName: 'orders-events'
     });
 
-    // Import the producer's event bus
-    const producerEventBus = events.EventBus.fromEventBusArn(
-      this, 'ProducerEventBus', props.producerEventBusArn
-    );
+    // Undeliverable events land here instead of vanishing.
+    const deliveryDlq = new sqs.Queue(this, 'CrossAccountDeliveryDlq', {
+      retentionPeriod: cdk.Duration.days(14),
+      enforceSSL: true
+    });
 
-    // Create rule on producer's bus that routes to our bus
-    const crossAccountRule = new events.Rule(this, 'CrossAccountOrderRule', {
-      eventBus: producerEventBus,
+    const crossAccountRule = new events.Rule(this, 'ForwardOrdersToConsumer', {
+      eventBus: ordersEventBus,
       eventPattern: {
         source: ['mycompany.orders'],
         detailType: ['Order Created', 'Order Updated', 'Order Cancelled']
       }
     });
 
-    // Route matching events to our consumer bus
-    crossAccountRule.addTarget(new events_targets.EventBusTarget(consumerEventBus));
-    
-    // Now create a local rule to process events in our account
-    const localRule = new events.Rule(this, 'ProcessOrdersLocally', {
-      eventBus: consumerEventBus,
-      eventPattern: {
-        source: ['mycompany.orders']
-      }
-    });
-    
-    // We'll add targets like Lambda functions here in the next step
+    // The class is `targets.EventBus` -- CDK synthesises the delivery role
+    // and wires it to the target automatically.
+    crossAccountRule.addTarget(new events_targets.EventBus(
+      events.EventBus.fromEventBusArn(
+        this, 'ConsumerEventBus', props.consumerEventBusArn
+      ),
+      { deadLetterQueue: deliveryDlq }
+    ));
   }
 }
 ```
 
-The beauty of this setup is that the consumer account controls its own destiny. It decides which events it wants from the producer and where those events should go locally.
+Back in the consumer account, a local rule picks the events up off the consumer bus and hands them to a Lambda function:
+
+```typescript
+const localRule = new events.Rule(this, 'ProcessOrdersLocally', {
+  eventBus: this.consumerEventBus,
+  eventPattern: {
+    source: ['mycompany.orders']
+  }
+});
+
+localRule.addTarget(new events_targets.LambdaFunction(orderProcessor, {
+  deadLetterQueue: processingDlq,
+  retryAttempts: 2
+}));
+```
+
+### One limitation to design around
+
+**Events cannot be forwarded twice.** If the consumer account sets up a rule that sends events it received from the producer on to a *third* account's bus, those events are not delivered. EventBridge permits exactly one cross-account hop.
+
+This matters for hub-and-spoke designs. A central bus that receives from every producer and re-fans-out to every consumer looks obvious on a whiteboard and does not work. Instead, have each producer target the consumer buses directly, or have consumers subscribe to the producer's bus — one hop either way. The same region constraint applies to bus-to-bus delivery, so a cross-region *and* cross-account hop needs the region change handled separately.
 
 ### Step 4: Publishers and Consumers - The Business Logic
 
@@ -237,10 +263,10 @@ interface OrderEvent {
 }
 
 class OrderEventPublisher {
-  private eventBridge = new EventBridgeClient({ region: 'us-east-1' });
-  
+  private eventBridge = new EventBridgeClient({});
+
   async publishOrderEvent(event: OrderEvent, eventType: string): Promise<void> {
-    await this.eventBridge.send(new PutEventsCommand({
+    const response = await this.eventBridge.send(new PutEventsCommand({
       Entries: [{
         Source: 'mycompany.orders',
         DetailType: eventType,
@@ -249,6 +275,20 @@ class OrderEventPublisher {
         Time: new Date()
       }]
     }));
+
+    // This is the single most important thing to get right about PutEvents:
+    // it returns HTTP 200 even when entries were rejected. The SDK does not
+    // throw. If you ignore FailedEntryCount you will lose events silently and
+    // your metrics will show a perfectly healthy publisher.
+    if (response.FailedEntryCount && response.FailedEntryCount > 0) {
+      const failures = (response.Entries ?? [])
+        .filter(entry => entry.ErrorCode)
+        .map(entry => `${entry.ErrorCode}: ${entry.ErrorMessage}`);
+
+      throw new Error(
+        `PutEvents rejected ${response.FailedEntryCount} of 1 entries: ${failures.join('; ')}`
+      );
+    }
   }
 }
 
@@ -266,13 +306,17 @@ export const handleOrderCreated = async (orderData: any) => {
 };
 ```
 
-The key insight here is maintaining consistent event schemas. Every order event should have the same basic structure, making it easier for consumers to process them reliably.
+Two things matter here. Keep event schemas consistent, so every order event has the same basic shape and consumers can process them reliably. And batch carefully: `PutEvents` accepts up to 10 entries or 256 KB per call, and a partial rejection means *some* of your batch landed. Retrying the whole batch then duplicates the entries that succeeded, which is one more reason consumers must be idempotent.
 
 **On the consumer side**, we process these cross-account events with clean, focused Lambda functions:
 
 ```typescript
 import { EventBridgeEvent } from 'aws-lambda';
-import { DynamoDBClient, PutItemCommand } from '@aws-sdk/client-dynamodb';
+import {
+  DynamoDBClient,
+  PutItemCommand,
+  ConditionalCheckFailedException
+} from '@aws-sdk/client-dynamodb';
 
 interface OrderEventDetail {
   orderId: string;
@@ -308,26 +352,38 @@ export const processOrderEvent = async (
 };
 
 async function handleNewOrder(order: OrderEventDetail): Promise<void> {
-  // Idempotent processing - only create if doesn't exist
-  await dynamodb.send(new PutItemCommand({
-    TableName: 'ProcessedOrders',
-    Item: {
-      orderId: { S: order.orderId },
-      customerId: { S: order.customerId },
-      status: { S: order.status },
-      amount: { N: order.amount.toString() },
-      processedAt: { S: new Date().toISOString() }
-    },
-    ConditionExpression: 'attribute_not_exists(orderId)'
-  }));
-  
+  try {
+    await dynamodb.send(new PutItemCommand({
+      TableName: 'ProcessedOrders',
+      Item: {
+        orderId: { S: order.orderId },
+        customerId: { S: order.customerId },
+        status: { S: order.status },
+        amount: { N: order.amount.toString() },
+        processedAt: { S: new Date().toISOString() }
+      },
+      ConditionExpression: 'attribute_not_exists(orderId)'
+    }));
+  } catch (error) {
+    // The conditional write is only half of idempotency. On a duplicate
+    // delivery DynamoDB throws ConditionalCheckFailedException, and if that
+    // escapes the handler the invocation fails, EventBridge retries, and the
+    // same duplicate fails again -- until the event ends up in the DLQ. A
+    // duplicate is a success case here, so swallow exactly this error.
+    if (error instanceof ConditionalCheckFailedException) {
+      console.log(`Order ${order.orderId} already processed, skipping`);
+      return;
+    }
+    throw error;
+  }
+
   // Trigger downstream processes like inventory allocation, shipping prep, etc.
   // await allocateInventory(order);
   // await notifyWarehouse(order);
 }
 ```
 
-The consumer pattern emphasizes **idempotency** and **error handling**. Since events might be delivered more than once, your processing logic should be safe to run multiple times without side effects.
+The consumer pattern emphasises **idempotency** and **error handling**. EventBridge guarantees at-least-once delivery, so duplicates are normal operation rather than an error condition — and note that the guard above only protects the DynamoDB write. Everything after it (inventory allocation, warehouse notification) runs again on a duplicate unless it is separately idempotent. That is usually the bug: the database is protected and the side effects are not.
 
 ## Advanced Patterns That Matter
 
@@ -371,27 +427,50 @@ crossAccountRule.addTarget(new events_targets.LambdaFunction(processorFunction, 
 Testing cross-account EventBridge requires a different approach than single-account testing. Here's a pragmatic testing strategy:
 
 ```typescript
-// Create synthetic test events to validate your pipeline
-async function validateCrossAccountFlow(): Promise<boolean> {
-  const testOrderId = `test-${Date.now()}`;
-  
-  // Publish test event
+import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
+
+// Create synthetic test events to validate your pipeline end to end.
+// The point of a canary is that it can fail, so it has to actually assert
+// something on the consumer side -- a helper that ends in `return true`
+// passes even when the pipeline is completely broken.
+async function validateCrossAccountFlow(
+  publisher: OrderEventPublisher,
+  dynamodb: DynamoDBClient
+): Promise<boolean> {
+  const testOrderId = `canary-${Date.now()}`;
+
   await publisher.publishOrderEvent({
     orderId: testOrderId,
-    customerId: 'test-customer',
+    customerId: 'canary-customer',
     status: 'pending',
     amount: 100,
     timestamp: new Date().toISOString()
   }, 'Order Created');
-  
-  // Wait a moment for processing
-  await new Promise(resolve => setTimeout(resolve, 3000));
-  
-  // Verify the event was processed in consumer account
-  // (Check your DynamoDB table, logs, or other indicators)
-  return true;
+
+  // Poll rather than sleeping a fixed interval: cross-account delivery is
+  // usually sub-second but the tail is long, and a hard-coded 3s sleep turns
+  // a slow pipeline into a flaky test.
+  const deadline = Date.now() + 30_000;
+  while (Date.now() < deadline) {
+    const result = await dynamodb.send(new GetItemCommand({
+      TableName: 'ProcessedOrders',
+      Key: { orderId: { S: testOrderId } },
+      ConsistentRead: true
+    }));
+
+    if (result.Item) {
+      return true;
+    }
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+
+  throw new Error(
+    `Canary order ${testOrderId} never arrived in the consumer account within 30s`
+  );
 }
 ```
+
+Run this on a schedule against production. Cross-account event delivery is exactly the kind of thing that breaks quietly during an unrelated IAM cleanup, and a canary that writes a real event through the real path is the only check that catches a policy change immediately.
 
 Set up CloudWatch alarms for the metrics that matter:
 
@@ -401,45 +480,31 @@ Set up CloudWatch alarms for the metrics that matter:
 
 ## Security Considerations for Production
 
-**Principle of least privilege** becomes critical in cross-account scenarios. Only grant the minimum permissions necessary:
+**Principle of least privilege** becomes critical in cross-account scenarios. The `events:source` condition shown in Step 2 is the main lever — it stops a producer account from putting arbitrary events onto your bus. Also worth knowing: EventBridge supports customer managed KMS keys on a custom bus, so events are encrypted at rest under a key you control rather than an AWS-owned one:
 
 ```typescript
-// Restrict permissions to specific event patterns
-ordersEventBus.addToResourcePolicy(new iam.PolicyStatement({
-  effect: iam.Effect.ALLOW,
-  principals: [new iam.AccountPrincipal(consumerAccountId)],
-  actions: ['events:PutRule'],
-  resources: [ordersEventBus.eventBusArn],
-  conditions: {
-    StringEquals: {
-      'events:source': 'mycompany.orders'
-    }
-  }
-}));
+const ordersEventBus = new events.EventBus(this, 'OrdersEventBus', {
+  eventBusName: 'orders-events',
+  kmsKey: encryptionKey   // customer managed key, key policy must allow events.amazonaws.com
+});
 ```
 
-For sensitive data, consider **event payload encryption**:
+**Do not hand-roll payload encryption on top of this.** It is tempting to encrypt the `detail` before publishing, but it breaks the thing that makes EventBridge useful: rules match on event content, so an encrypted payload cannot be filtered or routed, and every consumer needs `kms:Decrypt` plus your envelope format. `kms:Encrypt` also caps plaintext at 4 KB, which real order payloads exceed.
+
+If a payload genuinely must not be visible to the event bus, use the **claim check** pattern instead — put the sensitive body in S3 under a key only the intended consumer can read, and publish an event containing the pointer plus whatever non-sensitive attributes rules need to match on:
 
 ```typescript
-import { KMSClient, EncryptCommand } from '@aws-sdk/client-kms';
-
-class SecureOrderPublisher extends OrderEventPublisher {
-  private kms = new KMSClient({ region: 'us-east-1' });
-  
-  async publishSecureOrderEvent(event: OrderEvent, eventType: string): Promise<void> {
-    const encrypted = await this.kms.send(new EncryptCommand({
-      KeyId: 'arn:aws:kms:us-east-1:123456789012:key/your-key-id',
-      Plaintext: Buffer.from(JSON.stringify(event))
-    }));
-    
-    // Publish encrypted payload
-    await this.publishOrderEvent({
-      ...event,
-      encryptedData: Buffer.from(encrypted.CiphertextBlob!).toString('base64')
-    }, eventType);
-  }
+interface OrderEventEnvelope {
+  orderId: string;
+  status: 'pending' | 'confirmed' | 'cancelled';
+  // Routable, non-sensitive attributes stay in the event...
+  region: string;
+  // ...and the sensitive body lives behind a reference.
+  payloadLocation: { bucket: string; key: string };
 }
 ```
+
+This keeps the sensitive data out of the event entirely, keeps rules working, and reduces the access grant to a single S3 prefix.
 
 ## Putting It All Together
 
@@ -452,3 +517,13 @@ The pattern works particularly well when you have:
 - **Security policies** that follow least-privilege principles
 
 Start simple with basic cross-account event routing, then add advanced features like content filtering, transformation, and encryption as your needs evolve. The foundational patterns demonstrated here will support sophisticated event-driven workflows that span organizational boundaries while maintaining the security and isolation that separate AWS accounts provide.
+
+## More in This Series
+
+This is post 2 of 5 in the **AWS Cross-Account Patterns** series:
+
+1. [Cross-Account Lambda Access to S3](/posts/cross-account-lambda-s3-access/)
+2. **Cross-Account EventBridge Integration** (this post)
+3. [Implementing Cross-Account CI/CD Pipelines](/posts/2025/08/06/cross-account-cicd-pipelines/)
+4. [Cross-Account Monitoring and Observability](/posts/cross-account-monitoring-observability/)
+5. [Simplified Cross-Account Backup and Disaster Recovery](/posts/2025/08/20/simplified-aws-backup-cross-account/)
