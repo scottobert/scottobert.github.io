@@ -12,7 +12,7 @@ tags:
 - Cross-Account
 - Config
 - Cost Management
-series: AWS Cross-Account Patterns
+series: "AWS Cross-Account Patterns"
 url: "/posts/cross-account-monitoring-observability/"
 ---
 
@@ -40,9 +40,9 @@ Consider a typical e-commerce application architecture: your API Gateway and Lam
 
 ### Business Impact of Poor Cross-Account Visibility
 
-The cost of monitoring fragmentation extends beyond operational inconvenience. Teams report average incident resolution times increase by 300% when troubleshooting requires data from multiple accounts. More critically, the lack of proactive monitoring across account boundaries means issues often escalate to customer-impacting incidents before detection.
+The cost of monitoring fragmentation extends beyond operational inconvenience. When an investigation requires data from four accounts, the time cost is not the querying — it is the context switching, the re-authentication, and the manual correlation of timestamps across consoles that each default to a different time range. The more damaging effect is on detection rather than resolution: alarms configured per-account cannot express a condition that spans accounts, so the failure modes that matter most in a distributed system are the ones nobody has an alarm for.
 
-Organizations I've worked with have seen dramatic improvements after implementing proper cross-account monitoring: mean time to detection (MTTD) decreased from hours to minutes, false positive alerts reduced by 60%, and compliance reporting that previously took weeks now completes automatically.
+The improvement after centralising is mostly about removing that manual correlation step. Measure it for yourself before and after — time-to-first-relevant-dashboard during an incident is a more honest metric than MTTR, and it is the one this work actually moves.
 
 ## Architecture Overview
 
@@ -116,7 +116,57 @@ end note
 
 ## Step 1: Setting Up Cross-Account CloudWatch Dashboards
 
-CloudWatch cross-account dashboards provide unified visibility into metrics and alarms across multiple AWS accounts. These dashboards enable teams to monitor distributed applications from a single pane of glass while maintaining appropriate access controls.
+Before building anything custom, use the service AWS provides for exactly this. **CloudWatch cross-account observability** links source accounts to a monitoring account through Observability Access Manager (OAM), and once linked, metrics, logs and traces from the source accounts appear in the monitoring account's own CloudWatch and X-Ray consoles. No aggregation Lambdas, no scheduled copying, no duplicated data.
+
+The monitoring account creates a **sink**; each source account creates a **link** to it:
+
+```typescript
+import * as oam from 'aws-cdk-lib/aws-oam';
+
+// In the MONITORING account
+const sink = new oam.CfnSink(this, 'ObservabilitySink', {
+  name: 'central-observability-sink',
+  policy: {
+    Version: '2012-10-17',
+    Statement: [{
+      Effect: 'Allow',
+      Principal: '*',
+      Resource: '*',
+      Action: ['oam:CreateLink', 'oam:UpdateLink'],
+      Condition: {
+        // Only accounts in our organisation may attach.
+        'ForAllValues:StringEquals': {
+          'oam:ResourceTypes': [
+            'AWS::CloudWatch::Metric',
+            'AWS::Logs::LogGroup',
+            'AWS::XRay::Trace'
+          ]
+        },
+        StringEquals: { 'aws:PrincipalOrgID': 'o-abc123example' }
+      }
+    }]
+  }
+});
+```
+
+```typescript
+// In each SOURCE account
+new oam.CfnLink(this, 'ObservabilityLink', {
+  sinkIdentifier: 'arn:aws:oam:us-east-1:111111111111:sink/abcd1234-...',
+  labelTemplate: '$AccountName',
+  resourceTypes: [
+    'AWS::CloudWatch::Metric',
+    'AWS::Logs::LogGroup',
+    'AWS::XRay::Trace'
+  ]
+});
+```
+
+That is the whole setup. A monitoring account can link up to 100,000 source accounts, and the data stays in the source account — you are granting read access, not copying anything, so there is no duplicate ingestion cost.
+
+Reach for the role-based approach below only when OAM does not fit: accounts outside your organisation, a partition or region where OAM is unavailable, or a case where you need the data physically in the monitoring account (long-term log retention in a dedicated account, for instance). The two approaches compose — most real setups use OAM for interactive investigation and log forwarding for retention.
+
+### The role-based alternative
 
 Create IAM roles in source accounts that allow the monitoring account to access CloudWatch data:
 
@@ -187,10 +237,22 @@ export class CrossAccountMonitoringStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: CrossAccountMonitoringProps) {
     super(scope, id, props);
 
-    // Create role that can assume roles in source accounts
+    // CloudWatch does not assume a role to render a dashboard, so trusting
+    // `cloudwatch.amazonaws.com` here produces a role nothing can ever use.
+    // Two different mechanisms are in play:
+    //
+    //  * For a human browsing a cross-account dashboard, the *console user's*
+    //    own identity assumes a role in the source account, and that role must
+    //    be named `CloudWatch-CrossAccountSharingRole` -- the console looks it
+    //    up by that exact name.
+    //  * For automation (the aggregation Lambda later in this post), the
+    //    compute's execution role assumes the source-account role.
+    //
+    // This role is the automation case, so it is trusted by the workloads that
+    // will use it, not by a service principal.
     this.monitoringRole = new iam.Role(this, 'CrossAccountMonitoringRole', {
-      assumedBy: new iam.ServicePrincipal('cloudwatch.amazonaws.com'),
-      description: 'Role for cross-account CloudWatch monitoring',
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+      description: 'Role used by monitoring-account automation to read source accounts',
       managedPolicies: [
         iam.ManagedPolicy.fromAwsManagedPolicyName('CloudWatchReadOnlyAccess')
       ]
@@ -279,10 +341,19 @@ export class SourceAccountMonitoringStack extends cdk.Stack {
   }) {
     super(scope, id, props);
 
+    // The name matters if you want the CloudWatch console's cross-account
+    // dashboard picker to work: it assumes a role called exactly
+    // `CloudWatch-CrossAccountSharingRole` in the source account. A role under
+    // any other name is reachable by your own automation but invisible to the
+    // console.
+    //
+    // Note also that an external ID is the wrong tool here. External IDs exist
+    // to stop the confused-deputy problem when a *third party* assumes your
+    // role on your behalf. Between two accounts you own, it adds a shared
+    // secret to manage and buys nothing; the account principal is the control.
     const monitoringSourceRole = new iam.Role(this, 'MonitoringSourceRole', {
-      roleName: 'MonitoringSourceRole',
+      roleName: 'CloudWatch-CrossAccountSharingRole',
       assumedBy: new iam.AccountPrincipal(props?.monitoringAccountId || ''),
-      externalIds: [props?.externalId || ''],
       description: 'Allows monitoring account to access CloudWatch data'
     });
 
@@ -294,8 +365,9 @@ export class SourceAccountMonitoringStack extends cdk.Stack {
     monitoringSourceRole.addToPolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: [
-        'xray:GetServiceMap',
+        'xray:GetServiceGraph',
         'xray:GetTraceSummaries',
+        'xray:BatchGetTraces',
         'xray:GetTimeSeriesServiceStatistics',
         'config:GetComplianceDetailsByConfigRule',
         'config:GetConfigRuleEvaluationStatus'
@@ -312,8 +384,10 @@ AWS X-Ray provides distributed tracing capabilities that can aggregate trace dat
 
 Configure X-Ray service linking between accounts:
 
+With cross-account observability enabled, X-Ray traces from linked source accounts already appear in the monitoring account's service map — there is nothing to aggregate. The code below is for the cases OAM does not cover, and it also fixes an API name that is easy to get wrong: **there is no `GetServiceMap` operation in X-Ray.** The service map is retrieved with [`GetServiceGraph`](https://docs.aws.amazon.com/xray/latest/api/API_GetServiceGraph.html), and the corresponding IAM action is `xray:GetServiceGraph`.
+
 ```typescript
-import { XRayClient, CreateServiceMapCommand, GetServiceMapCommand } from '@aws-sdk/client-xray';
+import { XRayClient, GetServiceGraphCommand } from '@aws-sdk/client-xray';
 import { STSClient, AssumeRoleCommand } from '@aws-sdk/client-sts';
 
 export interface XRayAggregationConfig {
@@ -365,8 +439,7 @@ export class CrossAccountXRayAggregator {
   }): Promise<XRayClient> {
     const assumeRoleCommand = new AssumeRoleCommand({
       RoleArn: sourceAccount.roleArn,
-      RoleSessionName: `xray-aggregation-${Date.now()}`,
-      ExternalId: 'xray-aggregation-external-id'
+      RoleSessionName: `xray-aggregation-${Date.now()}`
     });
 
     const assumedRole = await this.stsClient.send(assumeRoleCommand);
@@ -392,17 +465,24 @@ export class CrossAccountXRayAggregator {
     const endTime = new Date();
     const startTime = new Date(endTime.getTime() - (60 * 60 * 1000)); // Last hour
 
-    const command = new GetServiceMapCommand({
-      TimeRangeType: 'TraceId',
-      StartTime: startTime,
-      EndTime: endTime
-    });
+    // GetServiceGraph takes only a time window -- `TimeRangeType` belongs to
+    // GetTraceSummaries and is rejected here. The operation is also paginated,
+    // so a single call can silently truncate a large service graph.
+    const services: unknown[] = [];
+    let nextToken: string | undefined;
 
-    const response = await xrayClient.send(command);
-    return {
-      services: response.Services || [],
-      accountId: accountId
-    };
+    do {
+      const response = await xrayClient.send(new GetServiceGraphCommand({
+        StartTime: startTime,
+        EndTime: endTime,
+        NextToken: nextToken
+      }));
+
+      services.push(...(response.Services ?? []));
+      nextToken = response.NextToken;
+    } while (nextToken);
+
+    return { services, accountId };
   }
 
   private mergeServiceMap(aggregatedMap: any, sourceMap: any, accountId: string): void {
@@ -444,7 +524,7 @@ export class XRayAggregationStack extends cdk.Stack {
 
     // Lambda function for X-Ray aggregation
     const xrayAggregatorFunction = new lambda.Function(this, 'XRayAggregatorFunction', {
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'index.handler',
       code: lambda.Code.fromAsset('lambda/xray-aggregator'),
       timeout: cdk.Duration.minutes(5),
@@ -492,7 +572,7 @@ import * as kinesisfirehose from 'aws-cdk-lib/aws-kinesisfirehose';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 
 export class CentralizedLoggingStack extends cdk.Stack {
-  public readonly logDestination: logs.LogDestination;
+  public readonly logDestination: logs.CrossAccountDestination;
   public readonly logAnalyticsS3Bucket: s3.Bucket;
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps & {
@@ -503,7 +583,12 @@ export class CentralizedLoggingStack extends cdk.Stack {
     // S3 bucket for centralized log storage
     this.logAnalyticsS3Bucket = new s3.Bucket(this, 'LogAnalyticsS3Bucket', {
       bucketName: `centralized-logs-${this.account}-${this.region}`,
-      versioned: true,
+      enforceSSL: true,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      // Versioning is deliberately off. Log objects are append-only and never
+      // rewritten, so versions accumulate nothing but cost -- and with a
+      // 7-year expiration and no `noncurrentVersionExpiration`, noncurrent
+      // versions would sit there unmanaged.
       lifecycleRules: [{
         id: 'log-retention-policy',
         enabled: true,
@@ -525,32 +610,39 @@ export class CentralizedLoggingStack extends cdk.Stack {
       retentionPeriod: cdk.Duration.days(7)
     });
 
-    // Kinesis Firehose for S3 delivery
+    // Firehose for S3 delivery.
+    //
+    // Two things to watch here. `AmazonKinesisFirehoseFullAccess` is an
+    // administrative policy for principals that *manage* Firehose -- it is not
+    // what the delivery stream needs to write to one bucket, and attaching it
+    // hands the role far more than the job requires. `grantWrite` below is
+    // sufficient on its own.
+    //
+    // Also note the L2 API changed when `aws-kinesisfirehose` graduated out of
+    // alpha: the prop is `destination` (singular, not `destinations: []`), and
+    // the S3 destination class is `S3Bucket` (not `S3Destination`).
     const logDeliveryRole = new iam.Role(this, 'LogDeliveryRole', {
       assumedBy: new iam.ServicePrincipal('firehose.amazonaws.com'),
-      managedPolicies: [
-        iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonKinesisFirehoseFullAccess')
-      ]
+      description: 'Firehose delivery role, scoped to the log bucket only'
     });
 
     this.logAnalyticsS3Bucket.grantWrite(logDeliveryRole);
 
     const firehoseDeliveryStream = new kinesisfirehose.DeliveryStream(this, 'LogDeliveryStream', {
       deliveryStreamName: 'centralized-logs-delivery',
-      destinations: [
-        new kinesisfirehose.S3Destination({
-          bucket: this.logAnalyticsS3Bucket,
-          role: logDeliveryRole,
-          prefix: 'year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}/hour=!{timestamp:HH}/',
-          errorOutputPrefix: 'errors/',
-          compressionFormat: kinesisfirehose.CompressionFormat.GZIP,
-          bufferingInterval: cdk.Duration.minutes(5),
-          bufferingSize: cdk.Size.mebibytes(5)
-        })
-      ]
+      source: new kinesisfirehose.KinesisStreamSource(logStream),
+      destination: new kinesisfirehose.S3Bucket(this.logAnalyticsS3Bucket, {
+        role: logDeliveryRole,
+        // Hive-style partitioning so Athena can prune by date.
+        dataOutputPrefix: 'year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}/hour=!{timestamp:HH}/',
+        errorOutputPrefix: 'errors/',
+        compression: kinesisfirehose.Compression.GZIP,
+        bufferingInterval: cdk.Duration.minutes(5),
+        bufferingSize: cdk.Size.mebibytes(5)
+      })
     });
 
-    // IAM role for cross-account log destination
+    // IAM role CloudWatch Logs assumes to write into the Kinesis stream.
     const logDestinationRole = new iam.Role(this, 'LogDestinationRole', {
       assumedBy: new iam.ServicePrincipal('logs.amazonaws.com'),
       description: 'Role for cross-account log destination'
@@ -558,30 +650,23 @@ export class CentralizedLoggingStack extends cdk.Stack {
 
     logStream.grantWrite(logDestinationRole);
 
-    // Create log destination that source accounts can send logs to
-    this.logDestination = new logs.LogDestination(this, 'CrossAccountLogDestination', {
+    // The construct for `AWS::Logs::Destination` is `CrossAccountDestination`.
+    // There is no `logs.LogDestination` or `logs.LogDestinationPolicy` class.
+    this.logDestination = new logs.CrossAccountDestination(this, 'CrossAccountLogDestination', {
       destinationName: 'cross-account-centralized-logs',
       targetArn: logStream.streamArn,
       role: logDestinationRole
     });
 
-    // Grant source accounts permission to put logs to destination
-    const logDestinationPolicy = new iam.PolicyDocument({
-      statements: [
-        new iam.PolicyStatement({
-          effect: iam.Effect.ALLOW,
-          principals: props?.sourceAccounts?.map(accountId => 
-            new iam.AccountPrincipal(accountId)
-          ) || [],
-          actions: ['logs:PutSubscriptionFilter']
-        })
-      ]
-    });
-
-    // Apply the policy to the log destination
-    new logs.LogDestinationPolicy(this, 'LogDestinationPolicy', {
-      logDestination: this.logDestination,
-      accessPolicy: logDestinationPolicy
+    // The destination policy is attached to the destination itself, and it
+    // must name a resource -- a statement without one grants nothing.
+    (props?.sourceAccounts ?? []).forEach(accountId => {
+      this.logDestination.addToPolicy(new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        principals: [new iam.AccountPrincipal(accountId)],
+        actions: ['logs:PutSubscriptionFilter'],
+        resources: [this.logDestination.destinationArn]
+      }));
     });
   }
 }
@@ -590,6 +675,8 @@ export class CentralizedLoggingStack extends cdk.Stack {
 Configure log forwarding in source accounts:
 
 ```typescript
+// Requires: import * as events from 'aws-cdk-lib/aws-events';
+//           import * as events_targets from 'aws-cdk-lib/aws-events-targets';
 export class SourceAccountLoggingStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps & {
     centralLoggingDestinationArn: string;
@@ -597,55 +684,72 @@ export class SourceAccountLoggingStack extends cdk.Stack {
   }) {
     super(scope, id, props);
 
-    // Create subscription filters for each log group
+    // CDK's `SubscriptionFilter` L2 needs an `ILogSubscriptionDestination`, and
+    // there is no L2 for "a destination ARN owned by another account", so drop
+    // to the L1 resource. (`logs.LogDestination.fromLogDestinationArn` does not
+    // exist.)
     props?.logGroupNames?.forEach((logGroupName, index) => {
-      const logGroup = logs.LogGroup.fromLogGroupName(
-        this, 
-        `LogGroup${index}`, 
-        logGroupName
-      );
-
-      new logs.SubscriptionFilter(this, `CrossAccountSubscriptionFilter${index}`, {
-        logGroup: logGroup,
-        destination: logs.LogDestination.fromLogDestinationArn(
-          this,
-          `CrossAccountDestination${index}`,
-          props.centralLoggingDestinationArn
-        ),
-        filterPattern: logs.FilterPattern.allEvents(),
-        filterName: `cross-account-filter-${logGroupName.replace('/', '-')}`
+      new logs.CfnSubscriptionFilter(this, `CrossAccountSubscriptionFilter${index}`, {
+        logGroupName: logGroupName,
+        destinationArn: props.centralLoggingDestinationArn,
+        filterPattern: '',   // empty string = forward every event
+        // `replace('/', '-')` with a string argument only replaces the FIRST
+        // occurrence, so `/aws/lambda/foo` becomes `-aws/lambda/foo`. Use a
+        // global regex.
+        filterName: `cross-account-filter-${logGroupName.replace(/\//g, '-')}`
       });
     });
 
-    // Lambda function to automatically create subscription filters for new log groups
+    // Before you subscribe everything, two hard constraints:
+    //
+    //  * A log group accepts at most two subscription filters. If something
+    //    else already consumes these groups, adding this one fails.
+    //  * Subscribing *every* log group includes the log group of the
+    //    forwarding infrastructure itself. The auto-subscription function
+    //    below logs each group it subscribes, those logs get forwarded, and
+    //    you have built a feedback loop that bills by the GB. Exclude the
+    //    monitoring plumbing explicitly.
+
+    // Lambda that subscribes new log groups as they are created.
+    //
+    // Note the SDK import. AWS SDK v2 (`require('aws-sdk')`) is not bundled in
+    // the Node.js 18 and later managed runtimes and reached end of support in
+    // 2025 -- code written against it fails at runtime with
+    // "Cannot find module 'aws-sdk'". Use the v3 modular clients, which are
+    // present in the runtime.
     const autoSubscriptionFunction = new lambda.Function(this, 'AutoSubscriptionFunction', {
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'index.handler',
       code: lambda.Code.fromInline(`
-        const AWS = require('aws-sdk');
-        const logs = new AWS.CloudWatchLogs();
-        
+        const { CloudWatchLogsClient, PutSubscriptionFilterCommand } =
+          require('@aws-sdk/client-cloudwatch-logs');
+
+        const client = new CloudWatchLogsClient({});
+
+        // Never subscribe the forwarding plumbing to itself.
+        const EXCLUDED = [/^\\/aws\\/lambda\\/.*AutoSubscription/, /^\\/aws\\/kinesisfirehose\\//];
+
         exports.handler = async (event) => {
-          console.log('Processing CloudWatch Logs event:', JSON.stringify(event, null, 2));
-          
-          if (event.detail.eventName === 'CreateLogGroup') {
-            const logGroupName = event.detail.requestParameters.logGroupName;
-            
-            try {
-              await logs.putSubscriptionFilter({
-                logGroupName: logGroupName,
-                filterName: \`cross-account-filter-\${logGroupName.replace('/', '-')}\`,
-                filterPattern: '',
-                destinationArn: '${props?.centralLoggingDestinationArn}'
-              }).promise();
-              
-              console.log(\`Created subscription filter for log group: \${logGroupName}\`);
-            } catch (error) {
-              console.error(\`Failed to create subscription filter for \${logGroupName}:\`, error);
-            }
+          const logGroupName = event?.detail?.requestParameters?.logGroupName;
+
+          if (event?.detail?.eventName !== 'CreateLogGroup' || !logGroupName) {
+            return { handled: false };
           }
-          
-          return { statusCode: 200 };
+
+          if (EXCLUDED.some((pattern) => pattern.test(logGroupName))) {
+            console.log('Skipping excluded log group:', logGroupName);
+            return { handled: false };
+          }
+
+          await client.send(new PutSubscriptionFilterCommand({
+            logGroupName,
+            filterName: 'cross-account-filter-' + logGroupName.replace(/\\//g, '-'),
+            filterPattern: '',
+            destinationArn: process.env.DESTINATION_ARN
+          }));
+
+          console.log('Created subscription filter for log group:', logGroupName);
+          return { handled: true };
         };
       `),
       environment: {
@@ -661,8 +765,23 @@ export class SourceAccountLoggingStack extends cdk.Stack {
         'logs:DeleteSubscriptionFilter',
         'logs:DescribeSubscriptionFilters'
       ],
-      resources: ['*']
+      resources: [`arn:aws:logs:${this.region}:${this.account}:log-group:*`]
     }));
+
+    // The function needs a trigger. CreateLogGroup is a CloudTrail management
+    // event, so it arrives on the default event bus only when a trail is
+    // capturing write events in this account and region.
+    new events.Rule(this, 'NewLogGroupRule', {
+      eventPattern: {
+        source: ['aws.logs'],
+        detailType: ['AWS API Call via CloudTrail'],
+        detail: {
+          eventSource: ['logs.amazonaws.com'],
+          eventName: ['CreateLogGroup']
+        }
+      },
+      targets: [new events_targets.LambdaFunction(autoSubscriptionFunction)]
+    });
   }
 }
 ```
@@ -702,12 +821,22 @@ export class ConfigAggregatorStack extends cdk.Stack {
       }]
     });
 
-    // IAM role for Config aggregator
+    // The managed policy is `service-role/AWS_ConfigRole` -- note the
+    // underscore. `service-role/ConfigRole` does not exist and the stack fails
+    // at deploy time with NoSuchEntity.
+    //
+    // For an *organization* aggregator you want
+    // `service-role/AWSConfigRoleForOrganizations` instead, which is what
+    // grants the organizations:* reads below.
     const configAggregatorRole = new iam.Role(this, 'ConfigAggregatorRole', {
       roleName: 'AWSConfigRoleForConfigurationAggregator',
       assumedBy: new iam.ServicePrincipal('config.amazonaws.com'),
       managedPolicies: [
-        iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/ConfigRole')
+        iam.ManagedPolicy.fromAwsManagedPolicyName(
+          props?.organizationId
+            ? 'service-role/AWSConfigRoleForOrganizations'
+            : 'service-role/AWS_ConfigRole'
+        )
       ]
     });
 
@@ -725,7 +854,13 @@ export class ConfigAggregatorStack extends cdk.Stack {
 
     // Create configuration aggregator
     if (props?.organizationId) {
-      // Organization-based aggregator (recommended for AWS Organizations)
+      // Organization-based aggregator (recommended for AWS Organizations).
+      //
+      // Two prerequisites the template cannot express: this stack must be
+      // deployed in the organization's management account or in an account
+      // registered as a Config *delegated administrator*, and trusted access
+      // for `config.amazonaws.com` must be enabled for the organization. Miss
+      // either and creation fails with OrganizationAccessDeniedException.
       this.configAggregator = new config.ConfigurationAggregator(this, 'OrganizationConfigAggregator', {
         configurationAggregatorName: 'organization-config-aggregator',
         organizationAggregationSource: {
@@ -747,7 +882,17 @@ export class ConfigAggregatorStack extends cdk.Stack {
       });
     }
 
-    // Config rules for compliance monitoring
+    // Config rules for compliance monitoring.
+    //
+    // Important scoping caveat: `config.ManagedRule` creates an
+    // `AWS::Config::ConfigRule`, which evaluates only the account it is
+    // deployed into. Creating these here gives you rules for the *monitoring*
+    // account, not org-wide coverage -- the aggregator collects results, it
+    // does not deploy rules.
+    //
+    // To evaluate every account, deploy the rules from the management or
+    // delegated-admin account as `AWS::Config::OrganizationConfigRule`, or use
+    // a conformance pack, and let this aggregator collect the findings.
     this.createComplianceRules();
   }
 
@@ -795,7 +940,10 @@ export class ConfigAggregatorStack extends cdk.Stack {
 Create a compliance reporting system:
 
 ```typescript
-import { ConfigServiceClient, GetAggregateComplianceDetailsByConfigRuleCommand } from '@aws-sdk/client-config-service';
+import {
+  ConfigServiceClient,
+  DescribeAggregateComplianceByConfigRulesCommand
+} from '@aws-sdk/client-config-service';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 
@@ -833,68 +981,70 @@ export class ComplianceReportGenerator {
     console.log('Compliance report generated and distributed successfully');
   }
 
-  private async getAggregateComplianceData(): Promise<any> {
-    const complianceRules = [
-      'root-access-key-check',
-      's3-bucket-ssl-requests-only',
-      'iam-password-policy',
-      'cloudtrail-enabled'
-    ];
+  // `GetAggregateComplianceDetailsByConfigRule` requires `AccountId` and
+  // `AwsRegion` -- both are mandatory, so calling it with only the aggregator
+  // and rule name fails validation. That also makes it the wrong API for an
+  // org-wide rollup: you would have to enumerate every account/region pair.
+  //
+  // `DescribeAggregateComplianceByConfigRules` is the API that answers
+  // "which rules are non-compliant anywhere in the aggregator", and it
+  // paginates, which matters -- the details API caps a page at 50 results, so
+  // an unpaginated `.length` silently under-reports the violation count.
+  private async getAggregateComplianceData(): Promise<any[]> {
+    const complianceResults: any[] = [];
+    let nextToken: string | undefined;
 
-    const complianceResults = [];
-
-    for (const ruleName of complianceRules) {
-      try {
-        const command = new GetAggregateComplianceDetailsByConfigRuleCommand({
+    do {
+      const response = await this.configClient.send(
+        new DescribeAggregateComplianceByConfigRulesCommand({
           ConfigurationAggregatorName: this.config.aggregatorName,
-          ConfigRuleName: ruleName,
-          ComplianceType: 'NON_COMPLIANT'
-        });
+          Filters: { ComplianceType: 'NON_COMPLIANT' },
+          NextToken: nextToken
+        })
+      );
 
-        const response = await this.configClient.send(command);
-        
+      for (const item of response.AggregateComplianceByConfigRules ?? []) {
         complianceResults.push({
-          ruleName,
-          nonCompliantResources: response.AggregateEvaluationResults || [],
-          totalNonCompliant: response.AggregateEvaluationResults?.length || 0
-        });
-      } catch (error) {
-        console.error(`Failed to get compliance data for rule ${ruleName}:`, error);
-        complianceResults.push({
-          ruleName,
-          nonCompliantResources: [],
-          totalNonCompliant: 0,
-          error: error.message
+          ruleName: item.ConfigRuleName,
+          accountId: item.AccountId,
+          region: item.AwsRegion,
+          complianceType: item.Compliance?.ComplianceType,
+          nonCompliantResourceCount:
+            item.Compliance?.ComplianceContributorCount?.CappedCount ?? 0,
+          countIsCapped:
+            item.Compliance?.ComplianceContributorCount?.CapExceeded ?? false
         });
       }
-    }
+
+      nextToken = response.NextToken;
+    } while (nextToken);
 
     return complianceResults;
   }
 
   private formatComplianceReport(complianceData: any[]): any {
-    const totalNonCompliant = complianceData.reduce((sum, rule) => sum + rule.totalNonCompliant, 0);
-    const accountSummary = new Map();
+    const totalNonCompliant = complianceData.reduce(
+      (sum, rule) => sum + rule.nonCompliantResourceCount, 0
+    );
+    const accountSummary = new Map<string, any>();
 
     complianceData.forEach(rule => {
-      rule.nonCompliantResources?.forEach((resource: any) => {
-        const accountId = resource.AccountId;
-        if (!accountSummary.has(accountId)) {
-          accountSummary.set(accountId, {
-            accountId,
-            nonCompliantRules: [],
-            totalNonCompliant: 0
-          });
-        }
-        
-        const account = accountSummary.get(accountId);
-        account.nonCompliantRules.push({
-          ruleName: rule.ruleName,
-          resourceType: resource.EvaluationResultIdentifier?.EvaluationResultQualifier?.ResourceType,
-          resourceId: resource.EvaluationResultIdentifier?.EvaluationResultQualifier?.ResourceId
+      if (!accountSummary.has(rule.accountId)) {
+        accountSummary.set(rule.accountId, {
+          accountId: rule.accountId,
+          nonCompliantRules: [],
+          totalNonCompliant: 0
         });
-        account.totalNonCompliant++;
+      }
+
+      const account = accountSummary.get(rule.accountId);
+      account.nonCompliantRules.push({
+        ruleName: rule.ruleName,
+        region: rule.region,
+        resourceCount: rule.nonCompliantResourceCount,
+        countIsCapped: rule.countIsCapped
       });
+      account.totalNonCompliant += rule.nonCompliantResourceCount;
     });
 
     return {
@@ -997,7 +1147,7 @@ import * as events_targets from 'aws-cdk-lib/aws-events-targets';
 
 export class CostBillingConsolidationStack extends cdk.Stack {
   public readonly costReportsBucket: s3.Bucket;
-  public readonly costDatabase: glue.Database;
+  public readonly costDatabase: glue.CfnDatabase;
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -1017,7 +1167,12 @@ export class CostBillingConsolidationStack extends cdk.Stack {
       }]
     });
 
-    // Create Cost and Usage Report
+    // Create Cost and Usage Report.
+    //
+    // Two constraints that will stop this stack cold: the CUR API is only
+    // available in us-east-1, so this stack must be deployed there regardless
+    // of where the bucket lives; and a CUR covering every member account can
+    // only be created from the organization's management account.
     const costReport = new cur.ReportDefinition(this, 'CrossAccountCostReport', {
       reportName: 'cross-account-cost-usage-report',
       timeUnit: cur.TimeUnit.DAILY,
@@ -1036,18 +1191,30 @@ export class CostBillingConsolidationStack extends cdk.Stack {
       reportVersioning: cur.ReportVersioning.OVERWRITE_REPORT
     });
 
-    // Glue database for cost analysis
-    this.costDatabase = new glue.Database(this, 'CostAnalyticsDatabase', {
-      databaseName: 'cost_analytics_db',
-      description: 'Database for cross-account cost and usage analysis'
+    // Glue and Athena have no stable L2 constructs in `aws-cdk-lib`: the Glue
+    // L2 lives in the separate `@aws-cdk/aws-glue-alpha` package, and Athena
+    // has L1 only. `new glue.Database(...)` and `new athena.WorkGroup(...)`
+    // do not compile against `aws-cdk-lib` -- use the Cfn resources.
+    this.costDatabase = new glue.CfnDatabase(this, 'CostAnalyticsDatabase', {
+      catalogId: this.account,
+      databaseInput: {
+        name: 'cost_analytics_db',
+        description: 'Database for cross-account cost and usage analysis'
+      }
     });
 
-    // Athena workgroup for cost queries
-    const costAnalyticsWorkgroup = new athena.WorkGroup(this, 'CostAnalyticsWorkgroup', {
+    const costAnalyticsWorkgroup = new athena.CfnWorkGroup(this, 'CostAnalyticsWorkgroup', {
       name: 'cost-analytics-workgroup',
       description: 'Workgroup for cross-account cost analysis queries',
-      resultConfiguration: {
-        outputLocation: `s3://${this.costReportsBucket.bucketName}/athena-results/`
+      workGroupConfiguration: {
+        resultConfiguration: {
+          outputLocation: `s3://${this.costReportsBucket.bucketName}/athena-results/`,
+          encryptionConfiguration: { encryptionOption: 'SSE_S3' }
+        },
+        // A hard cap is worth setting on a workgroup that queries CUR data --
+        // one unpartitioned query over years of reports can scan terabytes.
+        bytesScannedCutoffPerQuery: 10 * 1024 * 1024 * 1024,  // 10 GiB
+        enforceWorkGroupConfiguration: true
       }
     });
 
@@ -1057,13 +1224,13 @@ export class CostBillingConsolidationStack extends cdk.Stack {
   private createCostAnalyticsResources(): void {
     // Lambda function for cost analysis automation
     const costAnalysisFunction = new lambda.Function(this, 'CostAnalysisFunction', {
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'index.handler',
       code: lambda.Code.fromAsset('lambda/cost-analysis'),
       timeout: cdk.Duration.minutes(15),
       memorySize: 1024,
       environment: {
-        COST_DATABASE: this.costDatabase.databaseName,
+        COST_DATABASE: 'cost_analytics_db',
         COST_REPORTS_BUCKET: this.costReportsBucket.bucketName
       }
     });
@@ -1075,12 +1242,28 @@ export class CostBillingConsolidationStack extends cdk.Stack {
       actions: [
         'athena:StartQueryExecution',
         'athena:GetQueryResults',
-        'athena:GetQueryExecution',
-        'glue:GetTable',
-        'glue:GetPartitions'
+        'athena:GetQueryExecution'
       ],
-      resources: ['*']
+      resources: [
+        `arn:aws:athena:${this.region}:${this.account}:workgroup/cost-analytics-workgroup`
+      ]
     }));
+
+    // Athena reads table metadata through Glue and needs catalog, database and
+    // table ARNs -- granting only `glue:GetTable` on the table is not enough.
+    costAnalysisFunction.addToRolePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ['glue:GetDatabase', 'glue:GetTable', 'glue:GetPartitions'],
+      resources: [
+        `arn:aws:glue:${this.region}:${this.account}:catalog`,
+        `arn:aws:glue:${this.region}:${this.account}:database/cost_analytics_db`,
+        `arn:aws:glue:${this.region}:${this.account}:table/cost_analytics_db/*`
+      ]
+    }));
+
+    // Athena writes results to S3 as the caller, so the function needs write
+    // access to the results prefix as well as read access to the reports.
+    this.costReportsBucket.grantWrite(costAnalysisFunction, 'athena-results/*');
 
     // Schedule daily cost analysis
     const costAnalysisSchedule = new events.Rule(this, 'CostAnalysisSchedule', {
@@ -1096,7 +1279,12 @@ export class CostBillingConsolidationStack extends cdk.Stack {
 Create a cost analysis and alerting system:
 
 ```typescript
-import { AthenaClient, StartQueryExecutionCommand, GetQueryResultsCommand } from '@aws-sdk/client-athena';
+import {
+  AthenaClient,
+  StartQueryExecutionCommand,
+  GetQueryExecutionCommand,
+  GetQueryResultsCommand
+} from '@aws-sdk/client-athena';
 import { SNSClient, PublishCommand } from '@aws-sdk/client-sns';
 
 export interface CostAnalysisConfig {
@@ -1112,6 +1300,7 @@ export interface CostAnalysisConfig {
 }
 
 export class CrossAccountCostAnalyzer {
+  private cachedHeaders?: string[];
   private readonly athenaClient: AthenaClient;
   private readonly snsClient: SNSClient;
   private readonly config: CostAnalysisConfig;
@@ -1122,7 +1311,7 @@ export class CrossAccountCostAnalyzer {
     this.snsClient = new SNSClient({ region: 'us-east-1' });
   }
 
-  async analyzeCrosAccountCosts(): Promise<void> {
+  async analyzeCrossAccountCosts(): Promise<void> {
     console.log('Starting cross-account cost analysis');
 
     try {
@@ -1152,35 +1341,79 @@ export class CrossAccountCostAnalyzer {
   }
 
   private async executeQuery(query: string): Promise<any[]> {
-    const startCommand = new StartQueryExecutionCommand({
-      QueryString: query,
-      WorkGroup: this.config.athenaWorkgroup,
-      ResultConfiguration: {
-        OutputLocation: 's3://cost-analysis-results/'
-      }
-    });
+    // No `ResultConfiguration` here: the workgroup already defines an output
+    // location, and overriding it with a hardcoded bucket that does not exist
+    // fails every query. Let the workgroup own it.
+    const startResponse = await this.athenaClient.send(
+      new StartQueryExecutionCommand({
+        QueryString: query,
+        WorkGroup: this.config.athenaWorkgroup
+      })
+    );
 
-    const startResponse = await this.athenaClient.send(startCommand);
     const queryExecutionId = startResponse.QueryExecutionId!;
 
-    // Wait for query completion (simplified - production code should poll)
-    await new Promise(resolve => setTimeout(resolve, 10000));
+    // Poll for the terminal state rather than sleeping a fixed interval. A
+    // 10-second sleep is both too long for a fast query and far too short for
+    // a slow one -- and because a FAILED query still returns an empty result
+    // set, a fixed sleep turns a broken query into "zero costs this month".
+    await this.waitForQuery(queryExecutionId);
 
-    const resultsCommand = new GetQueryResultsCommand({
-      QueryExecutionId: queryExecutionId
-    });
+    // GetQueryResults pages at 1,000 rows.
+    const rows: any[] = [];
+    let nextToken: string | undefined;
 
-    const resultsResponse = await this.athenaClient.send(resultsCommand);
-    return this.parseQueryResults(resultsResponse.ResultSet);
+    do {
+      const resultsResponse = await this.athenaClient.send(
+        new GetQueryResultsCommand({
+          QueryExecutionId: queryExecutionId,
+          NextToken: nextToken
+        })
+      );
+
+      rows.push(...this.parseQueryResults(resultsResponse.ResultSet, nextToken === undefined));
+      nextToken = resultsResponse.NextToken;
+    } while (nextToken);
+
+    return rows;
   }
 
-  private parseQueryResults(resultSet: any): any[] {
-    if (!resultSet?.Rows || resultSet.Rows.length <= 1) {
+  private async waitForQuery(queryExecutionId: string): Promise<void> {
+    const deadline = Date.now() + 5 * 60 * 1000;
+    let delay = 500;
+
+    while (Date.now() < deadline) {
+      const { QueryExecution } = await this.athenaClient.send(
+        new GetQueryExecutionCommand({ QueryExecutionId: queryExecutionId })
+      );
+
+      const state = QueryExecution?.Status?.State;
+
+      if (state === 'SUCCEEDED') return;
+      if (state === 'FAILED' || state === 'CANCELLED') {
+        throw new Error(
+          `Athena query ${state}: ${QueryExecution?.Status?.StateChangeReason ?? 'no reason given'}`
+        );
+      }
+
+      await new Promise(resolve => setTimeout(resolve, delay));
+      delay = Math.min(delay * 2, 5000);
+    }
+
+    throw new Error(`Athena query ${queryExecutionId} did not finish within 5 minutes`);
+  }
+
+  // Athena includes the header row only in the FIRST page of results, so a
+  // paginated read must not strip row 0 from subsequent pages.
+  private parseQueryResults(resultSet: any, isFirstPage: boolean): any[] {
+    if (!resultSet?.Rows?.length) {
       return [];
     }
 
-    const headers = resultSet.Rows[0].Data.map((col: any) => col.VarCharValue);
-    const rows = resultSet.Rows.slice(1);
+    const headers = (this.cachedHeaders ??= resultSet.Rows[0].Data.map(
+      (col: any) => col.VarCharValue
+    ));
+    const rows = isFirstPage ? resultSet.Rows.slice(1) : resultSet.Rows;
 
     return rows.map((row: any) => {
       const rowData: any = {};
@@ -1191,15 +1424,24 @@ export class CrossAccountCostAnalyzer {
     });
   }
 
+  // Always constrain the partition columns. The CUR table is partitioned by
+  // year and month; filtering only on `line_item_usage_start_date` makes
+  // Athena scan every partition you have ever written -- years of data, at
+  // $5/TB, to answer a question about last week. In a cost-optimisation
+  // pipeline that is a particularly bad bug, because the query bill is
+  // invisible in the report it produces.
   private async getDailyCostsByAccount(): Promise<any[]> {
     const query = `
-      SELECT 
+      SELECT
         line_item_usage_account_id as account_id,
-        line_item_usage_start_date as usage_date,
+        date_trunc('day', line_item_usage_start_date) as usage_date,
         SUM(line_item_unblended_cost) as daily_cost
       FROM ${this.config.costDatabase}.${this.config.costTable}
-      WHERE line_item_usage_start_date >= current_date - interval '7' day
-      GROUP BY line_item_usage_account_id, line_item_usage_start_date
+      WHERE year = CAST(year(current_date) AS varchar)
+        AND month = CAST(month(current_date) AS varchar)
+        AND line_item_usage_start_date >= current_date - interval '7' day
+        AND line_item_line_item_type NOT IN ('Tax', 'Credit', 'Refund')
+      GROUP BY line_item_usage_account_id, date_trunc('day', line_item_usage_start_date)
       ORDER BY daily_cost DESC
     `;
 
@@ -1358,23 +1600,26 @@ export class UnifiedMonitoringDashboardStack extends cdk.Stack {
         height: 6
       }),
 
-      // Cost trends across accounts
+      // Cost trends.
+      //
+      // A per-member-account `AWS/Billing` widget does not work, and this is a
+      // common disappointment. Under consolidated billing, EstimatedCharges is
+      // published only by the *payer* account, and only into us-east-1, and
+      // only if "Receive Billing Alerts" is enabled. Pointing the metric at a
+      // member account with `account:` yields an empty graph, not an error.
+      //
+      // For per-account spend, query the Cost and Usage Report with Athena as
+      // shown below and publish your own custom metric, or use AWS Budgets and
+      // Cost Anomaly Detection, which are built for this.
       new cloudwatch.GraphWidget({
-        title: 'Cross-Account Cost Trends',
+        title: 'Estimated Charges (payer account, us-east-1)',
         left: [
           new cloudwatch.Metric({
             namespace: 'AWS/Billing',
             metricName: 'EstimatedCharges',
             statistic: 'Maximum',
             dimensionsMap: { Currency: 'USD' },
-            account: '222222222222'
-          }),
-          new cloudwatch.Metric({
-            namespace: 'AWS/Billing',
-            metricName: 'EstimatedCharges',
-            statistic: 'Maximum',
-            dimensionsMap: { Currency: 'USD' },
-            account: '333333333333'
+            region: 'us-east-1'
           })
         ],
         width: 12,
@@ -1419,36 +1664,65 @@ export class SecurityMonitoringStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // CloudTrail for cross-account API monitoring
+    // CloudTrail for cross-account API monitoring.
+    //
+    // `sendToCloudWatchLogs` is required. Without it, `trail.logGroup` is
+    // undefined, and the non-null assertion below (`trail.logGroup!`) throws
+    // during synthesis -- the trail only writes to S3 by default.
     const monitoringCloudTrail = new cloudtrail.Trail(this, 'CrossAccountMonitoringTrail', {
       trailName: 'cross-account-monitoring-trail',
       includeGlobalServiceEvents: true,
       isLogging: true,
-      enableFileValidation: true
+      enableFileValidation: true,
+      sendToCloudWatchLogs: true,
+      cloudWatchLogsRetention: logs.RetentionDays.ONE_YEAR
     });
 
-    // CloudWatch alarms for suspicious cross-account activity
+    // Metric filters first, then alarms on those filters.
+    //
+    // There is no `AWS/CloudTrail` namespace, and no `AssumeRoleFailures`
+    // metric -- CloudTrail publishes events, not CloudWatch metrics. An alarm
+    // on a nonexistent metric never fires and sits in INSUFFICIENT_DATA
+    // forever, which looks indistinguishable from "no problems detected".
+    // The only way to alarm on CloudTrail content is to extract a metric from
+    // the log group with a metric filter, then alarm on *that* metric.
+    const failedAssumeRoleFilter = new logs.MetricFilter(this, 'FailedAssumeRoleFilter', {
+      logGroup: monitoringCloudTrail.logGroup!,
+      metricNamespace: 'SecurityMonitoring/CrossAccount',
+      metricName: 'FailedAssumeRole',
+      filterPattern: logs.FilterPattern.literal(
+        '{ ($.eventName = "AssumeRole*") && ($.errorCode = "*") }'
+      ),
+      metricValue: '1',
+      defaultValue: 0
+    });
+
     const suspiciousAssumeRoleAlarm = new cloudwatch.Alarm(this, 'SuspiciousAssumeRoleActivity', {
       alarmName: 'cross-account-suspicious-assume-role',
-      metric: new cloudwatch.Metric({
-        namespace: 'AWS/CloudTrail',
-        metricName: 'AssumeRoleFailures',
-        statistic: 'Sum'
-      }),
+      // Alarm on the metric the filter actually publishes.
+      metric: failedAssumeRoleFilter.metric({ statistic: 'Sum' }),
       threshold: 10,
       evaluationPeriods: 2,
       comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
-      alarmDescription: 'Alarm for suspicious cross-account role assumption failures'
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+      alarmDescription: 'Repeated cross-account role assumption failures'
     });
 
-    // Log metric filter for cross-account access patterns
+    // Successful cross-account access, tracked separately for baselining.
     const crossAccountAccessFilter = new logs.MetricFilter(this, 'CrossAccountAccessFilter', {
       logGroup: monitoringCloudTrail.logGroup!,
       metricNamespace: 'SecurityMonitoring/CrossAccount',
       metricName: 'CrossAccountAccess',
-      filterPattern: logs.FilterPattern.literal('{ ($.eventName = AssumeRole) && ($.errorCode NOT EXISTS) }'),
-      metricValue: '1'
+      filterPattern: logs.FilterPattern.literal(
+        '{ ($.eventName = AssumeRole) && ($.errorCode NOT EXISTS) }'
+      ),
+      metricValue: '1',
+      defaultValue: 0
     });
+
+    // One more scoping caveat: a `cloudtrail.Trail` covers only this account.
+    // To see cross-account activity you need an organization trail created
+    // from the management account with `isOrganizationTrail` enabled.
   }
 }
 ```
@@ -1457,14 +1731,17 @@ export class SecurityMonitoringStack extends cdk.Stack {
 
 Comprehensive testing ensures that cross-account monitoring and observability systems function correctly and provide accurate insights across all integrated accounts.
 
-Create automated tests for monitoring functionality:
+Create automated tests for monitoring functionality. Treat these as smoke tests against a real account rather than unit tests — they need live credentials and real data, so keep them out of the pull-request path and avoid asserting on data volume (`length > 0` fails on a quiet Sunday, which teaches the team to ignore the suite):
 
 ```typescript
 // monitoring-integration.test.ts - Integration tests for cross-account monitoring
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { CloudWatchClient, GetMetricDataCommand } from '@aws-sdk/client-cloudwatch';
-import { XRayClient, GetServiceMapCommand } from '@aws-sdk/client-xray';
-import { ConfigServiceClient, GetConfigRuleEvaluationStatusCommand } from '@aws-sdk/client-config-service';
+import { XRayClient, GetServiceGraphCommand } from '@aws-sdk/client-xray';
+import {
+  ConfigServiceClient,
+  DescribeAggregateComplianceByConfigRulesCommand
+} from '@aws-sdk/client-config-service';
 
 describe('Cross-Account Monitoring Integration Tests', () => {
   let cloudWatchClient: CloudWatchClient;
@@ -1496,12 +1773,10 @@ describe('Cross-Account Monitoring Integration Tests', () => {
 
     const response = await cloudWatchClient.send(command);
     expect(response.MetricDataResults).toBeDefined();
-    expect(response.MetricDataResults!.length).toBeGreaterThan(0);
   });
 
   it('should aggregate X-Ray service maps across accounts', async () => {
-    const command = new GetServiceMapCommand({
-      TimeRangeType: 'TraceId',
+    const command = new GetServiceGraphCommand({
       StartTime: new Date(Date.now() - 3600000),
       EndTime: new Date()
     });
@@ -1511,13 +1786,14 @@ describe('Cross-Account Monitoring Integration Tests', () => {
   });
 
   it('should retrieve Config aggregator compliance data', async () => {
-    const command = new GetConfigRuleEvaluationStatusCommand({
-      ConfigRuleNames: ['root-access-key-check', 's3-bucket-ssl-requests-only']
+    // `GetConfigRuleEvaluationStatus` reads rules in the *local* account and
+    // says nothing about the aggregator. Query the aggregator explicitly.
+    const command = new DescribeAggregateComplianceByConfigRulesCommand({
+      ConfigurationAggregatorName: 'organization-config-aggregator'
     });
 
     const response = await configClient.send(command);
-    expect(response.ConfigRulesEvaluationStatus).toBeDefined();
-    expect(response.ConfigRulesEvaluationStatus!.length).toBeGreaterThan(0);
+    expect(response.AggregateComplianceByConfigRules).toBeDefined();
   });
 });
 ```
@@ -1526,9 +1802,9 @@ Cross-account monitoring and observability provides the foundation for maintaini
 
 ## Key Takeaways
 
-**Start Simple**: Begin with basic cross-account CloudWatch dashboards and gradually add complexity. Most organizations see immediate value from centralizing metrics visualization alone.
+**Start Simple**: Turn on CloudWatch cross-account observability first. It is one sink plus one link per account, it needs no custom code, and it covers metrics, logs and traces in the consoles your team already uses. Build the custom pieces in this post only for what OAM genuinely does not reach.
 
-**Security First**: Always implement proper IAM roles and external IDs for cross-account access. The convenience of monitoring should never compromise your security posture.
+**Security First**: Grant read-only access, scope it to the accounts that need it, and prefer an organization-scoped condition (`aws:PrincipalOrgID`) over a list of account IDs you have to maintain. External IDs are for third parties assuming your roles — between accounts you own they add a secret to manage without adding protection.
 
 **Automate Everything**: Manual correlation of data across accounts doesn't scale. Build automation into your monitoring from day one, especially for compliance reporting and cost analysis.
 
@@ -1538,12 +1814,22 @@ Cross-account monitoring and observability provides the foundation for maintaini
 
 If you're just getting started with cross-account monitoring, I recommend this approach:
 
-1. **Week 1**: Set up basic cross-account CloudWatch dashboards for your most critical applications
-2. **Week 2**: Implement centralized logging for application logs across your primary accounts  
-3. **Week 3**: Add X-Ray distributed tracing aggregation for end-to-end transaction visibility
-4. **Month 2**: Extend to Config aggregators for compliance monitoring
-5. **Month 3**: Add cost consolidation and automated reporting
+1. **Day 1**: Create an OAM sink in your monitoring account and link your production account. Metrics, logs and traces show up immediately, and this is where most of the value is.
+2. **Week 1**: Link the remaining accounts and build the cross-account dashboards your on-call actually needs — not one widget per account, but one view per user journey.
+3. **Week 2**: Add log forwarding to S3 for the retention and query requirements OAM does not cover.
+4. **Month 2**: Extend to Config aggregators for compliance monitoring, remembering that the rules themselves need to be deployed org-wide separately.
+5. **Month 3**: Add cost consolidation from the Cost and Usage Report.
 
 The investment in comprehensive cross-account observability pays dividends in improved incident response times, better cost optimization, and enhanced compliance posture. Your 3 AM incident response scenarios will transform from frantic dashboard-hopping exercises into focused, data-driven investigations that resolve quickly and prevent recurrence.
 
 Remember: monitoring fragmentation is a choice, not an inevitability of multi-account architectures. With the right patterns and tools, you can have both the security benefits of account separation and the operational visibility you need to run reliable systems at scale.
+
+## More in This Series
+
+This is post 4 of 5 in the **AWS Cross-Account Patterns** series:
+
+1. [Cross-Account Lambda Access to S3](/posts/cross-account-lambda-s3-access/)
+2. [Cross-Account EventBridge Integration](/posts/2025/07/30/cross-account-eventbridge-integration/)
+3. [Implementing Cross-Account CI/CD Pipelines](/posts/2025/08/06/cross-account-cicd-pipelines/)
+4. **Cross-Account Monitoring and Observability** (this post)
+5. [Simplified Cross-Account Backup and Disaster Recovery](/posts/2025/08/20/simplified-aws-backup-cross-account/)
