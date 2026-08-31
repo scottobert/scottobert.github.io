@@ -16,7 +16,7 @@
   <!-- Canonical URL -->
   <link rel="canonical" href="{{ .Permalink }}">
   <!-- Pagination Links -->
-  {{ if or .IsHome (and (ne .Kind "page") (ne .Kind "section")) }}
+  {{ if or .IsHome (and (ne .Kind "page") (ne .Kind "section") (ne .Kind "404")) }}
   {{ with .Paginator }}
   {{ if .HasPrev }}
   <link rel="prev" href="{{ .Prev.URL }}">

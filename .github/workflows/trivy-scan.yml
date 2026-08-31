@@ -17,7 +17,7 @@ jobs:
     
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     # Scan repository filesystem for vulnerabilities
     - name: Run Trivy vulnerability scanner in fs mode
@@ -30,7 +30,7 @@ jobs:
         severity: 'CRITICAL,HIGH,MEDIUM'
 
     - name: Upload Trivy scan results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v3
+      uses: github/codeql-action/upload-sarif@v4
       if: always()
       with:
         sarif_file: 'trivy-results.sarif'
@@ -46,7 +46,7 @@ jobs:
         severity: 'CRITICAL,HIGH,MEDIUM'
 
     - name: Upload Trivy table report
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       if: always()
       with:
         name: trivy-vulnerability-report
@@ -63,7 +63,7 @@ jobs:
         output: 'trivy-secrets.txt'
 
     - name: Upload Trivy secrets report
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       if: always()
       with:
         name: trivy-secrets-report
