@@ -55,7 +55,8 @@ Your infrastructure-as-code (IaC) **is** the architecture. The YAML template is 
 I use [cfn-diagram](https://github.com/ljacobsson/cfn-diagram), a CLI that does all of the above in a single step. It reads templates and spits out diagrams—editable, embeddable, or just easy to link in a PR.
 
 - Output formats: draw.io, Mermaid markdown, HTML (interactive), or ASCII art
-- Works with CloudFormation and SAM out of the box; for CDK, just synthesize to CloudFormation first
+- Works with CloudFormation and SAM out of the box
+- Handles CDK projects directly too—point `-t` at `cdk.json` and it synthesizes for you (skip that step with `-s` if you've already synthesized)
 - Filters out noisy resources like IAM roles if you want a "signal-only" view
 
 ## What automation looks like
@@ -68,17 +69,31 @@ on:
     paths:
       - 'template.yaml'
       - 'src/**'
+  pull_request:
+    paths:
+      - 'template.yaml'
+      - 'src/**'
+permissions:
+  contents: write
 jobs:
   generate-diagrams:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - run: npm install -g @mhlabs/cfn-diagram
+      - uses: actions/checkout@v4
+      - run: npm install -g @mhlabs/cfn-diagram@2
       - run: cfn-dia draw.io -t template.yaml -o docs/architecture.drawio -c
-      - run: cfn-dia mermaid -t template.yaml -o docs/architecture.md
+      - run: cfn-dia mermaid -t template.yaml -o docs/architecture.md -c
       - run: cfn-dia html -t template.yaml -o docs/ -c
+      - name: Commit updated diagrams
+        if: github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/architecture.drawio docs/architecture.md docs/*.html
+          git diff --staged --quiet || git commit -m "chore: update architecture diagrams [skip ci]"
+          git push
 ```
-This regenerates all supported formats whenever you touch infrastructure code (or on PRs that impact infra).
+The `-c` flag runs each command in CI mode (no interactive prompts). On pushes to `main`, the job commits regenerated diagrams straight back to the repo; on pull requests it just regenerates and validates them as a build artifact—true infra changes still need a merge to `main` before the committed diagrams update. Pin the `cfn-diagram` version too, so a tool update doesn't silently change your diagrams out from under you.
 
 ## Why this is worth it
 It saves real time. No more out-of-sync diagrams. No more confusion during onboarding or reviews. The real architecture is always visible, in a glanceable format, right next to the actual code.
