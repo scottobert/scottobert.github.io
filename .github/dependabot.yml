@@ -1,0 +1,37 @@
+# Dependabot config: monthly grouped batches to cut PR noise.
+# Security updates still fire immediately regardless of this schedule/grouping.
+# See: https://github.blog/security/supply-chain-security/tame-dependabot-group-your-updates-slow-the-cadence-keep-security-fast/
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    cooldown:
+      default-days: 7
+    groups:
+      monthly-batch:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "npm"
+    directory: "/examples/cross-account-cicd-pipelines"
+    schedule:
+      interval: "monthly"
+    cooldown:
+      default-days: 7
+    groups:
+      monthly-batch:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    cooldown:
+      default-days: 7
+    groups:
+      monthly-batch:
+        patterns:
+          - "*"
