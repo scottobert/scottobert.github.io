@@ -3,7 +3,7 @@ title: >-
   Automated AWS Log Analysis with Serverless: Building Intelligent Monitoring at
   Scale
 date: 2025-06-14T17:00:00.000Z
-draft: true
+draft: false
 categories:
   - Cloud Computing
   - DevOps and Monitoring
