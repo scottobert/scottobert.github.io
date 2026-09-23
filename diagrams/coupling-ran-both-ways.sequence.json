@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Who owns each hop",
+    "quality_profile": "showcase",
+    "column_fit": "spread",
+    "viewBox": [1080, 500],
+    "views": [
+      { "id": "outbound", "label": "The direction everyone traced", "focus": ["sched", "mf", "mft", "vendor"], "note": "Start at the source, follow the payload, stop when the vendor has it." },
+      { "id": "return", "label": "The direction nobody traced", "focus": ["vendor", "mft", "loader", "mf"], "note": "The response reads like a leaf, and a leaf looks safe to delete." }
+    ]
+  },
+  "participants": [
+    { "id": "sched", "type": "backend", "label": "Internal scheduler", "sublabel": "ours, in code" },
+    { "id": "mf", "type": "external", "label": "Mainframe job", "sublabel": "ours, no repo" },
+    { "id": "mft", "type": "security", "label": "Transfer tool", "sublabel": "config, not code" },
+    { "id": "vendor", "type": "external", "label": "Vendor", "sublabel": "their firewall" },
+    { "id": "loader", "type": "backend", "label": "Response loader", "sublabel": "ours, in code" }
+  ],
+  "segments": [
+    { "from": 150, "to": 286, "label": "Outbound: the direction everyone traced" },
+    { "from": 296, "to": 440, "label": "Return: the direction nobody traced" }
+  ],
+  "messages": [
+    { "id": "trigger", "from": "sched", "to": "mf", "y": 180, "label": "nightly trigger", "variant": "emphasis" },
+    { "id": "write-request", "from": "mf", "to": "mft", "y": 220, "label": "writes the request file", "variant": "emphasis" },
+    { "id": "send", "from": "mft", "to": "vendor", "y": 260, "label": "encrypt, then send", "variant": "security" },
+    { "id": "return-file", "from": "vendor", "to": "mft", "y": 310, "label": "return file lands", "variant": "return" },
+    { "id": "load", "from": "mft", "to": "loader", "y": 350, "label": "decrypt and load", "variant": "emphasis" },
+    { "id": "second-reader", "from": "mft", "to": "mf", "y": 390, "label": "a reader we could not rule out", "variant": "dashed" }
+  ],
+  "activations": [
+    { "participant": "mf", "from": 174, "to": 232, "type": "external" },
+    { "participant": "mft", "from": 214, "to": 272, "type": "security" },
+    { "participant": "vendor", "from": 254, "to": 318, "type": "external" },
+    { "participant": "mft", "from": 304, "to": 398, "type": "security" },
+    { "participant": "loader", "from": 344, "to": 402, "type": "backend" },
+    { "participant": "mf", "from": 384, "to": 416, "type": "external" }
+  ],
+  "cards": [
+    { "dot": "amber", "title": "Three hops live outside every repository we own", "items": ["The transfer task is configuration in a product, not code in a branch", "The encryption key sits in our config and the vendor's, tracked by neither", "Whether they allowlist our source addresses is a line in a file we never see"] },
+    { "dot": "rose", "title": "What tracing the return direction turned up", "items": ["A path the mainframe could use to read the response, and a job with the access", "It is not proven, and nobody could tell me it does not happen", "Our cutover plan contained a step that removed that directory"] },
+    { "dot": "emerald", "title": "What the inventory format changed", "items": ["One row per hop: what triggers it, what it reads, what it writes, who owns it", "The owner column does most of the work, and two hops had no owner", "Ask who else reads this, not what consumes this next"] }
+  ]
+}
