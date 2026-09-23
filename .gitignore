@@ -31,3 +31,7 @@ Thumbs.db
 
 # Logs
 *.log
+
+# archify visual-check evidence (screenshots and receipts, not site content)
+diagrams/visual-check/
+diagrams/.archify-*

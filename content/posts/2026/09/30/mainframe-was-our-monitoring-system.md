@@ -30,6 +30,8 @@ Once the replacement platform owns the schedule, that step goes away. An EventBr
 
 Two of these four stacks had no CloudWatch alarms of any kind. That had been fine for years. It was fine because the mainframe held the clock, and a clock that stops is loud.
 
+{{< archify src="/diagrams/mainframe-monitoring.html" title="What the cutover removed" caption="Both shapes produce the same file. The top one also produces two signals, and neither is listed anywhere as a monitoring requirement." height="860" >}}
+
 ## The envelope was doing work too
 
 The header and trailer records were the second thing we deleted without reading. The trailer carried a record count, and the vendor validated it on receipt. If our merge dropped records, the count disagreed with the file, the vendor rejected it, and we heard about it within a day. That is a completeness check we did not write, do not maintain, and cannot break, sitting at the far end of the pipe and running on somebody else's computer.

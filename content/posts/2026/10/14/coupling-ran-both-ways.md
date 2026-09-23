@@ -22,6 +22,8 @@ This was the last step before retiring a send and receive path we had been runni
 
 So I wrote down the hops. There were ten. An internal scheduler, a mainframe job, a task in the managed file transfer tool, an encryption step, a queue on the way out, the vendor's endpoint, and then most of that in reverse for the return file. Three of those ten hops are not represented in any repository we own. You cannot discover them by reading code, by querying CloudTrail, or by generating a dependency graph from templates, because they are configuration in a transfer product and rows in someone else's firewall.
 
+{{< archify src="/diagrams/coupling-ran-both-ways.html" title="Who owns each hop" caption="The ten hops collapsed to the systems that own them. The dashed arrow is the one I could not confirm and could not rule out." height="860" >}}
+
 Getting the list took an afternoon of interviews. The value was not in the list.
 
 ## The leg nobody traced

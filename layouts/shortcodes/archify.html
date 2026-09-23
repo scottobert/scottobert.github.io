@@ -1,0 +1,59 @@
+{{/*
+  Embeds a self-contained interactive diagram from /static/diagrams/ in an iframe.
+  Usage: {{< archify src="/diagrams/example.html" title="Diagram title" caption="Optional caption" height="760" >}}
+*/}}
+
+{{ $src := .Get "src" }}
+{{ $title := .Get "title" | default "Interactive diagram" }}
+{{ $caption := .Get "caption" }}
+{{ $height := .Get "height" | default "760" }}
+
+{{/* Emitted on every call: Scratch flags leak across output formats, which drops the block on the HTML render. */}}
+<style>
+    .archify-figure {
+      width: 100%;
+      max-width: 100%;
+      margin: 2rem 0;
+    }
+
+    .archify-figure iframe {
+      display: block;
+      width: 100%;
+      height: var(--archify-height, 760px);
+      border: 1px solid #e1e4e8;
+      border-radius: 8px;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.12);
+      background: #fff;
+    }
+
+    .archify-figure figcaption {
+      margin-top: 0.6rem;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    .archify-figure figcaption a {
+      white-space: nowrap;
+    }
+
+    @media (max-width: 768px) {
+      .archify-figure {
+        margin: 1.25rem 0;
+      }
+
+      .archify-figure iframe {
+        height: min(var(--archify-height, 760px), 70vh);
+      }
+    }
+</style>
+
+<figure class="archify-figure" style="--archify-height: {{ $height }}px">
+  {{/* theme=light pins the embedded viewer to the light blog page; the full-screen link stays
+       paramless so the standalone page still follows the reader's own preference. */}}
+  <iframe src="{{ printf "%s?theme=light" ($src | relURL) }}" title="{{ $title }}" loading="lazy"></iframe>
+  <figcaption>
+    {{ with $caption }}{{ . | markdownify }}{{ end }}
+    <a href="{{ $src | relURL }}" target="_blank" rel="noopener">Open this diagram full screen</a>
+  </figcaption>
+</figure>

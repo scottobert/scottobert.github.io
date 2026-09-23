@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Watching a quarterly job with a daily metric",
+    "quality_profile": "showcase",
+    "views": [
+      { "id": "expectations", "label": "Writing the expectation", "focus": ["pipeline", "table", "vendor"], "note": "Every run records what we are waiting for next, and arrivals clear it." },
+      { "id": "watching", "label": "Watching it daily", "focus": ["sweeper", "metric", "alarm", "sns"], "note": "The sweeper turns a rare event into a number CloudWatch sees every day." }
+    ]
+  },
+  "components": [
+    { "id": "pipeline", "type": "backend", "label": "Quarterly pipeline", "sublabel": "runs four times a year", "pos": [60, 150], "size": [190, 70] },
+    { "id": "table", "type": "database", "label": "Expectations table", "sublabel": "one row per thing we await", "pos": [400, 150], "size": [190, 70] },
+    { "id": "sweeper", "type": "backend", "label": "Sweeper", "sublabel": "EventBridge rule, daily", "pos": [740, 150], "size": [190, 70] },
+    { "id": "metric", "type": "cloud", "label": "OverdueExpectations", "sublabel": "published daily, usually zero", "pos": [1080, 150], "size": [190, 70] },
+    { "id": "vendor", "type": "external", "label": "Vendor", "sublabel": "returns a file, eventually", "pos": [60, 430], "size": [190, 70] },
+    { "id": "sns", "type": "messagebus", "label": "On-call notification", "sublabel": "somebody's phone", "pos": [740, 430], "size": [190, 70] },
+    { "id": "alarm", "type": "cloud", "label": "Alarm", "sublabel": "1 day period, 2 day window", "pos": [1080, 430], "size": [190, 70], "tag": "threshold above zero" }
+  ],
+  "connections": [
+    { "id": "clear-expectation", "from": "vendor", "to": "pipeline", "label": "arrival clears the row" },
+    { "id": "write-deadline", "from": "pipeline", "to": "table", "label": "write the deadline" },
+    { "id": "read-deadlines", "from": "table", "to": "sweeper", "label": "read them all" },
+    { "id": "publish-overdue", "from": "sweeper", "to": "metric", "label": "count past due" },
+    { "id": "metric-to-alarm", "from": "metric", "to": "alarm", "label": "one point a day", "variant": "emphasis", "labelDy": 105 },
+    { "id": "alarm-to-sns", "from": "alarm", "to": "sns", "label": "above zero" }
+  ],
+  "cards": [
+    { "dot": "amber", "title": "Why the native alarm cannot work", "items": ["Period times evaluation periods caps at seven days for a period of an hour or more", "A quarterly job leaves a ninety day gap between runs", "Alarm history is kept for thirty days, so the forensics do not span one cycle"] },
+    { "dot": "emerald", "title": "What the design changes", "items": ["The expectation is durable state, held where CloudWatch cannot hold it", "The metric is continuous even though the thing it describes is rare", "One sweeper covers run deadlines and return file deadlines alike"] },
+    { "dot": "rose", "title": "What it costs", "items": ["The sweeper is now the thing that must not fail silently, and it runs daily", "A manual rerun that does not clear the row raises a false alarm", "That is the direction of error worth having"] }
+  ]
+}

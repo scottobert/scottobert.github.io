@@ -44,6 +44,8 @@ The pattern that works is to stop asking CloudWatch to remember, and give it som
 
 When a run completes, write the next expected deadline to a table. A single scheduled function runs daily, reads every expectation, and publishes one metric: the number of expectations that are now past due. That metric is emitted every day, whether or not anything is overdue, so it is a continuous series with a value of zero most of the time. Alarm on it going above zero with a one day period and a window of a day or two. The rare event has been converted into a number that is reported constantly, and CloudWatch is now being asked the question it was built for.
 
+{{< archify src="/diagrams/quarterly-alarm.html" title="Watching a quarterly job with a daily metric" caption="The rare event is written down as a deadline. The thing CloudWatch watches is a number that shows up every day." height="860" >}}
+
 The return file alarm falls out of the same mechanism. When the outbound file goes to the vendor, write an expectation with a deadline a few days out. Clear it when the return file lands. The sweeper does not care what kind of thing it is waiting for, which means the second, third, and tenth low-frequency pipeline cost a row in a table rather than a new alarm design.
 
 ## What this costs

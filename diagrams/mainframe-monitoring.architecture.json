@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "What the cutover removed",
+    "quality_profile": "showcase",
+    "views": [
+      { "id": "before", "label": "Before cutover", "focus": ["mfJob", "triggerFile", "fetchStep", "mergeOld", "vendorOld"], "note": "The mainframe held the schedule and the envelope, and the fetch step doubled as a missed-run check." },
+      { "id": "after", "label": "After cutover", "focus": ["cronRule", "generate", "buildFile", "vendorNew"], "note": "The platform holds the schedule, so nothing is ever absent and nothing throws." }
+    ]
+  },
+  "components": [
+    { "id": "mfJob", "type": "external", "label": "Mainframe job", "sublabel": "held the schedule", "pos": [70, 150], "size": [190, 70] },
+    { "id": "triggerFile", "type": "cloud", "label": "Trigger file", "sublabel": "transfer directory", "pos": [320, 150], "size": [190, 70], "tag": "absence was the alert" },
+    { "id": "fetchStep", "type": "backend", "label": "Fetch step", "sublabel": "first state in the machine", "pos": [570, 150], "size": [190, 70] },
+    { "id": "mergeOld", "type": "backend", "label": "Merge records", "sublabel": "into the mainframe file", "pos": [820, 150], "size": [190, 70] },
+    { "id": "vendorOld", "type": "external", "label": "Vendor", "sublabel": "validates trailer count", "pos": [1070, 150], "size": [190, 70] },
+    { "id": "cronRule", "type": "cloud", "label": "EventBridge rule", "sublabel": "holds the schedule", "pos": [70, 430], "size": [190, 70] },
+    { "id": "generate", "type": "backend", "label": "Generate records", "sublabel": "quarterly run", "pos": [570, 430], "size": [190, 70] },
+    { "id": "buildFile", "type": "backend", "label": "Build the whole file", "sublabel": "own header and trailer", "pos": [820, 430], "size": [190, 70] },
+    { "id": "vendorNew", "type": "external", "label": "Vendor", "sublabel": "same file, same layout", "pos": [1070, 430], "size": [190, 70] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Before cutover: the mainframe owns the clock", "wraps": ["mfJob", "triggerFile", "fetchStep", "mergeOld", "vendorOld"] },
+    { "kind": "region", "label": "After cutover: we own the clock", "wraps": ["cronRule", "generate", "buildFile", "vendorNew"] }
+  ],
+  "connections": [
+    { "id": "mf-writes-trigger", "from": "mfJob", "to": "triggerFile", "label": "writes on completion", "labelDy": 59 },
+    { "id": "trigger-starts-run", "from": "triggerFile", "to": "fetchStep", "label": "presence starts the run", "variant": "emphasis", "labelDy": 59 },
+    { "id": "fetch-to-merge", "from": "fetchStep", "to": "mergeOld" },
+    { "id": "merge-to-vendor", "from": "mergeOld", "to": "vendorOld", "label": "mainframe trailer", "labelDy": 59 },
+    { "id": "vendor-rejects", "from": "vendorOld", "to": "mergeOld", "label": "rejects on count mismatch", "variant": "dashed", "fromSide": "top", "toSide": "top" },
+    { "id": "cron-fires", "from": "cronRule", "to": "generate", "label": "nothing to wait for", "variant": "emphasis" },
+    { "id": "generate-to-build", "from": "generate", "to": "buildFile" },
+    { "id": "build-to-vendor", "from": "buildFile", "to": "vendorNew", "label": "our trailer" }
+  ],
+  "cards": [
+    { "dot": "amber", "title": "Signals the mainframe gave us for free", "items": ["A missing trigger file threw on fetch, and that throw was the only missed-run alert anyone got", "The trailer carried a record count that the vendor validated on receipt", "Neither was written down as a monitoring requirement"] },
+    { "dot": "rose", "title": "What cutover removed", "items": ["A rule that does not fire produces no error, no failed execution, no metric, no log", "Two of the four stacks had no CloudWatch alarms at all, and that had been fine for years", "A trailer count derived from the data it counts can only ever agree with it"] },
+    { "dot": "slate", "title": "The count that was never the same count", "items": ["182 events dispatched, 78 policy files produced, both numbers correct", "Only eligible orders produce a file, so the two counts had never matched", "The completeness check rejected a valid run on its first real outing"] }
+  ]
+}
